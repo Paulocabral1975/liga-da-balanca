@@ -1,0 +1,3117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Competição de Perda de Peso</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js"></script>
+
+  <!-- CSS mínimo para rodar standalone (ajuste/una com seu styles.css se quiser) -->
+  <style>
+    :root {
+      --bg:#0f172a; --card:#111827; --muted:#9ca3af; --text:#e5e7eb; --primary:#2563eb;
+      --success:#16a34a; --info:#0891b2; --danger:#dc2626; --border:#1f2937;
+    }
+    * { box-sizing: border-box }
+    body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:linear-gradient(180deg,#0b1220,#0f172a 40%,#0b1220); color:var(--text); }
+    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    .header { background: rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; padding: 16px; }
+    .header-content { display:flex; gap:16px; align-items: center; }
+    .header-left { width: 120px; }
+    .header-right { width: 280px; }
+    .header-center { flex:1; text-align:center; }
+    .header-icon { 
+      position: relative;
+      width:100px; 
+      height:100px; 
+      display:grid; 
+      place-items:center; 
+      border-radius:50%; 
+      background: linear-gradient(135deg, rgba(59,130,246,.25), rgba(139,92,246,.35), rgba(30,41,59,.3)); 
+      border:4px solid rgba(59,130,246,.6); 
+      color:#3b82f6; 
+      font-size:50px;
+      box-shadow: 0 8px 40px rgba(59,130,246,.4), inset 0 3px 0 rgba(255,255,255,.15), inset 0 -2px 0 rgba(0,0,0,.1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      align-self: flex-start;
+      margin-top: 8px;
+    }
+    
+    .header-icon:hover {
+      transform: translateY(-3px) scale(1.08);
+      box-shadow: 0 8px 40px rgba(59,130,246,.5), inset 0 2px 0 rgba(255,255,255,.25), inset 0 -1px 0 rgba(0,0,0,.1);
+      color: #8b5cf6;
+      border-color: rgba(59,130,246,.8);
+    }
+    
+    .icon-glow {
+      position: absolute;
+      top: -6px;
+      left: -6px;
+      right: -6px;
+      bottom: -6px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(59,130,246,.3), rgba(139,92,246,.2), rgba(30,41,59,.25));
+      filter: blur(15px);
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    
+    .header-icon:hover .icon-glow {
+      opacity: 1;
+    }
+    .timeline-section { 
+      margin-top: 15px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center;
+      width: 100%;
+    }
+    .timeline-label { 
+      display: block; 
+      font-size: 14px; 
+      font-weight: 500; 
+      color: #c7d2fe; 
+      margin-bottom: 8px; 
+      text-align: center;
+      width: 100%;
+    }
+    .progress-bar { 
+      height: 8px; 
+      width: 100%; 
+      max-width: 400px; 
+      background: linear-gradient(90deg, #1e293b, #334155); 
+      border:1px solid #3b82f6; 
+      border-radius:999px; 
+      overflow:hidden; 
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+      margin: 0 auto;
+    }
+    .progress-fill { height:100%; width:36%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+    .competition-dates { 
+      margin-top: 8px; 
+      text-align: center; 
+      font-size: 12px; 
+      color: #94a3b8; 
+      font-weight: 500;
+    }
+    .info-bubbles { display:flex; flex-direction:column; gap:8px; }
+    .info-bubble { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:12px; background: rgba(255,255,255,0.04); border:1px solid var(--border); font-size:14px; color:#c7d2fe; }
+    .status-dot { width:8px; height:8px; background:#22c55e; border-radius:999px; box-shadow:0 0 0 3px rgba(34,197,94,.15); }
+
+    .controls-section { margin: 16px 0; }
+    .control-buttons { display:flex; gap:10px; flex-wrap: wrap; }
+    .btn { border:1px solid var(--border); background: rgba(255,255,255,0.05); color:var(--text); padding:10px 14px; border-radius:10px; cursor:pointer; }
+    .btn:hover { background: rgba(255,255,255,0.08); }
+    .btn-primary { background: linear-gradient(180deg,#1d4ed8,#1e40af); border-color:#1e3a8a; }
+    .btn-success { background: linear-gradient(180deg,#15803d,#166534); border-color:#14532d; }
+    .btn-info { background: linear-gradient(180deg,#0e7490,#155e75); border-color:#164e63; }
+    .btn-secondary { background: #1f2937; }
+    .btn-danger { background: linear-gradient(180deg,#dc2626,#b91c1c); border-color:#7f1d1d; }
+    .btn-warning { background: linear-gradient(180deg,#f59e0b,#d97706); border-color:#92400e; color:#1f2937; }
+    .admin-only { transition: all 0.3s ease; }
+    .admin-only.hidden { display: none !important; }
+    
+    /* Estilos para cabeçalho clicável */
+    .clickable-header {
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .clickable-header:hover {
+      color: var(--primary);
+      transform: translateY(-1px);
+    }
+    
+    .toggle-icon {
+      transition: transform 0.3s ease;
+      font-size: 14px;
+    }
+    
+    .toggle-icon.expanded {
+      transform: rotate(180deg);
+    }
+    
+    .participants-container {
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+    
+    .participants-container.hidden {
+      max-height: 0;
+      opacity: 0;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .participants-container:not(.hidden) {
+      max-height: 1000px;
+      opacity: 1;
+    }
+    
+    /* Estilos para seção do usuário no canto superior direito */
+    .user-info-section {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      text-align: right;
+    }
+    
+    .user-avatar-small {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+    
+    .user-avatar-small i {
+      font-size: 24px;
+      color: white;
+    }
+    
+    .user-avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
+    .user-details-right {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: flex-end;
+    }
+    
+    .user-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+    }
+    
+    .user-role {
+      font-size: 12px;
+      color: var(--primary);
+      font-weight: 500;
+    }
+    
+    .user-department {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    
+    .logout-btn {
+      align-self: flex-end;
+      margin-top: 4px;
+    }
+    
+    .btn-small {
+      padding: 8px 12px;
+      font-size: 12px;
+      min-width: auto;
+    }
+    
+    .btn-small:hover {
+      transform: translateY(-1px);
+    }
+
+    .section-header { display:flex; justify-content:space-between; align-items:center; margin-top:18px; margin-bottom:10px; }
+    .competition-info { color: var(--muted); display:flex; gap:14px; }
+    .leaderboard { background: rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:14px; padding:12px; min-height:120px; }
+    .leaderboard-item { display:flex; justify-content:space-between; align-items:center; padding:12px; border-radius:12px; border:1px solid transparent; }
+    .leaderboard-item + .leaderboard-item { margin-top:6px; }
+    .leaderboard-item:hover { background: rgba(255,255,255,0.03); border-color: var(--border); }
+    .lb-left { display:flex; gap:12px; align-items:center; }
+    .lb-info { line-height:1.2; }
+    .lb-meta { color: var(--muted); font-size:12px; }
+
+    .no-participants { text-align:center; color:var(--muted); padding:24px; }
+    .participants-list .participant-row { display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid var(--border); border-radius:12px; background: rgba(255,255,255,0.02); }
+    .participants-list .participant-row + .participant-row { margin-top:8px; }
+    .pr-left { display:flex; align-items:center; gap:12px; }
+    .pr-info .pr-name { font-weight:600; }
+    .pr-info .pr-dept { color: var(--muted); font-size:12px; }
+    .pr-info .pr-profile { color: #fbbf24; font-size:11px; margin-top:2px; }
+    .pr-profile i { margin-right:4px; }
+    
+    .profile-badge { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 4px; 
+      background: rgba(251, 191, 36, 0.1); 
+      color: #fbbf24; 
+      padding: 4px 8px; 
+      border-radius: 12px; 
+      font-size: 11px; 
+      margin-top: 4px; 
+      border: 1px solid rgba(251, 191, 36, 0.2);
+    }
+    
+    .profile-badge i { font-size: 10px; }
+    .hidden { display:none !important; }
+
+    /* Avatares */
+    .avatar, .avatar-preview {
+      width: 64px; height: 64px; object-fit: cover; border-radius: 50%;
+      border: 2px solid #1f2937; background: #0b1020;
+    }
+    .avatar.sm { width: 40px; height: 40px; }
+    .avatar.lg { width: 80px; height: 80px; }
+    .avatar-initials {
+      width: 64px; height: 64px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+      background: #1f2937; color:#cbd5e1; font-weight:700; border:2px solid #0b1020;
+    }
+    .photo-preview { margin-top:8px; }
+
+    /* Modais */
+    .modal.hidden { display:none; }
+    .modal { position: fixed; inset:0; display:grid; place-items:center; background: rgba(0,0,0,0.5); padding: 20px; z-index: 50; }
+    .modal-content { width: 100%; max-width: 720px; background: #0b1020; border:1px solid var(--border); border-radius:14px; padding: 16px; }
+    .modal-content.large { max-width: 920px; }
+    .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .close-btn { background:transparent; color:#cbd5e1; border:none; cursor:pointer; font-size:20px; }
+    .form { display:flex; flex-direction:column; gap:12px; }
+    .form-row { display:flex; gap:12px; }
+    .form-row .form-group { flex:1; }
+    .form-group label { display:block; margin-bottom:6px; color:#cbd5e1; font-size:14px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#0a1222; color:var(--text);
+    }
+    
+    /* Estilos para o modal ChatGPT */
+    .chatgpt-options { display: flex; flex-direction: column; gap: 24px; }
+    .chatgpt-section h3 { color: var(--text); margin-bottom: 16px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+    .option-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .chatgpt-option { 
+      background: rgba(255,255,255,0.05); 
+      border: 1px solid var(--border); 
+      border-radius: 12px; 
+      padding: 16px; 
+      text-align: center; 
+      cursor: pointer; 
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .chatgpt-option:hover { 
+      background: rgba(59,130,246,0.1); 
+      border-color: #3b82f6; 
+      transform: translateY(-2px); 
+    }
+    .chatgpt-option i { font-size: 24px; color: #3b82f6; margin-bottom: 4px; }
+    .chatgpt-option span { font-weight: 600; color: var(--text); }
+    .chatgpt-option small { color: #94a3b8; font-size: 12px; }
+    .chat-input-section { display: flex; flex-direction: column; gap: 12px; }
+    .chat-input-section textarea { 
+      background: rgba(255,255,255,0.05); 
+      border: 1px solid var(--border); 
+      border-radius: 8px; 
+      padding: 12px; 
+      color: var(--text); 
+      resize: vertical; 
+      min-height: 100px;
+      font-family: inherit;
+    }
+    .chat-input-section textarea:focus { 
+      outline: none; 
+      border-color: #3b82f6; 
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.1); 
+    }
+    .direct-links { display: flex; gap: 12px; flex-wrap: wrap; }
+    .chatgpt-link { 
+      background: rgba(59,130,246,0.1); 
+      border: 1px solid #3b82f6; 
+      border-radius: 8px; 
+      padding: 12px 16px; 
+      color: #3b82f6; 
+      text-decoration: none; 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .chatgpt-link:hover { 
+      background: rgba(59,130,246,0.2); 
+      transform: translateY(-1px); 
+    }
+    
+    .form-group input[readonly] {
+      background: rgba(255,255,255,0.05); 
+      border-color: rgba(255,255,255,0.1); 
+      color: var(--muted); 
+      cursor: not-allowed;
+    }
+    .form-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
+    .help { color: var(--muted); font-size:12px; }
+
+    /* Stats/History */
+    .stats-grid { display:grid; grid-template-columns: repeat(4,1fr); gap:10px; }
+    .stat-card { display:flex; gap:10px; align-items:center; background: rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:12px; }
+    .stat-icon { width:40px; height:40px; display:grid; place-items:center; background:#0b1020; border:1px solid var(--border); border-radius:10px; color:#a5b4fc; }
+    .stat-info h3 { margin:0; }
+    .chart-section { margin-top:12px; border:1px dashed var(--border); padding:12px; border-radius:12px; color: var(--muted); text-align:center; }
+
+    .history-filters { display:flex; gap:10px; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .history-list { display:flex; flex-direction:column; gap:8px; }
+    .history-item { display:flex; justify-content:space-between; border:1px solid var(--border); padding:10px; border-radius:10px; background: rgba(255,255,255,0.02); }
+    @media (max-width: 760px) {
+      .header-content { flex-direction:column; align-items:flex-start; }
+      .header-left, .header-right { width: 100%; }
+      .header-left { order: 1; }
+      .header-center { order: 2; width: 100%; }
+      .header-right { order: 3; }
+      
+      .user-info-section {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        width: 100%;
+      }
+      
+      .user-avatar-small {
+        width: 40px;
+        height: 40px;
+      }
+      
+      .user-avatar-small i {
+        font-size: 20px;
+      }
+      
+      .user-details-right {
+        flex: 1;
+        align-items: flex-end;
+      }
+      
+      .logout-btn {
+        align-self: center;
+        margin-top: 0;
+      }
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+      .form-row { flex-direction:column; }
+      
+      .user-info-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+      }
+      
+      .user-details {
+        font-size: 12px;
+      }
+      
+      .btn-small {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+      <div class="header-content">
+        <div class="header-left">
+          <div class="header-icon">
+            <i class="fas fa-balance-scale-right"></i>
+            <div class="icon-glow"></div>
+          </div>
+        </div>
+        <div class="header-center">
+          <h1>Para ganhar tem que Perder</h1>
+          <p>Desafio do Peso: juntos na balança, unidos na vitória! 💪</p>
+          <div class="timeline-section">
+            <label class="timeline-label">Linha do Tempo</label>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+            <div id="competitionDates" class="competition-dates"></div>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="user-info-section">
+            <div class="user-avatar-small">
+              <i class="fas fa-user-circle" id="userAvatarIcon"></i>
+              <img id="userAvatarImage" class="user-avatar-img hidden" alt="Avatar do usuário">
+            </div>
+            <div class="user-details-right">
+              <div class="user-name" id="currentUserName">Usuário</div>
+              <div class="user-role" id="userRole">Perfil</div>
+              <div class="user-department" id="userDepartment">Departamento</div>
+            </div>
+            <button id="logoutBtn" class="btn btn-danger btn-small logout-btn">
+              <i class="fas fa-sign-out-alt"></i> Sair
+            </button>
+          </div>
+        </div>
+      </div>
+        </header>
+
+    <!-- Controles -->
+    <div class="controls-section">
+      <div class="control-buttons">
+        <button id="addParticipantBtn" class="btn btn-primary admin-only" style="display: none;"><i class="fas fa-user-plus"></i> Adicionar Participante</button>
+        <button id="addWeightBtn" class="btn btn-success"><i class="fas fa-weight"></i> Registrar Peso</button>
+        <button id="viewStatsBtn" class="btn btn-info"><i class="fas fa-chart-line"></i> Estatísticas</button>
+        <button id="chatgptBtn" class="btn btn-secondary"><i class="fas fa-robot"></i> ChatGPT</button>
+        <button id="adminLoginBtn" class="btn btn-warning"><i class="fas fa-shield-alt"></i> Login Admin</button>
+        <button id="manageUsersBtn" class="btn btn-info admin-only" style="display: none;"><i class="fas fa-users-cog"></i> Gerenciar Usuários</button>
+      </div>
+    </div>
+                
+    <!-- Ranking -->
+    <div class="leaderboard-section">
+      <div class="section-header">
+        <h2><i class="fas fa-medal"></i> Ranking da Competição</h2>
+        <div class="competition-info">
+          <span id="totalParticipants">0 participantes</span>
+          <span id="competitionDuration">Duração: 0 dias</span>
+        </div>
+      </div>
+      <div id="leaderboard" class="leaderboard">
+        <div class="no-participants">
+          <i class="fas fa-users"></i>
+          <h3>Nenhum participante ainda</h3>
+          <p>Adicione participantes para começar a competição!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Participantes -->
+    <div class="participants-section">
+      <div class="section-header">
+        <h2 id="participantsToggle" class="clickable-header"><i class="fas fa-users"></i> Participantes <i class="fas fa-chevron-down toggle-icon"></i></h2>
+        <div class="header-actions hidden" id="participantsActions">
+          <div class="view-options">
+            <button id="viewCards" class="btn btn-secondary active"><i class="fas fa-th"></i> Cards</button>
+            <button id="viewList" class="btn btn-secondary"><i class="fas fa-list"></i> Lista</button>
+            <button id="viewGrid" class="btn btn-secondary"><i class="fas fa-grid-3x3"></i> Grade</button>
+          </div>
+          <button id="viewWeightHistory" class="btn btn-info"><i class="fas fa-history"></i> Histórico de Pesagens</button>
+          <button id="configCompetition" class="btn btn-secondary admin-only"><i class="fas fa-cog"></i> Configurar</button>
+          <button id="clearData" class="btn btn-danger admin-only"><i class="fas fa-trash"></i> Limpar Dados</button>
+          <button id="adminLogin" class="btn btn-warning"><i class="fas fa-user-shield"></i> Admin</button>
+        </div>
+      </div>
+      <div id="participantsContainer" class="participants-container hidden">
+        <div id="participantsCards" class="participants-cards"></div>
+        <div id="participantsList" class="participants-list hidden"></div>
+        <div id="participantsGrid" class="participants-grid hidden"></div>
+      </div>
+    </div>
+
+  <!-- Modal: Adicionar Participante -->
+  <div id="participantModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-user-plus"></i> Adicionar Participante</h2>
+        <button id="closeParticipantModal" class="close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="participantForm" class="form">
+        <div class="form-group">
+          <label for="participantName">Nome Completo *</label>
+          <input type="text" id="participantName" name="name" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="initialWeight">Peso Inicial (kg) *</label>
+            <input type="number" id="initialWeight" name="initialWeight" step="0.1" min="30" max="300" required>
+          </div>
+          <div class="form-group">
+            <label for="targetWeight">Peso Meta (kg)</label>
+            <input type="number" id="targetWeight" name="targetWeight" step="0.1" min="30" max="300">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="department">Departamento</label>
+          <input type="text" id="department" name="department" placeholder="Ex: TI, RH, Vendas...">
+        </div>
+        
+        <div class="form-group">
+          <label for="participantProfile">Perfil de Acesso *</label>
+          <select id="participantProfile" name="profile" required>
+            <option value="">Selecione o perfil</option>
+            <option value="admin">Administrador</option>
+            <option value="moderator">Moderador</option>
+            <option value="user">Usuário</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="participantPassword">Senha de Acesso *</label>
+          <input type="password" id="participantPassword" name="password" placeholder="Digite uma senha para o participante" required>
+          <small class="help">Esta senha será usada para login no sistema</small>
+        </div>
+        
+        <div class="form-group">
+          <label for="participantLogin">Login do Usuário</label>
+          <input type="text" id="participantLogin" readonly placeholder="Será gerado automaticamente">
+          <small class="help">Login gerado automaticamente: primeira letra do nome + sobrenome</small>
+        </div>
+
+        <!-- FOTO (novo) -->
+        <div class="form-group">
+          <label for="participantPhoto">Foto (opcional)</label>
+          <input type="file" id="participantPhoto" accept="image/png,image/jpeg,image/webp,image/gif">
+          <div class="photo-preview">
+            <img id="participantPhotoPreview" class="avatar-preview hidden" alt="Pré-visualização">
+          </div>
+          <small class="help">Formatos: JPG, PNG, WEBP, GIF. Dica: prefira imagens até 3MB.</small>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="cancelParticipant" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Adicionar</button>
+        </div>
+      </form>
+    </div>
+            </div>
+            
+  <!-- Modal: Registrar Peso -->
+  <div id="weightModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-weight"></i> Registrar Peso</h2>
+        <button id="closeWeightModal" class="close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="weightForm" class="form">
+        <div class="form-group">
+          <label for="weightParticipant">Participante *</label>
+          <select id="weightParticipant" required>
+            <option value="">Selecione um participante</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="currentWeight">Peso Atual (kg) *</label>
+            <input type="number" id="currentWeight" step="0.1" min="30" max="300" required>
+          </div>
+          <div class="form-group">
+            <label for="weightDate">Data da Pesagem</label>
+            <input type="date" id="weightDate" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="notes">Observações</label>
+          <textarea id="notes" rows="3" placeholder="Como está se sentindo, dificuldades, conquistas..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" id="cancelWeight" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</button>
+          <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Registrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: ChatGPT -->
+  <div id="chatgptModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-robot"></i> Assistente IA - ChatGPT</h2>
+        <button id="closeChatgptModal" class="close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="chatgpt-options">
+        <div class="chatgpt-section">
+          <h3><i class="fas fa-lightbulb"></i> Sugestões de Uso</h3>
+          <div class="option-grid">
+            <button class="chatgpt-option" data-type="tips">
+              <i class="fas fa-dumbbell"></i>
+              <span>Dicas de Exercícios</span>
+              <small>Receba sugestões personalizadas de exercícios</small>
+            </button>
+            <button class="chatgpt-option" data-type="nutrition">
+              <i class="fas fa-apple-alt"></i>
+              <span>Conselhos Nutricionais</span>
+              <small>Orientações sobre alimentação saudável</small>
+            </button>
+            <button class="chatgpt-option" data-type="motivation">
+              <i class="fas fa-heart"></i>
+              <span>Motivação</span>
+              <small>Mensagens motivacionais para continuar</small>
+            </button>
+            <button class="chatgpt-option" data-type="progress">
+              <i class="fas fa-chart-line"></i>
+              <span>Análise de Progresso</span>
+              <small>Interpretação dos seus resultados</small>
+            </button>
+          </div>
+        </div>
+        
+        <div class="chatgpt-section">
+          <h3><i class="fas fa-comments"></i> Chat Personalizado</h3>
+          <div class="chat-input-section">
+            <textarea id="chatgptInput" placeholder="Digite sua pergunta ou solicitação aqui..."></textarea>
+            <button id="sendChatgptBtn" class="btn btn-primary">
+              <i class="fas fa-paper-plane"></i> Enviar
+            </button>
+          </div>
+        </div>
+        
+        <div class="chatgpt-section">
+          <h3><i class="fas fa-link"></i> Acesso Direto</h3>
+          <div class="direct-links">
+            <a href="https://chat.openai.com/" target="_blank" class="chatgpt-link">
+              <i class="fas fa-external-link-alt"></i>
+              Abrir ChatGPT Web
+            </a>
+            <button id="copyPromptBtn" class="chatgpt-link">
+              <i class="fas fa-copy"></i>
+              Copiar Prompt Personalizado
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Estatísticas -->
+  <div id="statsModal" class="modal hidden">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <h2><i class="fas fa-chart-line"></i> Estatísticas da Competição</h2>
+        <button id="closeStatsModal" class="close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="stats-content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-info"><h3 id="totalParticipantsStat">0</h3><p>Participantes</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-trophy"></i></div>
+            <div class="stat-info"><h3 id="bestPercentage">0%</h3><p>Melhor Resultado</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-weight-hanging"></i></div>
+            <div class="stat-info"><h3 id="totalWeightLost">0 kg</h3><p>Peso Total Perdido</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-calendar"></i></div>
+            <div class="stat-info"><h3 id="competitionDays">0</h3><p>Dias de Competição</p></div>
+          </div>
+        </div>
+        <div class="chart-section">
+          <h3>Evolução dos Participantes</h3>
+          <div id="weightChart" class="weight-chart"><p>Gráfico será exibido aqui</p></div>
+        </div>
+      </div>
+    </div>
+            </div>
+            
+  <!-- Modal: Histórico -->
+  <div id="historyModal" class="modal hidden">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <h2><i class="fas fa-history"></i> Histórico de Pesagens</h2>
+        <button id="closeHistoryModal" class="close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="history-content">
+        <div class="history-filters">
+          <select id="historyParticipantFilter">
+            <option value="">Todos os participantes</option>
+          </select>
+          <button id="exportHistory" class="btn btn-success"><i class="fas fa-download"></i> Exportar Dados</button>
+        </div>
+        <div id="historyList" class="history-list"></div>
+            </div>
+        </div>
+    </div>
+
+  <!-- Modal: Editar Participante -->
+  <div id="editParticipantModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-user-edit"></i> Editar Participante</h2>
+        <button id="closeEditParticipantModal" class="close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="editParticipantForm" class="form">
+        <input type="hidden" id="editParticipantId">
+        <div class="form-group">
+          <label for="editParticipantName">Nome Completo *</label>
+          <input type="text" id="editParticipantName" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editInitialWeight">Peso Inicial (kg) *</label>
+            <input type="number" id="editInitialWeight" step="0.1" min="30" max="300" required>
+          </div>
+          <div class="form-group">
+            <label for="editTargetWeight">Peso Meta (kg)</label>
+            <input type="number" id="editTargetWeight" step="0.1" min="30" max="300">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editDepartment">Departamento</label>
+          <input type="text" id="editDepartment" placeholder="Ex: TI, RH, Vendas...">
+        </div>
+        
+        <div class="form-group">
+          <label for="editParticipantProfile">Perfil de Acesso *</label>
+          <select id="editParticipantProfile" required>
+            <option value="">Selecione o perfil</option>
+            <option value="admin">Administrador</option>
+            <option value="moderator">Moderador</option>
+            <option value="user">Usuário</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="editParticipantPassword">Senha de Acesso</label>
+          <input type="password" id="editParticipantPassword" placeholder="Deixe em branco para manter a senha atual">
+          <small class="help">Deixe em branco para manter a senha atual, ou digite uma nova senha</small>
+        </div>
+        
+        <div class="form-group">
+          <label for="editParticipantLogin">Login do Usuário</label>
+          <input type="text" id="editParticipantLogin" readonly placeholder="Login do usuário">
+          <small class="help">Login gerado automaticamente: primeira letra do nome + sobrenome</small>
+        </div>
+
+        <!-- FOTO (editar) -->
+        <div class="form-group">
+          <label for="editParticipantPhoto">Foto (opcional)</label>
+          <input type="file" id="editParticipantPhoto" accept="image/png,image/jpeg,image/webp,image/gif">
+          <div class="photo-preview">
+            <img id="editParticipantPhotoPreview" class="avatar-preview hidden" alt="Pré-visualização">
+          </div>
+          <div class="form-row">
+            <button type="button" id="removePhotoBtn" class="btn btn-secondary"><i class="fas fa-image"></i> Remover foto</button>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="cancelEditParticipant" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</button>
+          <button type="button" id="deleteParticipant" class="btn btn-danger"><i class="fas fa-trash"></i> Excluir</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Configurar Competição -->
+  <div id="configCompetitionModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-cog"></i> Configurar Competição</h2>
+        <button id="closeConfigModal" class="close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="configCompetitionForm" class="form">
+        <div class="form-group">
+          <label for="competitionName">Nome da Competição</label>
+          <input type="text" id="competitionName" placeholder="Ex: Liga da Balança 2024">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="competitionStartDate">Data de Início *</label>
+            <input type="date" id="competitionStartDate" required>
+          </div>
+          <div class="form-group">
+            <label for="competitionEndDate">Data de Fim *</label>
+            <input type="date" id="competitionEndDate" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="competitionDescription">Descrição</label>
+          <textarea id="competitionDescription" rows="3" placeholder="Descreva os objetivos e regras da competição..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="competitionRules">Regras</label>
+          <textarea id="competitionRules" rows="4" placeholder="Ex: 3 pesagens por participante, pesagem semanal..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" id="cancelConfig" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Configuração</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script>
+    // ========= VERIFICAÇÃO DE LOGIN =========
+    function checkLogin() {
+      try {
+        const session = JSON.parse(localStorage.getItem('lb_session_v1') || '{}');
+        const now = new Date();
+        
+        if (!session.userId || !session.loginTime) {
+          redirectToLogin();
+          return false;
+        }
+        
+        const loginDate = new Date(session.loginTime);
+        const hoursDiff = (now - loginDate) / (1000 * 60 * 60);
+        
+        if (hoursDiff >= 8) {
+          // Sessão expirada
+          clearSession();
+          redirectToLogin();
+          return false;
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('Erro ao verificar login:', error);
+        redirectToLogin();
+        return false;
+      }
+    }
+    
+    function redirectToLogin() {
+      alert('Sessão expirada ou inválida. Redirecionando para o login...');
+      window.location.href = 'login.html';
+    }
+    
+    function clearSession() {
+      localStorage.removeItem('lb_session_v1');
+      localStorage.removeItem('isAdmin');
+      localStorage.removeItem('adminUser');
+      localStorage.removeItem('adminLoginTime');
+      localStorage.removeItem('currentUserId');
+    }
+    
+    // Verifica login antes de continuar
+    if (!checkLogin()) {
+      // Para a execução se não estiver logado
+      throw new Error('Usuário não autenticado');
+    }
+    
+    // ========= Estado & Persistência =========
+    const LS_KEY = 'lb_participants_v1';
+    const CONFIG_KEY = 'lb_competition_config_v1';
+    let participants = loadParticipants();
+    let competitionConfig = loadCompetitionConfig();
+
+    function loadParticipants() {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return [];
+      try { 
+        const data = JSON.parse(raw) || [];
+        // Migração: adiciona perfil e senha padrão para participantes existentes
+        return data.map(p => {
+          const updatedParticipant = {
+            ...p,
+            profile: p.profile || 'user', // Perfil padrão para participantes existentes
+            password: p.password || '123456' // Senha padrão para participantes existentes
+          };
+          
+          // Cria usuário para participantes existentes que não têm
+          if (!p.password) {
+            console.log('Migrando participante existente:', updatedParticipant.name);
+            createParticipantUser(updatedParticipant);
+          }
+          
+          return updatedParticipant;
+        });
+      } catch { return []; }
+    }
+    function saveParticipants() {
+      try {
+        const data = JSON.stringify(participants);
+        localStorage.setItem(LS_KEY, data);
+        console.log('Participantes salvos com sucesso no localStorage');
+      } catch (error) {
+        console.error('Erro ao salvar no localStorage:', error);
+        
+        if (error.name === 'QuotaExceededError') {
+          console.log('Quota do localStorage excedida. Tentando limpar dados antigos...');
+          
+          // Limpa dados antigos e tenta novamente
+          clearOldData();
+          
+          try {
+            const data = JSON.stringify(participants);
+            localStorage.setItem(LS_KEY, data);
+            console.log('Participantes salvos após limpeza');
+            alert('Dados antigos foram limpos para liberar espaço. Participante adicionado com sucesso!');
+          } catch (retryError) {
+            console.error('Erro persistente ao salvar:', retryError);
+            alert('Erro: Não foi possível salvar os dados. O localStorage está cheio. Tente limpar os dados do navegador.');
+          }
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    function clearOldData() {
+      // Remove chaves antigas que podem estar ocupando espaço
+      const keysToRemove = [
+        'lb_participants_v0',
+        'lb_participants_v1_old',
+        'competition_data',
+        'weight_records',
+        'participants_backup'
+      ];
+      
+      keysToRemove.forEach(key => {
+        try {
+          localStorage.removeItem(key);
+          console.log(`Chave removida: ${key}`);
+        } catch (e) {
+          console.log(`Erro ao remover ${key}:`, e);
+        }
+      });
+      
+      // Limpa dados de competição antigos se existirem
+      try {
+        const config = localStorage.getItem(CONFIG_KEY);
+        if (config) {
+          const parsed = JSON.parse(config);
+          // Remove dados desnecessários da configuração
+          delete parsed.oldData;
+          delete parsed.backup;
+          localStorage.setItem(CONFIG_KEY, JSON.stringify(parsed));
+        }
+      } catch (e) {
+        console.log('Erro ao limpar configuração:', e);
+      }
+    }
+
+    function clearAllData() {
+      try {
+        // Limpa todos os dados da aplicação
+        localStorage.removeItem(LS_KEY);
+        localStorage.removeItem(CONFIG_KEY);
+        
+        // Limpa dados antigos
+        clearOldData();
+        
+        // Reseta as variáveis
+        participants = [];
+        competitionConfig = loadCompetitionConfig();
+        
+        // Atualiza a interface
+        refreshAll();
+        
+        console.log('Todos os dados foram limpos');
+        alert('Todos os dados foram limpos com sucesso!');
+      } catch (error) {
+        console.error('Erro ao limpar dados:', error);
+        alert('Erro ao limpar dados. Tente limpar manualmente no navegador.');
+      }
+    }
+
+    function getStorageInfo() {
+      let totalSize = 0;
+      const info = {};
+      
+      for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+          const size = localStorage.getItem(key).length;
+          totalSize += size;
+          info[key] = size;
+        }
+      }
+      
+      return {
+        totalSize,
+        totalSizeKB: Math.round(totalSize / 1024),
+        totalSizeMB: Math.round(totalSize / (1024 * 1024) * 100) / 100,
+        items: info
+      };
+    }
+
+    function loadCompetitionConfig() {
+      const raw = localStorage.getItem(CONFIG_KEY);
+      if (!raw) {
+        // Configuração padrão
+        const today = new Date();
+        const endDate = new Date(today);
+        endDate.setMonth(endDate.getMonth() + 1); // 1 mês a partir de hoje
+        
+        return {
+          name: 'Liga da Balança',
+          startDate: today.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+          description: 'Desafio do Peso: juntos na balança, unidos na vitória! 💪',
+          rules: '3 pesagens por participante, pesagem semanal'
+        };
+      }
+      try { return JSON.parse(raw) || {}; } catch { return {}; }
+    }
+    
+    function saveCompetitionConfig() {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(competitionConfig));
+    }
+
+    // ========= Utilitários =========
+    function uid() { return (crypto?.randomUUID?.() || String(Date.now()) + Math.random().toString(36).slice(2)); }
+    function pctLoss(p) {
+      const first = p.initialWeight;
+      const cur = currentWeight(p);
+      if (!first || !cur) return 0;
+      return ((first - cur) / first) * 100;
+    }
+    function currentWeight(p) {
+      if (!p.weights?.length) return null;
+      return p.weights[p.weights.length - 1].value;
+    }
+    function totalWeightLost() {
+      return participants.reduce((acc,p)=>{
+        const cw = currentWeight(p); if (!cw) return acc;
+        return acc + Math.max(0, p.initialWeight - cw);
+      }, 0);
+    }
+    function daysSinceStart() {
+      if (!competitionConfig.startDate) return 0;
+      const startDate = new Date(competitionConfig.startDate);
+      const today = new Date();
+      const diff = today - startDate;
+      return Math.max(0, Math.round(diff / (1000*60*60*24)));
+    }
+
+    function getCompetitionWeek() {
+      const days = daysSinceStart();
+      return Math.floor(days / 7) + 1;
+    }
+
+    function getCompetitionStatus() {
+      if (!competitionConfig.startDate || !competitionConfig.endDate) return 'Não configurada';
+      
+      const today = new Date();
+      const startDate = new Date(competitionConfig.startDate);
+      const endDate = new Date(competitionConfig.endDate);
+      
+      if (today < startDate) return 'Aguardando início';
+      if (today > endDate) return 'Finalizada';
+      return 'Ativa';
+    }
+
+    function getCompetitionProgress() {
+      if (!competitionConfig.startDate || !competitionConfig.endDate) return 0;
+      
+      const today = new Date();
+      const startDate = new Date(competitionConfig.startDate);
+      const endDate = new Date(competitionConfig.endDate);
+      
+      const totalDays = (endDate - startDate) / (1000*60*60*24);
+      const elapsedDays = Math.max(0, (today - startDate) / (1000*60*60*24));
+      
+      return Math.min(100, Math.max(0, (elapsedDays / totalDays) * 100));
+    }
+    function getInitials(name = '') {
+      return name.trim().split(/\s+/).slice(0,2).map(s=>s[0]?.toUpperCase()||'').join('');
+    }
+
+    // Imagem: preview/base64
+    function fileToDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => {
+          const result = fr.result;
+          // Otimiza a imagem se for muito grande
+          if (result.length > 500000) { // Se maior que ~500KB
+            console.log('Imagem muito grande, otimizando...');
+            optimizeImage(result).then(resolve).catch(() => resolve(result));
+          } else {
+            resolve(result);
+          }
+        };
+        fr.onerror = reject;
+        fr.readAsDataURL(file);
+      });
+    }
+
+    function optimizeImage(dataURL) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Redimensiona para máximo 300x300px
+          const maxSize = 300;
+          let { width, height } = img;
+          
+          if (width > height) {
+            if (width > maxSize) {
+              height = (height * maxSize) / width;
+              width = maxSize;
+            }
+          } else {
+            if (height > maxSize) {
+              width = (width * maxSize) / height;
+              height = maxSize;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          const optimizedDataURL = canvas.toDataURL('image/jpeg', 0.7); // 70% qualidade
+          
+          console.log(`Imagem otimizada: ${dataURL.length} -> ${optimizedDataURL.length} bytes`);
+          resolve(optimizedDataURL);
+        };
+        img.src = dataURL;
+      });
+    }
+    function bindImagePreview(inputEl, imgEl) {
+      inputEl.addEventListener('change', async () => {
+        const file = inputEl.files?.[0];
+        if (!file) {
+          imgEl.src = ''; imgEl.classList.add('hidden'); return;
+        }
+        if (!file.type.startsWith('image/')) {
+          alert('Selecione um arquivo de imagem.'); inputEl.value = ''; return;
+        }
+        const url = URL.createObjectURL(file);
+        imgEl.src = url;
+        imgEl.classList.remove('hidden');
+      });
+    }
+
+    // ========= Elementos =========
+    const addParticipantBtn = document.getElementById('addParticipantBtn');
+    const addWeightBtn = document.getElementById('addWeightBtn');
+    const viewStatsBtn = document.getElementById('viewStatsBtn');
+    const viewCardsBtn = document.getElementById('viewCards');
+    const viewListBtn = document.getElementById('viewList');
+    const viewGridBtn = document.getElementById('viewGrid');
+    const viewHistoryBtn = document.getElementById('viewWeightHistory');
+
+    const participantModal = document.getElementById('participantModal');
+    const weightModal = document.getElementById('weightModal');
+    const statsModal = document.getElementById('statsModal');
+    const historyModal = document.getElementById('historyModal');
+    const editParticipantModal = document.getElementById('editParticipantModal');
+    const configCompetitionModal = document.getElementById('configCompetitionModal');
+    const chatgptModal = document.getElementById('chatgptModal');
+
+    const closeParticipantModal = document.getElementById('closeParticipantModal');
+    const closeWeightModal = document.getElementById('closeWeightModal');
+    const closeStatsModal = document.getElementById('closeStatsModal');
+    const closeHistoryModal = document.getElementById('closeHistoryModal');
+    const closeEditParticipantModal = document.getElementById('closeEditParticipantModal');
+    const closeConfigModal = document.getElementById('closeConfigModal');
+    const closeChatgptModal = document.getElementById('closeChatgptModal');
+
+    const participantsCardsEl = document.getElementById('participantsCards');
+    const participantsListEl = document.getElementById('participantsList');
+    const participantsGridEl = document.getElementById('participantsGrid');
+    const leaderboardEl = document.getElementById('leaderboard');
+
+    const totalParticipantsEl = document.getElementById('totalParticipants');
+    const competitionDurationEl = document.getElementById('competitionDuration');
+
+    // Formularios
+    const participantForm = document.getElementById('participantForm');
+    const weightForm = document.getElementById('weightForm');
+    const editParticipantForm = document.getElementById('editParticipantForm');
+    const configCompetitionForm = document.getElementById('configCompetitionForm');
+
+    // Campos adicionar participante
+    const participantName = document.getElementById('participantName');
+    const initialWeight = document.getElementById('initialWeight');
+    const targetWeight = document.getElementById('targetWeight');
+    const department = document.getElementById('department');
+    const participantPhotoInput = document.getElementById('participantPhoto');
+    const participantPhotoPreview = document.getElementById('participantPhotoPreview');
+    const participantLogin = document.getElementById('participantLogin');
+
+    // Campos peso
+    const weightParticipant = document.getElementById('weightParticipant');
+    const currentWeightInput = document.getElementById('currentWeight');
+    const weightDate = document.getElementById('weightDate');
+    const notes = document.getElementById('notes');
+
+    // Campos editar participante
+    const editParticipantId = document.getElementById('editParticipantId');
+    const editParticipantName = document.getElementById('editParticipantName');
+    const editInitialWeight = document.getElementById('editInitialWeight');
+    const editTargetWeight = document.getElementById('editTargetWeight');
+    const editDepartment = document.getElementById('editDepartment');
+    const editParticipantPhotoInput = document.getElementById('editParticipantPhoto');
+    const editParticipantPhotoPreview = document.getElementById('editParticipantPhotoPreview');
+    const editParticipantLogin = document.getElementById('editParticipantLogin');
+    const removePhotoBtn = document.getElementById('removePhotoBtn');
+
+    const cancelParticipantBtn = document.getElementById('cancelParticipant');
+    const cancelWeightBtn = document.getElementById('cancelWeight');
+    const cancelEditParticipantBtn = document.getElementById('cancelEditParticipant');
+    const deleteParticipantBtn = document.getElementById('deleteParticipant');
+    const cancelConfigBtn = document.getElementById('cancelConfig');
+
+    // Campos configuração da competição
+    const competitionName = document.getElementById('competitionName');
+    const competitionStartDate = document.getElementById('competitionStartDate');
+    const competitionEndDate = document.getElementById('competitionEndDate');
+    const competitionDescription = document.getElementById('competitionDescription');
+    const competitionRules = document.getElementById('competitionRules');
+
+    const historyParticipantFilter = document.getElementById('historyParticipantFilter');
+    const exportHistoryBtn = document.getElementById('exportHistory');
+    const historyListEl = document.getElementById('historyList');
+
+    // Preview foto binds
+    bindImagePreview(participantPhotoInput, participantPhotoPreview);
+    bindImagePreview(editParticipantPhotoInput, editParticipantPhotoPreview);
+    removePhotoBtn.addEventListener('click', () => {
+      editParticipantPhotoInput.value = '';
+      editParticipantPhotoPreview.src = '';
+      editParticipantPhotoPreview.classList.add('hidden');
+      editParticipantPhotoPreview.dataset.remove = '1';
+    });
+
+    // ========= Abrir/Fechar Modais =========
+    const open = (el) => el.classList.remove('hidden');
+    const close = (el) => el.classList.add('hidden');
+
+    addParticipantBtn.addEventListener('click', () => open(participantModal));
+    addWeightBtn.addEventListener('click', () => {
+      populateParticipantsSelect(weightParticipant);
+      // data de hoje
+      weightDate.valueAsDate = new Date();
+      open(weightModal);
+    });
+    viewStatsBtn.addEventListener('click', () => {
+      updateStats();
+      open(statsModal);
+    });
+    
+    document.getElementById('chatgptBtn').addEventListener('click', () => {
+      open(chatgptModal);
+    });
+    viewHistoryBtn.addEventListener('click', () => {
+      populateParticipantsSelect(historyParticipantFilter, true);
+      renderHistory();
+      open(historyModal);
+    });
+    document.getElementById('configCompetition').addEventListener('click', () => {
+      // Verifica se o usuário tem permissão para configurar competição
+      if (!hasPermission('config_competition')) {
+        alert('Acesso negado! Apenas administradores podem configurar a competição.');
+        return;
+      }
+      openConfigModal();
+    });
+    
+    document.getElementById('clearData').addEventListener('click', () => {
+      if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita!')) {
+        clearAllData();
+      }
+    });
+
+    closeParticipantModal.addEventListener('click', () => close(participantModal));
+    closeWeightModal.addEventListener('click', () => close(weightModal));
+    closeStatsModal.addEventListener('click', () => close(statsModal));
+    closeHistoryModal.addEventListener('click', () => close(historyModal));
+    closeEditParticipantModal.addEventListener('click', () => close(editParticipantModal));
+    closeConfigModal.addEventListener('click', () => close(configCompetitionModal));
+    closeChatgptModal.addEventListener('click', () => close(chatgptModal));
+
+    cancelParticipantBtn.addEventListener('click', () => close(participantModal));
+    cancelWeightBtn.addEventListener('click', () => close(weightModal));
+    cancelEditParticipantBtn.addEventListener('click', () => close(editParticipantModal));
+    cancelConfigBtn.addEventListener('click', () => close(configCompetitionModal));
+
+    // Event listeners para visualizações
+    viewCardsBtn.addEventListener('click', () => switchView('cards'));
+    viewListBtn.addEventListener('click', () => switchView('list'));
+    viewGridBtn.addEventListener('click', () => switchView('grid'));
+
+    // ========= Configuração da Competição =========
+    function openConfigModal() {
+      // Preenche os campos com a configuração atual
+      competitionName.value = competitionConfig.name || '';
+      competitionStartDate.value = competitionConfig.startDate || '';
+      competitionEndDate.value = competitionConfig.endDate || '';
+      competitionDescription.value = competitionConfig.description || '';
+      competitionRules.value = competitionConfig.rules || '';
+      
+      open(configCompetitionModal);
+    }
+
+    function updateCompetitionInfo() {
+      // Atualiza o título da competição
+      const titleElement = document.querySelector('.header-center h1');
+      if (competitionConfig.name) {
+        titleElement.textContent = competitionConfig.name;
+      }
+      
+      // Atualiza o subtítulo (sem as datas)
+      const subtitleElement = document.querySelector('.header-center p');
+      if (competitionConfig.description) {
+        subtitleElement.textContent = competitionConfig.description;
+      }
+      
+      // Atualiza as datas abaixo da barra de progresso
+      const datesElement = document.getElementById('competitionDates');
+      if (datesElement && competitionConfig.startDate && competitionConfig.endDate) {
+        const startDate = new Date(competitionConfig.startDate).toLocaleDateString('pt-BR');
+        const endDate = new Date(competitionConfig.endDate).toLocaleDateString('pt-BR');
+        datesElement.innerHTML = `📅 Período: ${startDate} a ${endDate}`;
+      } else if (datesElement) {
+        datesElement.innerHTML = '';
+      }
+      
+      // Atualiza as informações do header
+      const competitionWeekElement = document.getElementById('competitionWeek');
+      if (competitionWeekElement) {
+        competitionWeekElement.textContent = `Semana ${getCompetitionWeek()}`;
+      }
+      
+      if (competitionConfig.startDate && competitionConfig.endDate) {
+        const startDate = new Date(competitionConfig.startDate).toLocaleDateString('pt-BR');
+        const endDate = new Date(competitionConfig.endDate).toLocaleDateString('pt-BR');
+        const competitionPeriodElement = document.getElementById('competitionPeriod');
+        if (competitionPeriodElement) {
+          competitionPeriodElement.textContent = `Período: ${startDate} - ${endDate}`;
+        }
+      }
+      
+      const competitionStatusElement = document.getElementById('competitionStatus');
+      if (competitionStatusElement) {
+        competitionStatusElement.textContent = `Status: ${getCompetitionStatus()}`;
+      }
+      
+      // Atualiza a barra de progresso
+      const progressFill = document.querySelector('.progress-fill');
+      const progress = getCompetitionProgress();
+      progressFill.style.width = `${progress}%`;
+    }
+
+    // ========= Visualizações =========
+    function switchView(viewType) {
+      // Remove active de todos os botões
+      document.querySelectorAll('.view-options .btn').forEach(btn => btn.classList.remove('active'));
+      
+      // Esconde todas as visualizações
+      participantsCardsEl.classList.add('hidden');
+      participantsListEl.classList.add('hidden');
+      participantsGridEl.classList.add('hidden');
+      
+      // Mostra a visualização selecionada e ativa o botão
+      switch(viewType) {
+        case 'cards':
+          participantsCardsEl.classList.remove('hidden');
+          viewCardsBtn.classList.add('active');
+          renderParticipantsCards();
+          break;
+        case 'list':
+          participantsListEl.classList.remove('hidden');
+          viewListBtn.classList.add('active');
+          renderParticipantsList();
+          break;
+        case 'grid':
+          participantsGridEl.classList.remove('hidden');
+          viewGridBtn.classList.add('active');
+          renderParticipantsGrid();
+          break;
+      }
+    }
+
+    // ========= Render Helpers =========
+    function avatarHTML(p) {
+      if (p.photo) {
+        return `<img src="${p.photo}" alt="${p.name}" class="avatar">`;
+      }
+      return `<div class="avatar-initials" title="${p.name}">${getInitials(p.name)}</div>`;
+    }
+    
+    // ========= FUNÇÕES DE USUÁRIOS =========
+    function setupLoginUpdate() {
+      // Atualiza login automaticamente quando nome é digitado
+      const participantNameField = document.getElementById('participantName');
+      const participantLoginField = document.getElementById('participantLogin');
+      const editParticipantNameField = document.getElementById('editParticipantName');
+      const editParticipantLoginField = document.getElementById('editParticipantLogin');
+      
+      if (participantNameField && participantLoginField) {
+        participantNameField.addEventListener('input', function() {
+          updateParticipantLogin(participantNameField.value, participantLoginField);
+        });
+      }
+      
+      if (editParticipantNameField && editParticipantLoginField) {
+        editParticipantNameField.addEventListener('input', function() {
+          updateParticipantLogin(editParticipantNameField.value, editParticipantLoginField);
+        });
+      }
+    }
+    
+    function updateParticipantLogin(name, loginField) {
+      if (name.trim()) {
+        const login = generateParticipantLogin(name);
+        loginField.value = login;
+      } else {
+        loginField.value = '';
+      }
+    }
+    
+    function generateParticipantLogin(name) {
+      const trimmedName = name.trim();
+      if (!trimmedName) return '';
+      
+      const nameParts = trimmedName.split(/\s+/);
+      if (nameParts.length === 1) {
+        // Se só tem um nome, usa ele inteiro em minúsculas
+        return nameParts[0].toLowerCase();
+      } else {
+        // Primeira letra do primeiro nome + sobrenome completo
+        const firstName = nameParts[0];
+        const lastName = nameParts[nameParts.length - 1];
+        return (firstName.charAt(0) + lastName).toLowerCase();
+      }
+    }
+    
+    function createParticipantUser(participant) {
+      try {
+        console.log('=== CRIANDO USUÁRIO PARA PARTICIPANTE ===');
+        console.log('Participante:', participant);
+        console.log('Login gerado:', generateParticipantLogin(participant.name));
+        
+        const users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+        
+        // Verifica se já existe um usuário para este participante
+        const existingUser = users.find(u => u.participantId === participant.id);
+        if (existingUser) {
+          console.log('Usuário já existe para este participante, atualizando...');
+          // Atualiza dados do usuário existente
+          existingUser.name = participant.name;
+          existingUser.email = `${generateParticipantLogin(participant.name)}@participante.com`;
+          existingUser.password = participant.password;
+          existingUser.role = participant.profile;
+          existingUser.department = participant.department;
+          existingUser.phone = '';
+          existingUser.permissions = getPermissionsByRole(participant.profile);
+          existingUser.status = 'active';
+          existingUser.lastAccess = null;
+        } else {
+          console.log('Criando novo usuário para participante...');
+          // Cria novo usuário
+          const newUser = {
+            id: uid(),
+            participantId: participant.id,
+            name: participant.name,
+            email: `${generateParticipantLogin(participant.name)}@participante.com`,
+            role: participant.profile,
+            password: participant.password,
+            department: participant.department,
+            phone: '',
+            permissions: getPermissionsByRole(participant.profile),
+            status: 'active',
+            createdAt: new Date().toISOString(),
+            lastAccess: null
+          };
+          users.push(newUser);
+        }
+        
+        localStorage.setItem('lb_users_v1', JSON.stringify(users));
+        console.log('Usuário criado/atualizado para participante:', participant.name);
+        console.log('Email do usuário:', `${generateParticipantLogin(participant.name)}@participante.com`);
+        console.log('Login do usuário:', generateParticipantLogin(participant.name));
+        
+      } catch (error) {
+        console.error('Erro ao criar usuário para participante:', error);
+      }
+    }
+    
+    function getPermissionsByRole(role) {
+      const permissions = {
+        'admin': ['add_participant', 'edit_participant', 'delete_participant', 'register_weight', 'manage_users', 'config_competition', 'view_stats', 'export_data', 'clear_data'],
+        'moderator': ['view_stats', 'export_data'],
+        'user': ['view_stats']
+      };
+      return permissions[role] || ['view_stats'];
+    }
+    
+    function updateParticipantUser(participant) {
+      try {
+        const users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+        const userIndex = users.findIndex(u => u.participantId === participant.id);
+        
+        if (userIndex !== -1) {
+          users[userIndex].name = participant.name;
+          users[userIndex].role = participant.profile;
+          users[userIndex].department = participant.department;
+          users[userIndex].permissions = getPermissionsByRole(participant.profile);
+          
+          // Atualiza senha apenas se fornecida
+          if (participant.password) {
+            users[userIndex].password = participant.password;
+          }
+          
+          localStorage.setItem('lb_users_v1', JSON.stringify(users));
+          console.log('Usuário atualizado para participante:', participant.name);
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar usuário do participante:', error);
+      }
+    }
+    
+    function getProfileDisplayName(profile) {
+      const profiles = {
+        'admin': 'Administrador',
+        'moderator': 'Moderador',
+        'user': 'Usuário'
+      };
+      return profiles[profile] || 'Usuário';
+    }
+    
+    function getProfileIcon(profile) {
+      const icons = {
+        'admin': 'fas fa-crown',
+        'moderator': 'fas fa-user-shield',
+        'user': 'fas fa-user'
+      };
+      return icons[profile] || 'fas fa-user';
+    }
+
+    function renderLeaderboard() {
+      leaderboardEl.innerHTML = '';
+      if (!participants.length) {
+        leaderboardEl.innerHTML = `
+          <div class="no-participants">
+            <i class="fas fa-users"></i>
+            <h3>Nenhum participante ainda</h3>
+            <p>Adicione participantes para começar a competição!</p>
+          </div>`;
+        return;
+      }
+      // Ordena por % de perda (desc)
+      const sorted = [...participants].sort((a,b) => pctLoss(b) - pctLoss(a));
+      sorted.forEach((p, idx) => {
+        const pos = idx + 1;
+        const meta = p.department ? `<div class="lb-meta">${p.department}</div>` : '';
+        const cur = currentWeight(p);
+        const perc = pctLoss(p);
+        const item = document.createElement('div');
+        item.className = 'leaderboard-item';
+        item.innerHTML = `
+          <div class="lb-left">
+            ${avatarHTML(p)}
+            <div class="lb-info">
+              <strong>${pos}º</strong> ${p.name}
+              ${meta}
+            </div>
+          </div>
+          <div class="lb-right">
+            <div style="text-align:right;">
+              <div><strong>${cur?.toFixed?.(1) ?? '-'}</strong> kg</div>
+              <div style="color:${perc>=0?'#22c55e':'#ef4444'}">${perc.toFixed(1)}%</div>
+            </div>
+          </div>
+        `;
+        leaderboardEl.appendChild(item);
+      });
+    }
+
+    function renderParticipantsCards() {
+      participantsCardsEl.innerHTML = '';
+      if (!participants.length) {
+        participantsCardsEl.innerHTML = '<div class="no-participants"><p>Nenhum participante cadastrado.</p></div>';
+        return;
+      }
+      participants.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'participant-card';
+        const cur = currentWeight(p);
+        const perc = pctLoss(p);
+        const meta = p.department ? `<div class="department">${p.department}</div>` : '';
+        const profile = p.profile ? `<div class="profile-badge"><i class="${getProfileIcon(p.profile)}"></i> ${getProfileDisplayName(p.profile)}</div>` : '';
+        card.innerHTML = `
+          <div class="participant-card-header">
+            <div class="participant-name-card">${p.name}</div>
+            ${meta}
+            ${profile}
+          </div>
+          <div class="participant-stats">
+            <div class="stat-item">
+              <div class="stat-label">Peso Atual</div>
+              <div class="stat-value">${cur?.toFixed?.(1) ?? '-'} kg</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Perda</div>
+              <div class="stat-value" style="color:${perc>=0?'#28a745':'#dc3545'}">${perc.toFixed(1)}%</div>
+            </div>
+          </div>
+          <div class="participant-actions">
+            <button class="btn btn-secondary" data-edit="${p.id}"><i class="fas fa-pen"></i> Editar</button>
+            <button class="btn btn-info" data-history="${p.id}"><i class="fas fa-chart-line"></i> Histórico</button>
+            <button class="btn btn-warning" data-credentials="${p.id}"><i class="fas fa-key"></i> Credenciais</button>
+          </div>
+        `;
+        participantsCardsEl.appendChild(card);
+      });
+      bindParticipantActions(participantsCardsEl);
+    }
+
+    function renderParticipantsList() {
+      participantsListEl.innerHTML = '';
+      if (!participants.length) {
+        participantsListEl.innerHTML = '<div class="no-participants"><p>Nenhum participante cadastrado.</p></div>';
+        return;
+      }
+      participants.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'participant-row';
+        const cur = currentWeight(p);
+        const perc = pctLoss(p);
+        const profile = p.profile ? `<div class="pr-profile"><i class="${getProfileIcon(p.profile)}"></i> ${getProfileDisplayName(p.profile)}</div>` : '';
+        row.innerHTML = `
+          <div class="pr-left">
+            ${avatarHTML(p)}
+            <div class="pr-info">
+              <div class="pr-name">${p.name}</div>
+              <div class="pr-dept">${p.department || ''}</div>
+              ${profile}
+            </div>
+          </div>
+          <div class="pr-right">
+            <div style="text-align: right; margin-right: 15px;">
+              <div><strong>${cur?.toFixed?.(1) ?? '-'} kg</strong></div>
+              <div style="color:${perc>=0?'#28a745':'#dc3545'}">${perc.toFixed(1)}%</div>
+            </div>
+            <button class="btn btn-secondary" data-edit="${p.id}"><i class="fas fa-pen"></i> Editar</button>
+            <button class="btn btn-info" data-history="${p.id}"><i class="fas fa-chart-line"></i> Histórico</button>
+          </div>
+        `;
+        participantsListEl.appendChild(row);
+      });
+      bindParticipantActions(participantsListEl);
+    }
+
+    function renderParticipantsGrid() {
+      participantsGridEl.innerHTML = '';
+      if (!participants.length) {
+        participantsGridEl.innerHTML = '<div class="no-participants"><p>Nenhum participante cadastrado.</p></div>';
+        return;
+      }
+      participants.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'participant-card';
+        const cur = currentWeight(p);
+        const perc = pctLoss(p);
+        const meta = p.department ? `<div class="department">${p.department}</div>` : '';
+        const profile = p.profile ? `<div class="profile-badge"><i class="${getProfileIcon(p.profile)}"></i> ${getProfileDisplayName(p.profile)}</div>` : '';
+        card.innerHTML = `
+          <div class="participant-card-header">
+            ${avatarHTML(p)}
+            <div class="participant-name-card">${p.name}</div>
+            ${meta}
+            ${profile}
+          </div>
+          <div class="participant-stats">
+            <div class="stat-item">
+              <div class="stat-label">Peso</div>
+              <div class="stat-value">${cur?.toFixed?.(1) ?? '-'} kg</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Perda</div>
+              <div class="stat-value" style="color:${perc>=0?'#28a745':'#dc3545'}">${perc.toFixed(1)}%</div>
+            </div>
+          </div>
+          <div class="participant-actions">
+            <button class="btn btn-secondary" data-edit="${p.id}"><i class="fas fa-pen"></i> Editar</button>
+            <button class="btn btn-info" data-history="${p.id}"><i class="fas fa-chart-line"></i> Histórico</button>
+            <button class="btn btn-warning" data-credentials="${p.id}"><i class="fas fa-key"></i> Credenciais</button>
+          </div>
+        `;
+        participantsGridEl.appendChild(card);
+      });
+      bindParticipantActions(participantsGridEl);
+    }
+
+    function bindParticipantActions(container) {
+      console.log('Vinculando ações dos participantes...'); // Debug
+      
+      // bind editar
+      const editButtons = container.querySelectorAll('[data-edit]');
+      console.log('Botões de editar encontrados:', editButtons.length); // Debug
+      
+      editButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-edit');
+          console.log('Botão de editar clicado para ID:', id); // Debug
+          
+          // Verifica permissão para editar
+          if (!hasPermission('edit_participant')) {
+            alert('Acesso negado! Apenas administradores podem editar participantes.');
+            return;
+          }
+          
+          openEditModal(id);
+        });
+      });
+      
+      // bind histórico
+      const historyButtons = container.querySelectorAll('[data-history]');
+      console.log('Botões de histórico encontrados:', historyButtons.length); // Debug
+      
+      historyButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-history');
+          console.log('Botão de histórico clicado para ID:', id); // Debug
+          viewParticipantHistory(id);
+        });
+      });
+      
+      // bind credenciais
+      const credentialsButtons = container.querySelectorAll('[data-credentials]');
+      console.log('Botões de credenciais encontrados:', credentialsButtons.length); // Debug
+      
+      credentialsButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-credentials');
+          console.log('Botão de credenciais clicado para ID:', id); // Debug
+          showParticipantCredentials(id);
+        });
+      });
+    }
+
+    function renderParticipants() {
+      // Renderiza todas as visualizações
+      renderParticipantsCards();
+      renderParticipantsList();
+      renderParticipantsGrid();
+    }
+
+    function updateHeaderCounters() {
+      totalParticipantsEl.textContent = `${participants.length} participante${participants.length!==1?'s':''}`;
+      competitionDurationEl.textContent = `Duração: ${daysSinceStart()} dia${daysSinceStart()!==1?'s':''}`;
+    }
+
+    // ========= Cadastros =========
+    participantForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      console.log('Formulário submetido!'); // Debug
+      
+      try {
+        // Validação básica
+        const name = participantName.value.trim();
+        const iw = parseFloat(initialWeight.value);
+        const tw = targetWeight.value ? parseFloat(targetWeight.value) : null;
+        const dep = department.value.trim();
+        const profile = document.getElementById('participantProfile').value;
+        const password = document.getElementById('participantPassword').value;
+        
+        console.log('Dados do formulário:', { name, iw, tw, dep, profile, password: '***' }); // Debug
+        
+        if (!name || isNaN(iw) || iw <= 0 || !profile || !password) {
+          console.log('Validação falhou:', { name, iw, profile, password: password ? '***' : 'vazio' }); // Debug
+          alert('Por favor, preencha o nome, um peso inicial válido (maior que 0), selecione um perfil e defina uma senha.');
+          return;
+        }
+
+        // Processamento da foto (opcional)
+        let photoDataUrl = null;
+        try {
+          const file = participantPhotoInput?.files?.[0];
+          if (file) {
+            console.log('Processando foto...'); // Debug
+            photoDataUrl = await fileToDataURL(file);
+            console.log('Foto processada com sucesso'); // Debug
+          }
+        } catch (photoError) {
+          console.error('Erro ao processar foto:', photoError);
+          // Continua sem foto se houver erro
+        }
+
+        // Criação do participante
+        console.log('Criando novo participante...'); // Debug
+        const participantId = uid();
+        const np = {
+          id: participantId,
+          name, 
+          initialWeight: iw, 
+          targetWeight: tw, 
+          department: dep || 'Não informado',
+          profile: profile,
+          password: password,
+          photo: photoDataUrl,
+          weights: [{ value: iw, date: new Date().toISOString(), notes: 'Peso inicial' }]
+        };
+        
+        // Cria usuário automaticamente para o participante
+        console.log('Criando usuário para o participante...'); // Debug
+        createParticipantUser(np);
+        
+        console.log('Novo participante criado:', np); // Debug
+        
+        // Adiciona à lista
+        console.log('Adicionando à lista de participantes...'); // Debug
+        participants.push(np);
+        
+        // Salva no localStorage
+        console.log('Salvando no localStorage...'); // Debug
+        saveParticipants();
+        
+        // Limpa o formulário
+        console.log('Limpando formulário...'); // Debug
+        participantForm.reset();
+        if (participantPhotoPreview) {
+          participantPhotoPreview.src = '';
+          participantPhotoPreview.classList.add('hidden');
+        }
+        
+        // Fecha o modal
+        console.log('Fechando modal...'); // Debug
+        close(participantModal);
+        
+        // Atualiza a interface
+        console.log('Atualizando interface...'); // Debug
+        refreshAll();
+        
+        console.log('Participante adicionado com sucesso!'); // Debug
+        alert('Participante adicionado com sucesso!');
+        
+      } catch (error) {
+        console.error('Erro detalhado ao adicionar participante:', error);
+        console.error('Stack trace:', error.stack);
+        alert(`Erro ao adicionar participante: ${error.message}\n\nVerifique o console para mais detalhes.`);
+      }
+    });
+
+    function populateParticipantsSelect(selectEl, includeAllOption=false) {
+      selectEl.innerHTML = '';
+      if (includeAllOption) {
+        const optAll = document.createElement('option');
+        optAll.value = ''; optAll.textContent = 'Todos os participantes';
+        selectEl.appendChild(optAll);
+      } else {
+        const opt = document.createElement('option');
+        opt.value=''; opt.textContent='Selecione um participante';
+        selectEl.appendChild(opt);
+      }
+      participants.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p.id; o.textContent = p.name;
+        selectEl.appendChild(o);
+      });
+    }
+
+    weightForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = weightParticipant.value;
+      const w = parseFloat(currentWeightInput.value);
+      const d = weightDate.value ? new Date(weightDate.value) : new Date();
+      const n = notes.value.trim();
+
+      const idx = participants.findIndex(p => p.id === id);
+      if (idx === -1 || isNaN(w)) return;
+      participants[idx].weights.push({ value: w, date: d.toISOString(), notes: n });
+      saveParticipants();
+      close(weightModal);
+      refreshAll();
+    });
+
+    // ========= Editar/Excluir =========
+    function openEditModal(id) {
+      console.log('Abrindo modal de edição para ID:', id); // Debug
+      const p = participants.find(pp => pp.id === id);
+      console.log('Participante encontrado:', p); // Debug
+      
+      if (!p) {
+        console.log('Participante não encontrado!'); // Debug
+        alert('Participante não encontrado!');
+        return;
+      }
+      
+      editParticipantId.value = p.id;
+      editParticipantName.value = p.name;
+      editInitialWeight.value = p.initialWeight;
+      editTargetWeight.value = p.targetWeight ?? '';
+      editDepartment.value = p.department ?? '';
+      editParticipantProfile.value = p.profile ?? 'user';
+      editParticipantPassword.value = ''; // Sempre limpa o campo de senha
+      editParticipantLogin.value = generateParticipantLogin(p.name);
+      
+      if (p.photo) {
+        editParticipantPhotoPreview.src = p.photo;
+        editParticipantPhotoPreview.classList.remove('hidden');
+      } else {
+        editParticipantPhotoPreview.src = '';
+        editParticipantPhotoPreview.classList.add('hidden');
+      }
+      delete editParticipantPhotoPreview.dataset.remove;
+      open(editParticipantModal);
+      console.log('Modal de edição aberto com sucesso!'); // Debug
+    }
+
+    function viewParticipantHistory(id) {
+      const p = participants.find(pp => pp.id === id);
+      if (!p) return;
+      
+      // Filtra o histórico para mostrar apenas este participante
+      historyParticipantFilter.value = id;
+      renderHistory();
+      open(historyModal);
+    }
+    
+    function showParticipantCredentials(id) {
+      const p = participants.find(pp => pp.id === id);
+      if (!p) return;
+      
+      const email = `${generateParticipantLogin(p.name)}@participante.com`;
+      const login = generateParticipantLogin(p.name);
+      const credentials = `
+        <div style="text-align: center; padding: 20px;">
+          <h3><i class="fas fa-key"></i> Credenciais de Login</h3>
+          <div style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; padding: 15px; margin: 15px 0;">
+            <div style="margin-bottom: 10px;">
+              <strong>Nome:</strong> ${p.name}
+            </div>
+            <div style="margin-bottom: 10px;">
+              <strong>Login:</strong> ${login}
+            </div>
+            <div style="margin-bottom: 10px;">
+              <strong>Email:</strong> ${email}
+            </div>
+            <div style="margin-bottom: 10px;">
+              <strong>Senha:</strong> ${p.password || 'Não definida'}
+            </div>
+            <div style="margin-bottom: 10px;">
+              <strong>Perfil:</strong> ${getProfileDisplayName(p.profile)}
+            </div>
+          </div>
+          <div style="color: var(--muted); font-size: 12px;">
+            <i class="fas fa-info-circle"></i> Use estas credenciais para fazer login no sistema
+          </div>
+        </div>
+      `;
+      
+      // Cria modal temporário para mostrar credenciais
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+          <div class="modal-header">
+            <h2><i class="fas fa-key"></i> Credenciais de Login</h2>
+            <button class="close-btn" onclick="this.closest('.modal').remove()"><i class="fas fa-times"></i></button>
+          </div>
+          ${credentials}
+          <div class="form-actions">
+            <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Fechar</button>
+            <button class="btn btn-primary" onclick="copyCredentials('${login}', '${email}', '${p.password}')">
+              <i class="fas fa-copy"></i> Copiar Credenciais
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      modal.classList.remove('hidden');
+    }
+    
+    function copyCredentials(login, email, password) {
+      const text = `Login: ${login}\nEmail: ${email}\nSenha: ${password}`;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Credenciais copiadas para a área de transferência!');
+      }).catch(() => {
+        // Fallback para navegadores que não suportam clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Credenciais copiadas para a área de transferência!');
+      });
+    }
+
+    editParticipantForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = editParticipantId.value;
+      const idx = participants.findIndex(p => p.id === id);
+      if (idx === -1) return;
+
+      const file = editParticipantPhotoInput?.files?.[0];
+      if (file) {
+        participants[idx].photo = await fileToDataURL(file);
+      } else if (editParticipantPhotoPreview?.dataset.remove === '1') {
+        participants[idx].photo = null;
+      }
+      participants[idx].name = editParticipantName.value.trim();
+      participants[idx].initialWeight = parseFloat(editInitialWeight.value);
+      participants[idx].targetWeight = editTargetWeight.value ? parseFloat(editTargetWeight.value) : null;
+      participants[idx].department = editDepartment.value.trim();
+      participants[idx].profile = editParticipantProfile.value;
+      
+      // Atualiza senha apenas se fornecida
+      const newPassword = editParticipantPassword.value.trim();
+      if (newPassword) {
+        participants[idx].password = newPassword;
+      }
+      
+      // Atualiza usuário correspondente
+      updateParticipantUser(participants[idx]);
+
+      saveParticipants();
+      delete editParticipantPhotoPreview.dataset.remove;
+      editParticipantForm.reset();
+      close(editParticipantModal);
+      refreshAll();
+    });
+
+    deleteParticipantBtn.addEventListener('click', () => {
+      console.log('Botão de excluir clicado!'); // Debug
+      
+      // Verifica permissão para excluir
+      if (!hasPermission('delete_participant')) {
+        alert('Acesso negado! Apenas administradores podem excluir participantes.');
+        return;
+      }
+      
+      const id = editParticipantId.value;
+      console.log('ID do participante:', id); // Debug
+      const idx = participants.findIndex(p => p.id === id);
+      console.log('Índice encontrado:', idx); // Debug
+      console.log('Participantes atuais:', participants.length); // Debug
+      
+      if (idx === -1) {
+        console.log('Participante não encontrado!'); // Debug
+        alert('Participante não encontrado!');
+        return;
+      }
+      
+      if (confirm('Tem certeza que deseja excluir este participante?')) {
+        console.log('Confirmando exclusão...'); // Debug
+        participants.splice(idx,1);
+        saveParticipants();
+        close(editParticipantModal);
+        refreshAll();
+        console.log('Participante excluído com sucesso!'); // Debug
+        alert('Participante excluído com sucesso!');
+      } else {
+        console.log('Exclusão cancelada pelo usuário'); // Debug
+      }
+    });
+
+    // ========= ChatGPT Integration =========
+    
+    // Event listeners para opções do ChatGPT
+    document.querySelectorAll('.chatgpt-option').forEach(option => {
+      option.addEventListener('click', () => {
+        const type = option.dataset.type;
+        handleChatgptOption(type);
+      });
+    });
+    
+    // Event listener para envio de chat personalizado
+    document.getElementById('sendChatgptBtn').addEventListener('click', () => {
+      const input = document.getElementById('chatgptInput');
+      if (input.value.trim()) {
+        handleChatgptCustom(input.value.trim());
+        input.value = '';
+      }
+    });
+    
+    // Event listener para copiar prompt personalizado
+    document.getElementById('copyPromptBtn').addEventListener('click', () => {
+      copyPersonalizedPrompt();
+    });
+    
+    function handleChatgptOption(type) {
+      let prompt = '';
+      const user = getCurrentUser();
+      const userInfo = user ? `${user.name} (${user.department})` : 'Usuário';
+      
+      switch(type) {
+        case 'tips':
+          prompt = `Sou ${userInfo} e estou participando de uma competição de perda de peso. Preciso de dicas de exercícios personalizadas para me ajudar a alcançar meus objetivos. Por favor, me dê sugestões práticas e motivacionais.`;
+          break;
+        case 'nutrition':
+          prompt = `Sou ${userInfo} e estou em uma jornada de perda de peso. Preciso de conselhos nutricionais saudáveis e práticos para me ajudar na competição. Por favor, me oriente sobre alimentação.`;
+          break;
+        case 'motivation':
+          prompt = `Sou ${userInfo} e estou participando de uma competição de perda de peso. Preciso de mensagens motivacionais e inspiradoras para continuar minha jornada. Por favor, me motive!`;
+          break;
+        case 'progress':
+          prompt = `Sou ${userInfo} e estou em uma competição de perda de peso. Preciso de uma análise dos meus resultados e orientações sobre como melhorar meu progresso. Por favor, me ajude a interpretar meus dados.`;
+          break;
+      }
+      
+      if (prompt) {
+        copyToClipboard(prompt);
+        alert('Prompt copiado! Cole no ChatGPT para começar a conversa.');
+      }
+    }
+    
+    function handleChatgptCustom(message) {
+      const user = getCurrentUser();
+      const userInfo = user ? `${user.name} (${user.department})` : 'Usuário';
+      const prompt = `Sou ${userInfo} e estou participando de uma competição de perda de peso. ${message}`;
+      
+      copyToClipboard(prompt);
+      alert('Sua pergunta foi copiada! Cole no ChatGPT para obter uma resposta personalizada.');
+    }
+    
+    function copyPersonalizedPrompt() {
+      const user = getCurrentUser();
+      const userInfo = user ? `${user.name} (${user.department})` : 'Usuário';
+      const prompt = `Olá! Sou ${userInfo} e estou participando de uma competição de perda de peso chamada "Liga da Balança". Estou buscando orientações, dicas e motivação para alcançar meus objetivos de forma saudável e eficaz. Como você pode me ajudar?`;
+      
+      copyToClipboard(prompt);
+      alert('Prompt personalizado copiado! Use no ChatGPT para começar uma conversa personalizada.');
+    }
+    
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        console.log('Texto copiado para a área de transferência');
+      }).catch(err => {
+        console.error('Erro ao copiar texto:', err);
+        // Fallback para navegadores mais antigos
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      });
+    }
+
+    // ========= Configuração da Competição =========
+    configCompetitionForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      // Verifica se o usuário tem permissão para configurar competição
+      if (!hasPermission('config_competition')) {
+        alert('Acesso negado! Apenas administradores podem configurar a competição.');
+        close(configCompetitionModal);
+        return;
+      }
+      
+      // Valida as datas
+      if (competitionStartDate.value && competitionEndDate.value) {
+        const startDate = new Date(competitionStartDate.value);
+        const endDate = new Date(competitionEndDate.value);
+        
+        if (endDate <= startDate) {
+          alert('A data de fim deve ser posterior à data de início!');
+          return;
+        }
+      }
+      
+      // Atualiza a configuração
+      competitionConfig.name = competitionName.value.trim() || 'Liga da Balança';
+      competitionConfig.startDate = competitionStartDate.value;
+      competitionConfig.endDate = competitionEndDate.value;
+      competitionConfig.description = competitionDescription.value.trim() || 'Desafio do Peso: juntos na balança, unidos na vitória! 💪';
+      competitionConfig.rules = competitionRules.value.trim() || '3 pesagens por participante, pesagem semanal';
+      
+      // Salva a configuração
+      saveCompetitionConfig();
+      
+      // Atualiza a interface
+      updateCompetitionInfo();
+      
+      // Fecha o modal
+      close(configCompetitionModal);
+    });
+
+    // ========= Estatísticas =========
+    function updateStats() {
+      document.getElementById('totalParticipantsStat').textContent = String(participants.length);
+      const best = participants.length ? Math.max(...participants.map(pctLoss)) : 0;
+      document.getElementById('bestPercentage').textContent = `${best.toFixed(1)}%`;
+      document.getElementById('totalWeightLost').textContent = `${totalWeightLost().toFixed(1)} kg`;
+      document.getElementById('competitionDays').textContent = String(daysSinceStart());
+    }
+
+    // ========= Histórico =========
+    historyParticipantFilter.addEventListener('change', renderHistory);
+    exportHistoryBtn.addEventListener('click', exportCSV);
+
+    function renderHistory() {
+      historyListEl.innerHTML = '';
+      const filterId = historyParticipantFilter.value;
+      const rows = [];
+      participants.forEach(p => {
+        if (filterId && p.id !== filterId) return;
+        (p.weights||[]).forEach(w => {
+          rows.push({ id: p.id, name: p.name, date: w.date, weight: w.value, notes: w.notes || '' });
+        });
+      });
+      rows.sort((a,b) => new Date(b.date) - new Date(a.date));
+      if (!rows.length) {
+        historyListEl.innerHTML = '<div class="no-participants">Sem registros.</div>';
+        return;
+      }
+      rows.forEach(r => {
+        const el = document.createElement('div');
+        el.className = 'history-item';
+        el.innerHTML = `
+          <div><strong>${r.name}</strong><div style="color:#94a3b8; font-size:12px">${new Date(r.date).toLocaleDateString()}</div></div>
+          <div><strong>${r.weight.toFixed(1)}</strong> kg</div>
+          <div style="max-width:50%;">${r.notes || ''}</div>
+        `;
+        historyListEl.appendChild(el);
+      });
+    }
+
+    function exportCSV() {
+      const header = ['Participante','Data','Peso (kg)','Observações'];
+      const lines = [header.join(';')];
+      participants.forEach(p => {
+        (p.weights||[]).forEach(w => {
+          const row = [
+            '"' + p.name.replace(/"/g,'""') + '"',
+            new Date(w.date).toISOString().slice(0,10),
+            String(w.value).replace('.',','),
+            '"' + (w.notes||'').replace(/"/g,'""') + '"'
+          ];
+          lines.push(row.join(';'));
+        });
+      });
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'historico_pesagens.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ========= Refresh Geral =========
+    function refreshAll() {
+      renderLeaderboard();
+      updateHeaderCounters();
+      updateCompetitionInfo();
+      populateParticipantsSelect(weightParticipant);
+      
+      // Só renderiza participantes se a seção estiver visível
+      const container = document.getElementById('participantsContainer');
+      if (container && !container.classList.contains('hidden')) {
+        renderParticipants();
+        
+        // Mantém a visualização atual ou volta para cards
+        const currentView = document.querySelector('.view-options .btn.active');
+        if (currentView) {
+          const viewType = currentView.id.replace('view', '').toLowerCase();
+          switchView(viewType);
+        } else {
+          switchView('cards');
+        }
+      }
+    }
+
+    // ========= Toggle de Participantes =========
+    function toggleParticipants() {
+      const container = document.getElementById('participantsContainer');
+      const actions = document.getElementById('participantsActions');
+      const toggleIcon = document.querySelector('.toggle-icon');
+      
+      if (container.classList.contains('hidden')) {
+        // Mostra a seção de participantes
+        container.classList.remove('hidden');
+        actions.classList.remove('hidden');
+        toggleIcon.classList.add('expanded');
+        
+        // Renderiza os participantes se não estiverem renderizados
+        if (participants.length > 0) {
+          renderParticipants();
+        }
+      } else {
+        // Esconde a seção de participantes
+        container.classList.add('hidden');
+        actions.classList.add('hidden');
+        toggleIcon.classList.remove('expanded');
+      }
+    }
+    
+    // Event listener para o toggle
+    document.addEventListener('DOMContentLoaded', function() {
+      const participantsToggle = document.getElementById('participantsToggle');
+      if (participantsToggle) {
+        participantsToggle.addEventListener('click', toggleParticipants);
+      }
+    });
+
+    // ========= Start =========
+    // popular selects iniciais
+    populateParticipantsSelect(weightParticipant);
+    refreshAll();
+    
+    // Mostra informações do localStorage
+    const storageInfo = getStorageInfo();
+    console.log('=== INFORMAÇÕES DO LOCALSTORAGE ===');
+    console.log(`Tamanho total: ${storageInfo.totalSizeKB} KB (${storageInfo.totalSizeMB} MB)`);
+    console.log('Itens armazenados:', storageInfo.items);
+    console.log('=====================================');
+    
+    // Aviso se estiver próximo do limite
+    if (storageInfo.totalSizeMB > 4) {
+      console.warn('⚠️ ATENÇÃO: Uso do localStorage está alto! Considere limpar dados antigos.');
+    }
+
+    // ========= SISTEMA DE ADMINISTRADOR =========
+    
+    // Função para verificar se é administrador
+    function isAdmin() {
+      const isAdmin = localStorage.getItem('isAdmin');
+      const loginTime = localStorage.getItem('adminLoginTime');
+      
+      if (isAdmin === 'true' && loginTime) {
+        const loginDate = new Date(loginTime);
+        const now = new Date();
+        const hoursDiff = (now - loginDate) / (1000 * 60 * 60);
+        
+        return hoursDiff < 8; // Sessão válida por 8 horas
+      }
+      
+      return false;
+    }
+    
+    // Função para obter dados do usuário atual
+    function getCurrentUser() {
+      const userId = localStorage.getItem('currentUserId');
+      if (!userId) return null;
+      
+      try {
+        const users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+        return users.find(u => u.id === userId);
+      } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error);
+        return null;
+      }
+    }
+    
+    // Função para verificar permissão específica
+    function hasPermission(permission) {
+      const user = getCurrentUser();
+      if (!user) return false;
+      
+      // Administradores têm todas as permissões
+      if (user.role === 'admin') return true;
+      
+      // Verifica permissões específicas
+      return user.permissions && user.permissions.includes(permission);
+    }
+    
+    // Função para verificar se pode realizar ação administrativa
+    function canPerformAdminAction(action) {
+      const permissionMap = {
+        'add_participant': 'add_participant',
+        'edit_participant': 'edit_participant', 
+        'delete_participant': 'delete_participant',
+        'manage_users': 'manage_users',
+        'config_competition': 'config_competition',
+        'view_stats': 'view_stats',
+        'export_data': 'export_data',
+        'clear_data': 'clear_data'
+      };
+      
+      const permission = permissionMap[action];
+      return permission ? hasPermission(permission) : false;
+    }
+    
+    // Função para atualizar interface baseada no status de admin
+    function updateAdminInterface() {
+      const adminElements = document.querySelectorAll('.admin-only');
+      const isAdminUser = isAdmin();
+      
+      adminElements.forEach(element => {
+        if (isAdminUser) {
+          element.style.display = '';
+          element.classList.remove('hidden');
+        } else {
+          element.style.display = 'none';
+          element.classList.add('hidden');
+        }
+      });
+      
+      // Atualiza botões de login/logout
+      const loginBtn = document.getElementById('adminLoginBtn');
+      const manageUsersBtn = document.getElementById('manageUsersBtn');
+      
+      if (isAdminUser) {
+        if (loginBtn) loginBtn.style.display = 'none';
+        
+        // Mostra botão de gerenciar usuários apenas para quem tem permissão
+        if (manageUsersBtn) {
+          manageUsersBtn.style.display = hasPermission('manage_users') ? '' : 'none';
+        }
+      } else {
+        if (loginBtn) loginBtn.style.display = '';
+        if (manageUsersBtn) manageUsersBtn.style.display = 'none';
+      }
+      
+      // Atualiza botões específicos baseados em permissões
+      updatePermissionBasedButtons();
+      
+      // Atualiza informações do usuário
+      updateUserInfo();
+    }
+    
+    // Função para atualizar botões baseados em permissões específicas
+    function updatePermissionBasedButtons() {
+      const addParticipantBtn = document.getElementById('addParticipantBtn');
+      const addWeightBtn = document.getElementById('addWeightBtn');
+      const configCompetitionBtn = document.getElementById('configCompetitionBtn');
+      const clearDataBtn = document.getElementById('clearAllDataBtn');
+      
+      if (addParticipantBtn) {
+        addParticipantBtn.style.display = hasPermission('add_participant') ? '' : 'none';
+      }
+      
+      if (addWeightBtn) {
+        addWeightBtn.style.display = hasPermission('register_weight') ? '' : 'none';
+      }
+      
+      if (configCompetitionBtn) {
+        configCompetitionBtn.style.display = hasPermission('config_competition') ? '' : 'none';
+      }
+      
+      if (clearDataBtn) {
+        clearDataBtn.style.display = hasPermission('clear_data') ? '' : 'none';
+      }
+    }
+    
+    // Função para fazer logout
+    function performLogout() {
+      console.log('Função performLogout chamada');
+      
+      // Limpa a sessão
+      clearSession();
+      
+      // Redireciona diretamente para login
+      console.log('Redirecionando para login.html');
+      window.location.href = 'login.html';
+    }
+    
+    // Função global para testar logout
+    window.testLogout = function() {
+      console.log('Teste de logout chamado');
+      performLogout();
+    };
+    
+    // Função super simples para testar
+    window.teste = function() {
+      console.log('Função teste funcionando!');
+      return 'OK';
+    };
+    
+    // Função para copiar foto
+    window.copiarFoto = function() {
+      console.log('=== COPIANDO FOTO ===');
+      try {
+        var participants = JSON.parse(localStorage.getItem('lb_participants_v1') || '[]');
+        console.log('Participantes:', participants.length);
+        
+        participants.forEach(function(p) {
+          console.log(p.name + ' - foto: ' + (p.photo ? 'SIM' : 'NÃO'));
+        });
+      } catch (e) {
+        console.error('Erro:', e);
+      }
+    };
+    
+    // Função para testar se o JavaScript está funcionando
+    window.testeJS = function() {
+      console.log('JavaScript funcionando!');
+      return true;
+    };
+    
+    // Função para copiar foto do Paulo Ferreira para o usuário logado
+    window.usarFotoPaulo = function() {
+      try {
+        console.log('=== COPIANDO FOTO DO PAULO FERREIRA ===');
+        
+        // Busca o participante Paulo Ferreira
+        var listaParticipantes = JSON.parse(localStorage.getItem('lb_participants_v1') || '[]');
+        var paulo = listaParticipantes.find(function(p) { return p.name === 'Paulo Ferreira'; });
+        
+        if (paulo && paulo.photo) {
+          console.log('Paulo Ferreira encontrado com foto!');
+          
+          // Busca o usuário logado
+          var sessao = JSON.parse(localStorage.getItem('lb_session_v1') || '{}');
+          var listaUsuarios = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+          var usuario = listaUsuarios.find(function(u) { return u.id === sessao.userId; });
+          
+          if (usuario) {
+            // Copia a foto
+            usuario.photo = paulo.photo;
+            localStorage.setItem('lb_users_v1', JSON.stringify(listaUsuarios));
+            
+            console.log('Foto copiada com sucesso!');
+            console.log('Atualizando avatar...');
+            
+            // Atualiza o avatar
+            updateUserInfo();
+          }
+        } else {
+          console.log('Paulo Ferreira não encontrado ou sem foto');
+        }
+      } catch (error) {
+        console.error('Erro:', error);
+      }
+    };
+    
+    // Função global para verificar usuários com fotos
+    window.checkUserPhotos = function() {
+      try {
+        var users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+        console.log('=== USUÁRIOS COM FOTOS ===');
+        users.forEach(function(user) {
+          console.log('Nome: ' + user.name + ', Foto: ' + (user.photo || 'Sem foto'));
+        });
+      } catch (error) {
+        console.error('Erro no checkUserPhotos:', error);
+      }
+    };
+    
+    // Função simples para testar avatar
+    window.testAvatar = function() {
+      console.log('=== TESTE SIMPLES AVATAR ===');
+      try {
+        var session = JSON.parse(localStorage.getItem('lb_session_v1') || '{}');
+        var users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+        var user = users.find(function(u) { return u.id === session.userId; });
+        
+        console.log('Sessão:', session);
+        console.log('Usuário:', user);
+        
+        if (user) {
+          console.log('Nome:', user.name);
+          console.log('Foto:', user.photo);
+          console.log('Tem foto?', !!user.photo);
+        }
+      } catch (error) {
+        console.error('Erro no testAvatar:', error);
+      }
+    };
+    
+    // Função global para forçar atualização do avatar
+    window.forceUpdateAvatar = function() {
+      console.log('=== FORÇANDO ATUALIZAÇÃO DO AVATAR ===');
+      updateUserInfo();
+    };
+    
+    // Função global para testar avatar com foto específica
+    window.testAvatarWithPhoto = function(photoUrl) {
+      const session = JSON.parse(localStorage.getItem('lb_session_v1') || '{}');
+      const users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+      const user = users.find(u => u.id === session.userId);
+      
+      if (user) {
+        console.log('Testando avatar com foto:', photoUrl);
+        user.photo = photoUrl;
+        localStorage.setItem('lb_users_v1', JSON.stringify(users));
+        updateUserInfo();
+      }
+    };
+    
+    // Função para testar usando a mesma lógica dos participantes
+    window.testAvatarLikeParticipants = function() {
+      try {
+        const session = JSON.parse(localStorage.getItem('lb_session_v1') || '{}');
+        const users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+        const user = users.find(u => u.id === session.userId);
+        
+        if (user) {
+          console.log('=== TESTANDO COMO PARTICIPANTES ===');
+          console.log('Usuário:', user.name);
+          console.log('Foto:', user.photo);
+          
+          // Usa a mesma lógica da função avatarHTML dos participantes
+          const avatarHTML = user.photo ? 
+            '<img src="' + user.photo + '" alt="' + user.name + '" class="avatar">' : 
+            '<div class="avatar-initials" title="' + user.name + '">' + getInitials(user.name) + '</div>';
+          
+          console.log('HTML gerado:', avatarHTML);
+          
+          // Aplica no container
+          const avatarContainer = document.querySelector('.user-avatar-small');
+          if (avatarContainer) {
+            avatarContainer.innerHTML = avatarHTML;
+            console.log('HTML aplicado no container');
+          }
+        }
+      } catch (error) {
+        console.error('Erro na função testAvatarLikeParticipants:', error);
+      }
+    };
+    
+    // Função para copiar foto de um participante para o usuário logado
+    window.copyPhoto = function(participantName) {
+      try {
+        console.log('=== COPIANDO FOTO DE PARTICIPANTE ===');
+        
+        var participants = JSON.parse(localStorage.getItem('lb_participants_v1') || '[]');
+        console.log('Participantes encontrados:', participants.length);
+        
+        if (participantName === '') {
+          console.log('Participantes disponíveis:');
+          participants.forEach(function(p) {
+            console.log('- ' + p.name + ' (foto: ' + (p.photo ? 'SIM' : 'NÃO') + ')');
+          });
+          return;
+        }
+        
+        var participant = participants.find(function(p) { 
+          return p.name.toLowerCase().includes(participantName.toLowerCase()); 
+        });
+        
+        if (participant && participant.photo) {
+          console.log('Participante encontrado:', participant.name);
+          console.log('Foto do participante:', participant.photo.substring(0, 50) + '...');
+          
+          var session = JSON.parse(localStorage.getItem('lb_session_v1') || '{}');
+          var users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+          var user = users.find(function(u) { return u.id === session.userId; });
+          
+          if (user) {
+            user.photo = participant.photo;
+            localStorage.setItem('lb_users_v1', JSON.stringify(users));
+            
+            console.log('Foto copiada com sucesso!');
+            updateUserInfo();
+          }
+        } else {
+          console.log('Participante não encontrado ou sem foto');
+        }
+      } catch (error) {
+        console.error('Erro ao copiar foto:', error);
+      }
+    };
+    
+    // Função para verificar todos os usuários e suas fotos
+    window.verificarFotosUsuarios = function() {
+      try {
+        console.log('=== VERIFICANDO FOTOS DE TODOS OS USUÁRIOS ===');
+        
+        var listaUsuarios = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+        var listaParticipantes = JSON.parse(localStorage.getItem('lb_participants_v1') || '[]');
+        
+        console.log('Total de usuários:', listaUsuarios.length);
+        console.log('Total de participantes:', listaParticipantes.length);
+        
+        listaUsuarios.forEach(function(usuario, index) {
+          console.log('---');
+          console.log('Usuário ' + (index + 1) + ':');
+          console.log('  Nome:', usuario.name);
+          console.log('  Email:', usuario.email);
+          console.log('  Tem foto?', !!usuario.photo);
+          console.log('  Foto:', usuario.photo ? usuario.photo.substring(0, 50) + '...' : 'SEM FOTO');
+          
+          // Verifica se há participante correspondente
+          var participante = listaParticipantes.find(function(p) { 
+            return p.name === usuario.name || usuario.participantId === p.id; 
+          });
+          
+          if (participante) {
+            console.log('  Participante encontrado:', participante.name);
+            console.log('  Participante tem foto?', !!participante.photo);
+            console.log('  Participante foto:', participante.photo ? participante.photo.substring(0, 50) + '...' : 'SEM FOTO');
+            
+            // Se usuário não tem foto mas participante tem
+            if (!usuario.photo && participante.photo) {
+              console.log('  ⚠️ PROBLEMA: Usuário sem foto mas participante tem!');
+            }
+          } else {
+            console.log('  Participante correspondente: NÃO ENCONTRADO');
+          }
+        });
+        
+        console.log('=== FIM DA VERIFICAÇÃO ===');
+      } catch (error) {
+        console.error('Erro ao verificar fotos:', error);
+      }
+    };
+    
+    // Função para sincronizar fotos de participantes para usuários
+    window.sincronizarFotos = function() {
+      try {
+        console.log('=== SINCRONIZANDO FOTOS ===');
+        
+        var listaUsuarios = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+        var listaParticipantes = JSON.parse(localStorage.getItem('lb_participants_v1') || '[]');
+        
+        var atualizados = 0;
+        
+        listaUsuarios.forEach(function(usuario) {
+          // Busca participante correspondente
+          var participante = listaParticipantes.find(function(p) { 
+            return p.name === usuario.name || usuario.participantId === p.id; 
+          });
+          
+          if (participante && participante.photo && !usuario.photo) {
+            console.log('Sincronizando foto para:', usuario.name);
+            usuario.photo = participante.photo;
+            atualizados++;
+          }
+        });
+        
+        if (atualizados > 0) {
+          localStorage.setItem('lb_users_v1', JSON.stringify(listaUsuarios));
+          console.log('Fotos sincronizadas:', atualizados, 'usuários');
+          updateUserInfo(); // Atualiza o avatar do usuário logado
+        } else {
+          console.log('Nenhuma foto para sincronizar');
+        }
+      } catch (error) {
+        console.error('Erro ao sincronizar fotos:', error);
+      }
+    };
+    
+    // Função para criar avatar com iniciais (mesma lógica dos participantes)
+    function createInitialsAvatar(name, container) {
+      const initials = getInitials(name);
+      const initialsDiv = document.createElement('div');
+      initialsDiv.className = 'avatar-initials';
+      initialsDiv.textContent = initials;
+      initialsDiv.title = name;
+      initialsDiv.style.width = '100%';
+      initialsDiv.style.height = '100%';
+      initialsDiv.style.borderRadius = '50%';
+      initialsDiv.style.display = 'flex';
+      initialsDiv.style.alignItems = 'center';
+      initialsDiv.style.justifyContent = 'center';
+      initialsDiv.style.fontSize = '14px'; // Menor para o avatar do usuário
+      initialsDiv.style.fontWeight = '600';
+      initialsDiv.style.color = 'white';
+      initialsDiv.style.backgroundColor = 'var(--primary)';
+      initialsDiv.style.border = 'none'; // Remove borda padrão do .avatar-initials
+      
+      container.appendChild(initialsDiv);
+    }
+    
+    // Função para atualizar informações do usuário no header
+    function updateUserInfo() {
+      try {
+        const session = JSON.parse(localStorage.getItem('lb_session_v1') || '{}');
+        const users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+        const user = users.find(u => u.id === session.userId);
+        
+        const userNameElement = document.getElementById('currentUserName');
+        const userRoleElement = document.getElementById('userRole');
+        const userDepartmentElement = document.getElementById('userDepartment');
+        const userAvatarIcon = document.getElementById('userAvatarIcon');
+        const userAvatarImage = document.getElementById('userAvatarImage');
+        
+        if (user) {
+          // Atualiza nome
+          if (userNameElement) {
+            userNameElement.textContent = user.name;
+          }
+          
+          // Atualiza perfil
+          if (userRoleElement) {
+            const roleNames = {
+              'admin': 'Administrador',
+              'moderator': 'Moderador', 
+              'user': 'Usuário'
+            };
+            userRoleElement.textContent = roleNames[user.role] || 'Usuário';
+          }
+          
+          // Atualiza departamento
+          if (userDepartmentElement) {
+            userDepartmentElement.textContent = user.department || 'Não informado';
+          }
+          
+          // Atualiza avatar usando a mesma lógica dos participantes
+          console.log('🔍 === DEBUG AVATAR ===');
+          console.log('🔍 Usuário encontrado:', user.name);
+          console.log('🔍 Foto do usuário:', user.photo);
+          console.log('🔍 Tipo da foto:', typeof user.photo);
+          console.log('🔍 Foto existe?', !!user.photo);
+          console.log('🔍 Foto não é vazia?', user.photo && user.photo.trim() !== '');
+          
+          // Limpa completamente o container do avatar
+          const avatarContainer = document.querySelector('.user-avatar-small');
+          console.log('🔍 Container encontrado?', !!avatarContainer);
+          
+          if (avatarContainer) {
+            // Remove TODOS os elementos filhos do container
+            avatarContainer.innerHTML = '';
+            console.log('🔍 Container limpo completamente');
+            
+            // Verifica se tem foto usando a mesma lógica dos participantes
+            if (user.photo) {
+              console.log('✅ Usuário TEM foto:', user.photo);
+              console.log('✅ Tamanho da string:', user.photo.length);
+              console.log('✅ String não vazia?', user.photo.trim() !== '');
+              
+              // Cria img com estilo específico para o usuário
+              const avatarImg = document.createElement('img');
+              avatarImg.src = user.photo;
+              avatarImg.alt = user.name;
+              avatarImg.style.width = '100%';
+              avatarImg.style.height = '100%';
+              avatarImg.style.borderRadius = '50%';
+              avatarImg.style.objectFit = 'cover';
+              avatarImg.style.border = 'none'; // Remove borda padrão do .avatar
+              
+              console.log('✅ Imagem criada com src:', avatarImg.src);
+              
+              // Adiciona tratamento de erro
+              avatarImg.onerror = function() {
+                console.log('❌ ERRO ao carregar foto, usando iniciais');
+                console.log('❌ URL que falhou:', user.photo);
+                avatarImg.remove();
+                createInitialsAvatar(user.name, avatarContainer);
+              };
+              
+              // Adiciona tratamento de sucesso
+              avatarImg.onload = function() {
+                console.log('✅ Foto carregada com SUCESSO!');
+                console.log('✅ Imagem anexada ao container');
+              };
+              
+              avatarContainer.appendChild(avatarImg);
+              console.log('✅ Imagem anexada ao container');
+            } else {
+              console.log('❌ Usuário SEM foto, usando iniciais');
+              console.log('❌ Valor da foto:', user.photo);
+              createInitialsAvatar(user.name, avatarContainer);
+            }
+          } else {
+            console.log('❌ Container não encontrado!');
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar informações do usuário:', error);
+      }
+    }
+    
+    // Função para redirecionar para login de admin
+    function goToAdminLogin() {
+      window.open('admin.html', '_blank');
+    }
+    
+    // Função para verificar permissões antes de ações administrativas
+    function checkAdminPermission(action) {
+      if (!isAdmin()) {
+        alert('Acesso negado! Apenas administradores podem ' + action + '.\n\nClique em "Login Admin" para fazer login.');
+        return false;
+      }
+      
+      // Verifica permissão específica se o usuário não for admin
+      const user = getCurrentUser();
+      if (user && user.role !== 'admin') {
+        const permissionMap = {
+          'adicionar participantes': 'add_participant',
+          'editar participantes': 'edit_participant',
+          'excluir participantes': 'delete_participant',
+          'registrar peso': 'register_weight',
+          'gerenciar usuários': 'manage_users',
+          'configurar a competição': 'config_competition',
+          'visualizar estatísticas': 'view_stats',
+          'exportar dados': 'export_data',
+          'limpar dados': 'clear_data'
+        };
+        
+        const permission = permissionMap[action.toLowerCase()];
+        if (permission && !hasPermission(permission)) {
+          alert('Acesso negado! Você não tem permissão para ' + action + '.\n\nEntre em contato com um administrador.');
+          return false;
+        }
+      }
+      
+      return true;
+    }
+    
+    // Event listeners para botões de admin
+    document.addEventListener('DOMContentLoaded', function() {
+      const adminLoginBtn = document.getElementById('adminLoginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const manageUsersBtn = document.getElementById('manageUsersBtn');
+      
+      // Configura atualização automática do login
+      setupLoginUpdate();
+      
+      if (adminLoginBtn) {
+        adminLoginBtn.addEventListener('click', goToAdminLogin);
+      }
+      
+      if (logoutBtn) {
+        console.log('Botão logout encontrado, adicionando event listener');
+        logoutBtn.onclick = function() {
+          console.log('Botão logout clicado via onclick');
+          performLogout();
+        };
+        logoutBtn.addEventListener('click', function(e) {
+          console.log('Botão logout clicado via addEventListener');
+          e.preventDefault();
+          performLogout();
+        });
+      } else {
+        console.error('Botão logout não encontrado!');
+      }
+      
+      if (manageUsersBtn) {
+        manageUsersBtn.addEventListener('click', function() {
+          window.open('user-management.html', '_blank');
+        });
+      }
+      
+      // Atualiza interface na inicialização
+      updateAdminInterface();
+      updateUserInfo();
+      
+      // Verifica se veio do login de admin
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('admin') === 'true') {
+        updateAdminInterface();
+        alert('Login de administrador realizado com sucesso!');
+      }
+      
+      // Adiciona event listener para logout após tudo estar carregado
+      setTimeout(function() {
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+          console.log('Botão logout encontrado no timeout, adicionando event listener');
+          logoutBtn.onclick = function() {
+            console.log('Botão logout clicado via onclick (timeout)');
+            performLogout();
+          };
+        } else {
+          console.error('Botão logout não encontrado no timeout!');
+        }
+      }, 100);
+    });
+    
+    // Intercepta cliques em botões administrativos
+    document.addEventListener('click', function(e) {
+      const target = e.target.closest('button');
+      if (!target) return;
+      
+      const isAdminButton = target.classList.contains('admin-only') || 
+                           target.id === 'addParticipantBtn' ||
+                           target.id === 'addWeightBtn' ||
+                           target.id === 'configCompetitionBtn' ||
+                           target.id === 'clearAllDataBtn';
+      
+      if (isAdminButton && !isAdmin()) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const action = target.textContent.trim() || 'realizar esta ação';
+        checkAdminPermission(action);
+        return false;
+      }
+    });
+    
+    // Intercepta submissão de formulários administrativos
+    document.addEventListener('submit', function(e) {
+      const form = e.target;
+      const isAdminForm = form.id === 'participantForm' || 
+                         form.id === 'weightForm' ||
+                         form.id === 'configCompetitionForm';
+      
+      if (isAdminForm && !isAdmin()) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const action = form.id === 'participantForm' ? 'adicionar participantes' : 
+                      form.id === 'weightForm' ? 'registrar peso' : 'configurar a competição';
+        checkAdminPermission(action);
+        return false;
+      }
+    });
+        // Função de debug para listar usuários
+        window.listUsers = function() {
+          try {
+            const users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+            console.log('=== LISTA DE USUÁRIOS ===');
+            console.log('Total de usuários:', users.length);
+            users.forEach((user, index) => {
+              console.log(`${index + 1}. Nome: ${user.name}`);
+              console.log(`   Email: ${user.email}`);
+              console.log(`   Login: ${user.email.split('@')[0]}`);
+              console.log(`   Role: ${user.role}`);
+              console.log(`   Participante ID: ${user.participantId || 'N/A'}`);
+              console.log('---');
+            });
+            return users;
+          } catch (error) {
+            console.error('Erro ao listar usuários:', error);
+            return [];
+          }
+        };
+  </script>
+  
+  <!-- Firebase Configuration -->
+  <script>
+    // ✅ CONFIGURAÇÃO FIREBASE INTEGRADA
+    const firebaseConfig = {
+      apiKey: "AIzaSyDB2BasIl64ILDd3m7b5TSgn8h5MrVVGKk",
+      authDomain: "liga-da-balanca.firebaseapp.com",
+      projectId: "liga-da-balanca",
+      storageBucket: "liga-da-balanca.firebasestorage.app",
+      messagingSenderId: "582450272255",
+      appId: "1:582450272255:web:5263cd4608a63457b479ca",
+      measurementId: "G-XHQ2ZGX3LV"
+    };
+
+    // Inicializar Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore(app);
+
+    // Função para salvar dados na nuvem
+    async function saveToCloud() {
+      try {
+        const data = {
+          participants: JSON.parse(localStorage.getItem('lb_participants_v1') || '[]'),
+          weightRecords: JSON.parse(localStorage.getItem('lb_weight_records_v1') || '[]'),
+          users: JSON.parse(localStorage.getItem('lb_users_v1') || '[]'),
+          config: JSON.parse(localStorage.getItem('lb_config_v1') || '{}'),
+          lastSync: new Date().toISOString()
+        };
+        
+        await db.collection('competition').doc('data').set(data);
+        console.log('✅ Dados salvos na nuvem!');
+      } catch (error) {
+        console.error('❌ Erro ao salvar:', error);
+      }
+    }
+
+    // Função para carregar dados da nuvem
+    async function loadFromCloud() {
+      try {
+        const doc = await db.collection('competition').doc('data').get();
+        if (doc.exists) {
+          const data = doc.data();
+          localStorage.setItem('lb_participants_v1', JSON.stringify(data.participants || []));
+          localStorage.setItem('lb_weight_records_v1', JSON.stringify(data.weightRecords || []));
+          localStorage.setItem('lb_users_v1', JSON.stringify(data.users || []));
+          localStorage.setItem('lb_config_v1', JSON.stringify(data.config || {}));
+          console.log('✅ Dados carregados da nuvem!');
+          
+          // Recarregar a interface se já estiver carregada
+          if (typeof loadParticipants === 'function') {
+            loadParticipants();
+            loadWeightHistory();
+            updateCompetitionInfo();
+          }
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar:', error);
+      }
+    }
+
+    // Carregar dados da nuvem ao abrir o site
+    window.addEventListener('load', loadFromCloud);
+
+    // Sincronizar a cada mudança
+    window.addEventListener('beforeunload', saveToCloud);
+
+    // Sincronizar automaticamente a cada 30 segundos
+    setInterval(saveToCloud, 30000);
+  </script>
+</body>
+</html>
+
