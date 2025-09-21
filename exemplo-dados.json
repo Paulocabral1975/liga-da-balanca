@@ -1,0 +1,82 @@
+{
+  "participants": [
+    {
+      "id": "demo-001",
+      "name": "João Silva",
+      "initialWeight": 85.5,
+      "targetWeight": 75.0,
+      "department": "TI",
+      "photo": null,
+      "weights": [
+        {
+          "value": 85.5,
+          "date": "2025-09-01T00:00:00.000Z",
+          "notes": "Peso inicial"
+        },
+        {
+          "value": 83.2,
+          "date": "2025-09-08T00:00:00.000Z",
+          "notes": "Primeira pesagem"
+        },
+        {
+          "value": 81.8,
+          "date": "2025-09-15T00:00:00.000Z",
+          "notes": "Segunda pesagem"
+        }
+      ]
+    },
+    {
+      "id": "demo-002",
+      "name": "Maria Santos",
+      "initialWeight": 72.3,
+      "targetWeight": 65.0,
+      "department": "RH",
+      "photo": null,
+      "weights": [
+        {
+          "value": 72.3,
+          "date": "2025-09-01T00:00:00.000Z",
+          "notes": "Peso inicial"
+        },
+        {
+          "value": 70.8,
+          "date": "2025-09-08T00:00:00.000Z",
+          "notes": "Primeira pesagem"
+        },
+        {
+          "value": 69.5,
+          "date": "2025-09-15T00:00:00.000Z",
+          "notes": "Segunda pesagem"
+        }
+      ]
+    },
+    {
+      "id": "demo-003",
+      "name": "Pedro Costa",
+      "initialWeight": 95.2,
+      "targetWeight": 85.0,
+      "department": "Vendas",
+      "photo": null,
+      "weights": [
+        {
+          "value": 95.2,
+          "date": "2025-09-01T00:00:00.000Z",
+          "notes": "Peso inicial"
+        },
+        {
+          "value": 93.1,
+          "date": "2025-09-08T00:00:00.000Z",
+          "notes": "Primeira pesagem"
+        }
+      ]
+    }
+  ],
+  "competitionConfig": {
+    "name": "Liga da Balança 2025",
+    "startDate": "2025-09-01",
+    "endDate": "2025-09-30",
+    "description": "Desafio do Peso: juntos na balança, unidos na vitória! 💪",
+    "rules": "3 pesagens por participante, pesagem semanal"
+  }
+}
+

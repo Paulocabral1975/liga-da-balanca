@@ -1,0 +1,49 @@
+{
+  "app": {
+    "name": "Liga da Balança",
+    "version": "1.0.0",
+    "description": "Sistema de Competição de Perda de Peso",
+    "author": "Sistema Liga da Balança",
+    "license": "MIT"
+  },
+  "server": {
+    "host": "localhost",
+    "port": 8000,
+    "cors": true,
+    "cache": false
+  },
+  "features": {
+    "maxParticipants": 100,
+    "maxWeightRecords": 3,
+    "maxImageSize": 500000,
+    "imageOptimization": true,
+    "autoCleanup": true,
+    "debugMode": true
+  },
+  "ui": {
+    "theme": "blue",
+    "animations": true,
+    "responsive": true,
+    "darkMode": false
+  },
+  "storage": {
+    "type": "localStorage",
+    "key": "lb_participants_v1",
+    "configKey": "lb_competition_config_v1",
+    "maxSize": 5242880,
+    "cleanupThreshold": 4194304
+  },
+  "validation": {
+    "minWeight": 30,
+    "maxWeight": 300,
+    "requiredFields": ["name", "initialWeight"],
+    "imageTypes": ["image/png", "image/jpeg", "image/webp", "image/gif"]
+  },
+  "competition": {
+    "defaultDuration": 30,
+    "maxDuration": 365,
+    "minDuration": 1,
+    "defaultRules": "3 pesagens por participante, pesagem semanal"
+  }
+}
+

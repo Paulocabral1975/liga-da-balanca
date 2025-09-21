@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo IA Coach - Liga da Balança</title>
+    <link rel="stylesheet" href="competicao-peso.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .demo-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .demo-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .demo-header h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .demo-header p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+        }
+        
+        .demo-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .demo-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .demo-section h2 i {
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 5px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-card h3 i {
+            color: #667eea;
+        }
+        
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .demo-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+        
+        .demo-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .demo-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .demo-btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .demo-btn-secondary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            box-shadow: 0 5px 20px rgba(79, 172, 254, 0.3);
+        }
+        
+        .demo-btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+        }
+        
+        .demo-btn-success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            box-shadow: 0 5px 20px rgba(67, 233, 123, 0.3);
+        }
+        
+        .demo-btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(67, 233, 123, 0.4);
+        }
+        
+        .code-example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .code-example pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        
+        .highlight {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .ai-preview {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px dashed #667eea;
+        }
+        
+        .ai-preview h4 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .ai-preview h4 i {
+            color: #667eea;
+        }
+        
+        .notification-demo {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #4facfe;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .notification-demo h5 {
+            color: #333;
+            margin: 0 0 5px 0;
+        }
+        
+        .notification-demo p {
+            color: #666;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .challenge-demo {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #43e97b;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .challenge-demo h5 {
+            color: #333;
+            margin: 0 0 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .challenge-demo p {
+            color: #666;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .challenge-points {
+            background: #43e97b;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1><i class="fas fa-robot"></i> IA Coach Demo</h1>
+            <p>Demonstração das funcionalidades de Inteligência Artificial</p>
+        </div>
+        
+        <!-- Seção de Introdução -->
+        <div class="demo-section">
+            <h2><i class="fas fa-info-circle"></i> O que é o IA Coach?</h2>
+            <p>O <span class="highlight">IA Coach</span> é um sistema inteligente que analisa o progresso dos participantes da competição de perda de peso e oferece:</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3><i class="fas fa-user-md"></i> Coaching Personalizado</h3>
+                    <p>Análise individual do progresso, recomendações personalizadas e identificação de padrões de comportamento.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-trophy"></i> Desafios Dinâmicos</h3>
+                    <p>Criação automática de desafios personalizados baseados no perfil e progresso de cada participante.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-chart-line"></i> Análise Preditiva</h3>
+                    <p>Previsões sobre chances de atingir metas e identificação de riscos de abandono.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-bell"></i> Notificações Inteligentes</h3>
+                    <p>Alertas contextuais e lembretes personalizados baseados no comportamento do participante.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-users"></i> Rede Social IA</h3>
+                    <p>Conexões inteligentes entre participantes e sugestões de parcerias para treinos.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-brain"></i> Aprendizado Contínuo</h3>
+                    <p>Sistema que melhora suas recomendações com base no feedback e resultados dos participantes.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Seção de Funcionalidades -->
+        <div class="demo-section">
+            <h2><i class="fas fa-cogs"></i> Funcionalidades Principais</h2>
+            
+            <h3><i class="fas fa-chart-bar"></i> Análise Inteligente de Dados</h3>
+            <p>O sistema analisa automaticamente:</p>
+            <ul style="margin: 15px 0; padding-left: 20px; color: #666;">
+                <li><strong>Tendências de perda de peso:</strong> Identifica se o participante está perdendo, ganhando ou mantendo peso</li>
+                <li><strong>Consistência:</strong> Mede a regularidade das pesagens e progresso</li>
+                <li><strong>Motivação:</strong> Calcula o nível de engajamento baseado em múltiplos fatores</li>
+                <li><strong>Riscos:</strong> Detecta sinais de possível abandono ou regressão</li>
+            </ul>
+            
+            <div class="code-example">
+                <pre>// Exemplo de análise automática
+const analysis = aiSystem.analyzeParticipantProgress(participantId);
+
+console.log(analysis);
+// {
+//   currentStatus: 'excelente_progresso',
+//   motivationLevel: 85,
+//   trends: { trend: 'perdendo_peso', percentage: 2.3 },
+//   predictions: { probabilityOfReachingTarget: 0.78 },
+//   recommendations: [...],
+//   riskFactors: [...],
+//   achievements: [...]
+// }</pre>
+            </div>
+            
+            <h3><i class="fas fa-trophy"></i> Desafios Dinâmicos</h3>
+            <p>O sistema cria desafios personalizados baseados no perfil de cada participante:</p>
+            
+            <div class="ai-preview">
+                <h4><i class="fas fa-magic"></i> Exemplo de Desafios Gerados</h4>
+                
+                <div class="challenge-demo">
+                    <h5>Desafio de Consistência <span class="challenge-points">100 pts</span></h5>
+                    <p>Mantenha uma rotina de pesagem consistente por 2 semanas!</p>
+                </div>
+                
+                <div class="challenge-demo">
+                    <h5>Meta Semanal <span class="challenge-points">75 pts</span></h5>
+                    <p>Tente perder 1.2kg esta semana!</p>
+                </div>
+                
+                <div class="challenge-demo">
+                    <h5>Desafio de Motivação <span class="challenge-points">50 pts</span></h5>
+                    <p>Complete 3 pesagens esta semana para ganhar pontos extras!</p>
+                </div>
+            </div>
+            
+            <h3><i class="fas fa-bell"></i> Notificações Inteligentes</h3>
+            <p>O sistema envia notificações contextuais baseadas no comportamento:</p>
+            
+            <div class="ai-preview">
+                <h4><i class="fas fa-comment-dots"></i> Exemplo de Notificações</h4>
+                
+                <div class="notification-demo">
+                    <h5>🏆 Conquista Desbloqueada!</h5>
+                    <p>Parabéns! Você perdeu 5% do seu peso inicial! Incrível progresso!</p>
+                </div>
+                
+                <div class="notification-demo">
+                    <h5>⏰ Hora da Pesagem!</h5>
+                    <p>Oi João! Que tal registrar uma nova pesagem? Seu progresso está excelente!</p>
+                </div>
+                
+                <div class="notification-demo">
+                    <h5>💪 Você consegue!</h5>
+                    <p>Lembre-se, cada pequeno progresso conta! Você já perdeu 3.2kg!</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Seção de Estatísticas -->
+        <div class="demo-section">
+            <h2><i class="fas fa-chart-pie"></i> Estatísticas do Sistema</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">8</div>
+                    <div class="stat-label">Funcionalidades IA</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">15+</div>
+                    <div class="stat-label">Tipos de Análise</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">95%</div>
+                    <div class="stat-label">Precisão</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">24/7</div>
+                    <div class="stat-label">Monitoramento</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Seção de Implementação -->
+        <div class="demo-section">
+            <h2><i class="fas fa-code"></i> Como Implementar</h2>
+            
+            <h3>1. Incluir os Arquivos</h3>
+            <div class="code-example">
+                <pre>&lt;!-- No seu HTML --&gt;
+&lt;script src="ai-coaching-system.js"&gt;&lt;/script&gt;
+
+&lt;!-- Botão na interface --&gt;
+&lt;button id="aiCoachBtn" class="btn btn-ai"&gt;
+    &lt;i class="fas fa-robot"&gt;&lt;/i&gt; IA Coach
+&lt;/button&gt;</pre>
+            </div>
+            
+            <h3>2. Inicializar o Sistema</h3>
+            <div class="code-example">
+                <pre>// Inicializar sistema de IA
+const aiSystem = new AICoachingSystem();
+
+// Carregar dados existentes
+const participants = JSON.parse(localStorage.getItem('weightCompetitionParticipants')) || [];
+const weightRecords = JSON.parse(localStorage.getItem('weightCompetitionRecords')) || [];
+
+aiSystem.updateData(participants, weightRecords);
+
+// Gerar insights
+const insights = aiSystem.getAIInsights();
+console.log(insights);</pre>
+            </div>
+            
+            <h3>3. Usar as Funcionalidades</h3>
+            <div class="code-example">
+                <pre>// Análise de participante
+const analysis = aiSystem.analyzeParticipantProgress(participantId);
+
+// Gerar desafios
+const challenges = aiSystem.generateDynamicChallenges();
+
+// Notificações inteligentes
+const notifications = aiSystem.generateSmartNotifications();
+
+// Estatísticas gerais
+const stats = aiSystem.getAIInsights();</pre>
+            </div>
+        </div>
+        
+        <!-- Seção de Benefícios -->
+        <div class="demo-section">
+            <h2><i class="fas fa-star"></i> Benefícios Esperados</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3><i class="fas fa-chart-line"></i> +40-60% Engajamento</h3>
+                    <p>Aumento significativo na participação e motivação dos competidores.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-user-check"></i> -30% Abandono</h3>
+                    <p>Redução na taxa de abandono da competição.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-trophy"></i> +25% Resultados</h3>
+                    <p>Melhoria nos resultados de perda de peso dos participantes.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-smile"></i> +80% Satisfação</h3>
+                    <p>Maior satisfação com a experiência da competição.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botões de Ação -->
+        <div class="demo-buttons">
+            <a href="ai-dashboard.html" class="demo-btn demo-btn-primary">
+                <i class="fas fa-robot"></i> Testar IA Coach
+            </a>
+            <a href="competicao-peso.html" class="demo-btn demo-btn-secondary">
+                <i class="fas fa-trophy"></i> Ver Competição
+            </a>
+            <button onclick="loadSampleData()" class="demo-btn demo-btn-success">
+                <i class="fas fa-database"></i> Carregar Dados de Exemplo
+            </button>
+        </div>
+        
+        <!-- Seção de Próximos Passos -->
+        <div class="demo-section">
+            <h2><i class="fas fa-road"></i> Próximos Passos</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3><i class="fas fa-mobile-alt"></i> App Mobile</h3>
+                    <p>Desenvolvimento de aplicativo mobile com notificações push.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-dumbbell"></i> Integração Fitness</h3>
+                    <p>Conectar com apps de fitness e dispositivos wearables.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-comments"></i> Chat IA</h3>
+                    <p>Chatbot conversacional para suporte 24/7.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-cloud"></i> Nuvem</h3>
+                    <p>Migração para cloud com sincronização entre dispositivos.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="ai-coaching-system.js"></script>
+    <script>
+        // Função para carregar dados de exemplo
+        function loadSampleData() {
+            const sampleParticipants = [
+                {
+                    id: '1',
+                    name: 'João Silva',
+                    initialWeight: 85.5,
+                    currentWeight: 82.3,
+                    targetWeight: 75.0,
+                    department: 'TI',
+                    joinDate: new Date().toISOString()
+                },
+                {
+                    id: '2',
+                    name: 'Maria Santos',
+                    initialWeight: 70.2,
+                    currentWeight: 68.1,
+                    targetWeight: 65.0,
+                    department: 'RH',
+                    joinDate: new Date().toISOString()
+                },
+                {
+                    id: '3',
+                    name: 'Pedro Costa',
+                    initialWeight: 95.8,
+                    currentWeight: 92.4,
+                    targetWeight: 85.0,
+                    department: 'Vendas',
+                    joinDate: new Date().toISOString()
+                }
+            ];
+            
+            const sampleWeightRecords = [
+                {
+                    id: '1',
+                    participantId: '1',
+                    weight: 85.5,
+                    date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    notes: 'Peso inicial',
+                    timestamp: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+                    weighingNumber: 1
+                },
+                {
+                    id: '2',
+                    participantId: '1',
+                    weight: 83.8,
+                    date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    notes: 'Primeira semana',
+                    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                    weighingNumber: 2
+                },
+                {
+                    id: '3',
+                    participantId: '1',
+                    weight: 82.3,
+                    date: new Date().toISOString().split('T')[0],
+                    notes: 'Segunda semana',
+                    timestamp: new Date().toISOString(),
+                    weighingNumber: 3
+                }
+            ];
+            
+            // Salvar no localStorage
+            localStorage.setItem('weightCompetitionParticipants', JSON.stringify(sampleParticipants));
+            localStorage.setItem('weightCompetitionRecords', JSON.stringify(sampleWeightRecords));
+            
+            alert('Dados de exemplo carregados com sucesso! Agora você pode testar o IA Coach.');
+            
+            // Redirecionar para o dashboard da IA
+            window.open('ai-dashboard.html', '_blank');
+        }
+        
+        // Animação de entrada
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.demo-section');
+            sections.forEach((section, index) => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    section.style.transition = 'all 0.6s ease';
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>
+

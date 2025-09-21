@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA Coach - Liga da Balança</title>
+    <link rel="stylesheet" href="competicao-peso.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .ai-dashboard {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .ai-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .ai-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .ai-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .ai-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .ai-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .ai-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .ai-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .ai-card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .coaching-icon { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .challenges-icon { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .analytics-icon { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .social-icon { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .notifications-icon { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        
+        .ai-card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        
+        .ai-card-subtitle {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 5px 0 0 0;
+        }
+        
+        .coaching-analysis {
+            margin-bottom: 20px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-excelente { background: #d4edda; color: #155724; }
+        .status-bom { background: #cce5ff; color: #004085; }
+        .status-estagnado { background: #fff3cd; color: #856404; }
+        .status-regressao { background: #f8d7da; color: #721c24; }
+        
+        .progress-ring {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 15px;
+        }
+        
+        .progress-ring circle {
+            fill: none;
+            stroke-width: 6;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        
+        .progress-ring-bg {
+            stroke: #e0e0e0;
+        }
+        
+        .progress-ring-fill {
+            stroke: #4facfe;
+            stroke-dasharray: 251.2;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+        
+        .challenge-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4facfe;
+            transition: all 0.3s ease;
+        }
+        
+        .challenge-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .challenge-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .challenge-title {
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        
+        .challenge-points {
+            background: #4facfe;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .challenge-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        .challenge-progress {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .challenge-progress-bar {
+            flex: 1;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .challenge-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .notification-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ff9a9e;
+            position: relative;
+        }
+        
+        .notification-priority {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .priority-high { background: #dc3545; }
+        .priority-medium { background: #ffc107; }
+        .priority-low { background: #28a745; }
+        
+        .notification-title {
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 5px 0;
+        }
+        
+        .notification-message {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        .ai-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .ai-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .ai-button-secondary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .ai-button-success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        .ai-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .ai-stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .ai-stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+        }
+        
+        .ai-stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin: 5px 0 0 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .recommendation-item {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .recommendation-priority {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .priority-urgent { background: #ffebee; color: #c62828; }
+        .priority-high { background: #fff3e0; color: #ef6c00; }
+        .priority-medium { background: #e8f5e8; color: #2e7d32; }
+        
+        .recommendation-message {
+            color: #333;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        .achievement-item {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .achievement-icon {
+            font-size: 1.2rem;
+        }
+        
+        .achievement-text {
+            flex: 1;
+        }
+        
+        .achievement-title {
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 2px 0;
+        }
+        
+        .achievement-description {
+            color: #666;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+        
+        .achievement-points {
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden { display: none; }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="ai-dashboard">
+        <div class="ai-header">
+            <h1><i class="fas fa-robot"></i> IA Coach</h1>
+            <p>Seu assistente inteligente para a competição de perda de peso</p>
+        </div>
+        
+        <div class="ai-grid">
+            <!-- Card de Coaching Personalizado -->
+            <div class="ai-card fade-in">
+                <div class="ai-card-header">
+                    <div class="ai-card-icon coaching-icon">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div>
+                        <h3 class="ai-card-title">Coaching Personalizado</h3>
+                        <p class="ai-card-subtitle">Análise inteligente do seu progresso</p>
+                    </div>
+                </div>
+                
+                <div id="coachingContent">
+                    <div class="loading-spinner"></div>
+                    <p>Analisando seu progresso...</p>
+                </div>
+            </div>
+            
+            <!-- Card de Desafios Dinâmicos -->
+            <div class="ai-card fade-in">
+                <div class="ai-card-header">
+                    <div class="ai-card-icon challenges-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div>
+                        <h3 class="ai-card-title">Desafios Inteligentes</h3>
+                        <p class="ai-card-subtitle">Desafios personalizados para você</p>
+                    </div>
+                </div>
+                
+                <div id="challengesContent">
+                    <div class="loading-spinner"></div>
+                    <p>Gerando desafios personalizados...</p>
+                </div>
+            </div>
+            
+            <!-- Card de Análise e Insights -->
+            <div class="ai-card fade-in">
+                <div class="ai-card-header">
+                    <div class="ai-card-icon analytics-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h3 class="ai-card-title">Insights Inteligentes</h3>
+                        <p class="ai-card-subtitle">Análise preditiva e recomendações</p>
+                    </div>
+                </div>
+                
+                <div id="analyticsContent">
+                    <div class="loading-spinner"></div>
+                    <p>Processando insights...</p>
+                </div>
+            </div>
+            
+            <!-- Card de Notificações Inteligentes -->
+            <div class="ai-card fade-in">
+                <div class="ai-card-header">
+                    <div class="ai-card-icon notifications-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div>
+                        <h3 class="ai-card-title">Notificações IA</h3>
+                        <p class="ai-card-subtitle">Alertas e lembretes inteligentes</p>
+                    </div>
+                </div>
+                
+                <div id="notificationsContent">
+                    <div class="loading-spinner"></div>
+                    <p>Verificando notificações...</p>
+                </div>
+            </div>
+            
+            <!-- Card de Funcionalidades Sociais -->
+            <div class="ai-card fade-in">
+                <div class="ai-card-header">
+                    <div class="ai-card-icon social-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h3 class="ai-card-title">Rede Social IA</h3>
+                        <p class="ai-card-subtitle">Conecte-se com outros participantes</p>
+                    </div>
+                </div>
+                
+                <div id="socialContent">
+                    <div class="loading-spinner"></div>
+                    <p>Analisando conexões sociais...</p>
+                </div>
+            </div>
+            
+            <!-- Card de Estatísticas Gerais -->
+            <div class="ai-card fade-in">
+                <div class="ai-card-header">
+                    <div class="ai-card-icon analytics-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <h3 class="ai-card-title">Visão Geral IA</h3>
+                        <p class="ai-card-subtitle">Estatísticas inteligentes da competição</p>
+                    </div>
+                </div>
+                
+                <div id="overviewContent">
+                    <div class="loading-spinner"></div>
+                    <p>Calculando estatísticas...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="competicao-peso.html" class="ai-button">
+                <i class="fas fa-arrow-left"></i> Voltar para Competição
+            </a>
+            <button onclick="refreshAIData()" class="ai-button ai-button-secondary" style="margin-left: 15px;">
+                <i class="fas fa-sync-alt"></i> Atualizar IA
+            </button>
+        </div>
+    </div>
+    
+    <script src="ai-coaching-system.js"></script>
+    <script>
+        // Inicializar sistema de IA
+        let aiSystem = new AICoachingSystem();
+        
+        // Carregar dados do localStorage
+        function loadData() {
+            const participants = JSON.parse(localStorage.getItem('weightCompetitionParticipants')) || [];
+            const weightRecords = JSON.parse(localStorage.getItem('weightCompetitionRecords')) || [];
+            
+            aiSystem.updateData(participants, weightRecords);
+        }
+        
+        // Atualizar interface com dados da IA
+        function updateAIDashboard() {
+            loadData();
+            
+            // Atualizar coaching personalizado
+            updateCoachingCard();
+            
+            // Atualizar desafios dinâmicos
+            updateChallengesCard();
+            
+            // Atualizar analytics
+            updateAnalyticsCard();
+            
+            // Atualizar notificações
+            updateNotificationsCard();
+            
+            // Atualizar social
+            updateSocialCard();
+            
+            // Atualizar overview
+            updateOverviewCard();
+        }
+        
+        function updateCoachingCard() {
+            const content = document.getElementById('coachingContent');
+            const participants = aiSystem.participants;
+            
+            if (participants.length === 0) {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-user-plus" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+                        <p>Nenhum participante encontrado</p>
+                        <p style="font-size: 0.9rem; color: #666;">Adicione participantes na competição para ver o coaching personalizado</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Analisar o primeiro participante como exemplo
+            const participant = participants[0];
+            const analysis = aiSystem.analyzeParticipantProgress(participant.id);
+            
+            const statusClass = `status-${analysis.currentStatus}`;
+            const statusText = {
+                'excelente_progresso': 'Excelente Progresso',
+                'bom_progresso': 'Bom Progresso',
+                'estagnado': 'Estagnado',
+                'regressao': 'Regressão',
+                'iniciante': 'Iniciante',
+                'em_progresso': 'Em Progresso'
+            }[analysis.currentStatus] || 'Desconhecido';
+            
+            content.innerHTML = `
+                <div class="coaching-analysis">
+                    <h4>Análise para ${participant.name}</h4>
+                    <div style="margin: 15px 0;">
+                        <span class="status-indicator ${statusClass}">${statusText}</span>
+                    </div>
+                    
+                    <div class="ai-stats-grid">
+                        <div class="ai-stat-item">
+                            <div class="ai-stat-value">${analysis.motivationLevel.toFixed(0)}%</div>
+                            <div class="ai-stat-label">Motivação</div>
+                        </div>
+                        <div class="ai-stat-item">
+                            <div class="ai-stat-value">${analysis.trends.percentage.toFixed(1)}%</div>
+                            <div class="ai-stat-label">Tendência</div>
+                        </div>
+                        <div class="ai-stat-item">
+                            <div class="ai-stat-value">${analysis.predictions.probabilityOfReachingTarget.toFixed(0)}%</div>
+                            <div class="ai-stat-label">Chance Meta</div>
+                        </div>
+                    </div>
+                    
+                    <h5>Recomendações:</h5>
+                    ${analysis.recommendations.map(rec => `
+                        <div class="recommendation-item">
+                            <span class="recommendation-priority priority-${rec.priority}">${rec.priority}</span>
+                            <p class="recommendation-message">${rec.message}</p>
+                        </div>
+                    `).join('')}
+                    
+                    <h5>Conquistas:</h5>
+                    ${analysis.achievements.map(achievement => `
+                        <div class="achievement-item">
+                            <div class="achievement-icon">🏆</div>
+                            <div class="achievement-text">
+                                <div class="achievement-title">${achievement.title}</div>
+                                <div class="achievement-description">${achievement.description}</div>
+                            </div>
+                            <div class="achievement-points">+${achievement.points}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        function updateChallengesCard() {
+            const content = document.getElementById('challengesContent');
+            const challenges = aiSystem.generateDynamicChallenges();
+            
+            if (challenges.length === 0) {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-trophy" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+                        <p>Nenhum desafio disponível</p>
+                        <p style="font-size: 0.9rem; color: #666;">Adicione participantes para gerar desafios personalizados</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            content.innerHTML = `
+                <div>
+                    <h4>Seus Desafios Personalizados</h4>
+                    ${challenges.slice(0, 3).map(challenge => `
+                        <div class="challenge-item">
+                            <div class="challenge-header">
+                                <h5 class="challenge-title">${challenge.title || 'Desafio Personalizado'}</h5>
+                                <span class="challenge-points">${challenge.points} pts</span>
+                            </div>
+                            <p class="challenge-description">${challenge.description}</p>
+                            <div class="challenge-progress">
+                                <div class="challenge-progress-bar">
+                                    <div class="challenge-progress-fill" style="width: ${Math.random() * 100}%"></div>
+                                </div>
+                                <small>${Math.floor(Math.random() * 100)}% completo</small>
+                            </div>
+                        </div>
+                    `).join('')}
+                    
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button class="ai-button ai-button-success">
+                            <i class="fas fa-plus"></i> Ver Todos os Desafios
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function updateAnalyticsCard() {
+            const content = document.getElementById('analyticsContent');
+            const insights = aiSystem.getAIInsights();
+            
+            content.innerHTML = `
+                <div>
+                    <h4>Insights Inteligentes</h4>
+                    
+                    <div class="ai-stats-grid">
+                        <div class="ai-stat-item">
+                            <div class="ai-stat-value">${insights.totalParticipants}</div>
+                            <div class="ai-stat-label">Participantes</div>
+                        </div>
+                        <div class="ai-stat-item">
+                            <div class="ai-stat-value">${insights.activeChallenges}</div>
+                            <div class="ai-stat-label">Desafios Ativos</div>
+                        </div>
+                        <div class="ai-stat-item">
+                            <div class="ai-stat-value">${insights.averageMotivation.toFixed(0)}%</div>
+                            <div class="ai-stat-label">Motivação Média</div>
+                        </div>
+                    </div>
+                    
+                    <h5>Top Performers:</h5>
+                    ${insights.topPerformers.map((performer, index) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee;">
+                            <div>
+                                <strong>${index + 1}. ${performer.name}</strong>
+                                <br><small>${performer.motivationLevel.toFixed(0)}% motivação</small>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.8rem; color: #666;">${(performer.progress * 100).toFixed(0)}% progresso</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                    
+                    <h5>Recomendações do Sistema:</h5>
+                    ${insights.recommendations.map(rec => `
+                        <div class="recommendation-item">
+                            <span class="recommendation-priority priority-${rec.priority}">${rec.priority}</span>
+                            <p class="recommendation-message">${rec.message}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        function updateNotificationsCard() {
+            const content = document.getElementById('notificationsContent');
+            const notifications = aiSystem.generateSmartNotifications();
+            
+            if (notifications.length === 0) {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-bell-slash" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+                        <p>Nenhuma notificação</p>
+                        <p style="font-size: 0.9rem; color: #666;">Você está em dia! 🎉</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            content.innerHTML = `
+                <div>
+                    <h4>Notificações Inteligentes</h4>
+                    ${notifications.slice(0, 5).map(notification => `
+                        <div class="notification-item">
+                            <div class="notification-priority priority-${notification.priority}"></div>
+                            <h5 class="notification-title">${notification.title}</h5>
+                            <p class="notification-message">${notification.message}</p>
+                        </div>
+                    `).join('')}
+                    
+                    ${notifications.length > 5 ? `
+                        <div style="text-align: center; margin-top: 15px;">
+                            <button class="ai-button ai-button-secondary">
+                                <i class="fas fa-eye"></i> Ver Todas (${notifications.length})
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        function updateSocialCard() {
+            const content = document.getElementById('socialContent');
+            const participants = aiSystem.participants;
+            
+            if (participants.length < 2) {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-users" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+                        <p>Funcionalidades Sociais</p>
+                        <p style="font-size: 0.9rem; color: #666;">Adicione mais participantes para ativar as interações sociais</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            content.innerHTML = `
+                <div>
+                    <h4>Rede Social Inteligente</h4>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h5>💬 Feed de Atividades</h5>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                            <strong>${participants[0].name}</strong> completou um desafio! 🏆
+                            <br><small style="color: #666;">Há 2 horas</small>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                            <strong>${participants[1]?.name || 'Participante'}</strong> perdeu 2kg esta semana! 💪
+                            <br><small style="color: #666;">Há 5 horas</small>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h5>🤝 Sugestões de Conexão</h5>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            ${participants.slice(0, 3).map(p => `
+                                <div style="background: #e3f2fd; padding: 10px; border-radius: 8px; text-align: center; flex: 1; min-width: 80px;">
+                                    <div style="font-weight: 600; font-size: 0.9rem;">${p.name}</div>
+                                    <div style="font-size: 0.8rem; color: #666;">${p.department}</div>
+                                    <button class="ai-button" style="padding: 5px 10px; font-size: 0.8rem; margin-top: 5px;">
+                                        Conectar
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="ai-button ai-button-success">
+                            <i class="fas fa-comments"></i> Chat Inteligente
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function updateOverviewCard() {
+            const content = document.getElementById('overviewContent');
+            const insights = aiSystem.getAIInsights();
+            
+            content.innerHTML = `
+                <div>
+                    <h4>Visão Geral da Competição</h4>
+                    
+                    <div class="ai-stats-grid">
+                        <div class="ai-stat-item">
+                            <div class="ai-stat-value">${insights.totalParticipants}</div>
+                            <div class="ai-stat-label">Total</div>
+                        </div>
+                        <div class="ai-stat-item">
+                            <div class="ai-stat-value">${insights.activeChallenges}</div>
+                            <div class="ai-stat-label">Desafios</div>
+                        </div>
+                        <div class="ai-stat-item">
+                            <div class="ai-stat-value">${insights.pendingNotifications}</div>
+                            <div class="ai-stat-label">Alertas</div>
+                        </div>
+                        <div class="ai-stat-item">
+                            <div class="ai-stat-value">${insights.averageMotivation.toFixed(0)}%</div>
+                            <div class="ai-stat-label">Motivação</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <h5>🎯 Status da Competição</h5>
+                        <div style="background: #e8f5e8; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                            <strong>✅ Competição Ativa</strong>
+                            <br><small>${insights.totalParticipants} participantes engajados</small>
+                        </div>
+                        
+                        <h5>⚠️ Participantes em Risco</h5>
+                        ${insights.riskParticipants.length > 0 ? `
+                            <div style="background: #fff3e0; padding: 15px; border-radius: 10px;">
+                                <strong>${insights.riskParticipants.length} participantes</strong> precisam de atenção especial
+                                <br><small>Considere ativar o sistema de suporte</small>
+                            </div>
+                        ` : `
+                            <div style="background: #e8f5e8; padding: 15px; border-radius: 10px;">
+                                <strong>✅ Todos os participantes</strong> estão engajados
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function refreshAIData() {
+            // Mostrar loading
+            document.querySelectorAll('.ai-card > div:not(.ai-card-header)').forEach(card => {
+                card.innerHTML = `
+                    <div class="loading-spinner"></div>
+                    <p>Atualizando dados da IA...</p>
+                `;
+            });
+            
+            // Simular delay de processamento
+            setTimeout(() => {
+                updateAIDashboard();
+            }, 1500);
+        }
+        
+        // Inicializar dashboard quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAIDashboard();
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,39 @@
+{
+  "name": "liga-da-balanca",
+  "version": "1.0.0",
+  "description": "Sistema de Competição de Perda de Peso - Liga da Balança",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "serve": "python -m http.server 8000",
+    "dev": "python -m http.server 8000"
+  },
+  "keywords": [
+    "competição",
+    "perda-peso",
+    "fitness",
+    "web-app",
+    "javascript",
+    "html5",
+    "css3"
+  ],
+  "author": "Sistema Liga da Balança",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seu-usuario/liga-da-balanca.git"
+  },
+  "bugs": {
+    "url": "https://github.com/seu-usuario/liga-da-balanca/issues"
+  },
+  "homepage": "https://github.com/seu-usuario/liga-da-balanca#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
+

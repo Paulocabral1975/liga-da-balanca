@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competição de Perda de Peso</title>
+    <link rel="stylesheet" href="competicao-peso.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-trophy"></i> Competição de Perda de Peso</h1>
+            <p>Desafio entre colegas de trabalho - Quem perde mais peso em porcentagem?</p>
+        </header>
+
+        <!-- Controles principais -->
+        <div class="controls-section">
+            <div class="control-buttons">
+                <button id="addParticipantBtn" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Adicionar Participante
+                </button>
+                <button id="addWeightBtn" class="btn btn-success">
+                    <i class="fas fa-weight"></i> Registrar Peso
+                </button>
+                <button id="viewStatsBtn" class="btn btn-info">
+                    <i class="fas fa-chart-line"></i> Estatísticas
+                </button>
+                <button id="aiCoachBtn" class="btn btn-ai">
+                    <i class="fas fa-robot"></i> IA Coach
+                </button>
+            </div>
+        </div>
+
+        <!-- Ranking/Leaderboard -->
+        <div class="leaderboard-section">
+            <div class="section-header">
+                <h2><i class="fas fa-medal"></i> Ranking da Competição</h2>
+                <div class="competition-info">
+                    <span id="totalParticipants">0 participantes</span>
+                    <span id="competitionDuration">Duração: 0 dias</span>
+                </div>
+            </div>
+            
+            <div id="leaderboard" class="leaderboard">
+                <div class="no-participants">
+                    <i class="fas fa-users"></i>
+                    <h3>Nenhum participante ainda</h3>
+                    <p>Adicione participantes para começar a competição!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de participantes -->
+        <div class="participants-section">
+            <div class="section-header">
+                <h2><i class="fas fa-users"></i> Participantes</h2>
+                <div class="header-actions">
+                    <button id="toggleView" class="btn btn-secondary">
+                        <i class="fas fa-list"></i> Ver Lista
+                    </button>
+                    <button id="viewWeightHistory" class="btn btn-info">
+                        <i class="fas fa-history"></i> Histórico de Pesagens
+                    </button>
+                </div>
+            </div>
+            
+            <div id="participantsList" class="participants-list hidden">
+                <!-- Lista será preenchida via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para adicionar participante -->
+    <div id="participantModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> Adicionar Participante</h2>
+                <button id="closeParticipantModal" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="participantForm" class="form">
+                <div class="form-group">
+                    <label for="participantName">Nome Completo *</label>
+                    <input type="text" id="participantName" name="name" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="initialWeight">Peso Inicial (kg) *</label>
+                        <input type="number" id="initialWeight" name="initialWeight" step="0.1" min="30" max="300" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="targetWeight">Peso Meta (kg)</label>
+                        <input type="number" id="targetWeight" name="targetWeight" step="0.1" min="30" max="300">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="department">Departamento</label>
+                    <input type="text" id="department" name="department" placeholder="Ex: TI, RH, Vendas...">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" id="cancelParticipant" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Adicionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para registrar peso -->
+    <div id="weightModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-weight"></i> Registrar Peso</h2>
+                <button id="closeWeightModal" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="weightForm" class="form">
+                <div class="form-group">
+                    <label for="weightParticipant">Participante *</label>
+                    <select id="weightParticipant" name="participantId" required>
+                        <option value="">Selecione um participante</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="currentWeight">Peso Atual (kg) *</label>
+                        <input type="number" id="currentWeight" name="currentWeight" step="0.1" min="30" max="300" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="weightDate">Data da Pesagem</label>
+                        <input type="date" id="weightDate" name="weightDate" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">Observações</label>
+                    <textarea id="notes" name="notes" rows="3" placeholder="Como está se sentindo, dificuldades, conquistas..."></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" id="cancelWeight" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Registrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de estatísticas -->
+    <div id="statsModal" class="modal hidden">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2><i class="fas fa-chart-line"></i> Estatísticas da Competição</h2>
+                <button id="closeStatsModal" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="stats-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalParticipantsStat">0</h3>
+                            <p>Participantes</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="bestPercentage">0%</h3>
+                            <p>Melhor Resultado</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-weight-hanging"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalWeightLost">0 kg</h3>
+                            <p>Peso Total Perdido</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="competitionDays">0</h3>
+                            <p>Dias de Competição</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-section">
+                    <h3>Evolução dos Participantes</h3>
+                    <div id="weightChart" class="weight-chart">
+                        <p>Gráfico será exibido aqui</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de histórico de pesagens -->
+    <div id="historyModal" class="modal hidden">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2><i class="fas fa-history"></i> Histórico de Pesagens</h2>
+                <button id="closeHistoryModal" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="history-content">
+                <div class="history-filters">
+                    <select id="historyParticipantFilter">
+                        <option value="">Todos os participantes</option>
+                    </select>
+                    <button id="exportHistory" class="btn btn-success">
+                        <i class="fas fa-download"></i> Exportar Dados
+                    </button>
+                </div>
+                
+                <div id="historyList" class="history-list">
+                    <!-- Histórico será preenchido via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="competicao-peso.js"></script>
+    <script src="ai-coaching-system.js"></script>
+    <script>
+        // Integração com IA Coach
+        document.addEventListener('DOMContentLoaded', function() {
+            // Adicionar event listener para o botão IA Coach
+            const aiCoachBtn = document.getElementById('aiCoachBtn');
+            if (aiCoachBtn) {
+                aiCoachBtn.addEventListener('click', function() {
+                    window.open('ai-dashboard.html', '_blank');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
