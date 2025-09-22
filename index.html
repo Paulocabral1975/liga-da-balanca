@@ -6,9 +6,33 @@
   <title>Competição de Perda de Peso</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js"></script>
+    <!-- Firebase SDKs - CDN Alternativo -->
+    <script src="https://cdn.jsdelivr.net/npm/firebase@12.3.0/app/dist/index.esm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/firebase@12.3.0/firestore/dist/index.esm.js"></script>
+    
+    <!-- Fallback para CDN oficial -->
+    <script>
+      // Verifica se Firebase carregou, se não, tenta CDN oficial
+      if (typeof firebase === 'undefined') {
+        console.log('🔄 Tentando CDN oficial do Firebase...');
+        var script1 = document.createElement('script');
+        script1.src = 'https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js';
+        script1.onload = function() {
+          var script2 = document.createElement('script');
+          script2.src = 'https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js';
+          script2.onload = function() {
+            console.log('✅ Firebase carregado via CDN oficial');
+            // Dispara evento customizado quando Firebase estiver pronto
+            window.dispatchEvent(new CustomEvent('firebaseReady'));
+          };
+          document.head.appendChild(script2);
+        };
+        document.head.appendChild(script1);
+      } else {
+        console.log('✅ Firebase já carregado via CDN alternativo');
+        window.dispatchEvent(new CustomEvent('firebaseReady'));
+      }
+    </script>
 
   <!-- CSS mínimo para rodar standalone (ajuste/una com seu styles.css se quiser) -->
   <style>
@@ -3047,27 +3071,39 @@
   <!-- Firebase Configuration -->
   <script>
     // ✅ CONFIGURAÇÃO FIREBASE INTEGRADA - AGUARDA CARREGAMENTO
-    document.addEventListener('DOMContentLoaded', function() {
-      // Verifica se Firebase está disponível
-      if (typeof firebase === 'undefined') {
-        console.error('❌ Firebase não foi carregado! Verificando SDKs...');
-        
-        // Tenta carregar novamente após um delay
-        setTimeout(function() {
-          if (typeof firebase === 'undefined') {
-            console.error('❌ Firebase ainda não disponível após delay. Verifique a conexão.');
-            return;
-          }
-          initializeFirebase();
-        }, 2000);
-        return;
-      }
-      
+    let firebaseInitialized = false;
+    
+    // Aguarda o Firebase estar pronto
+    window.addEventListener('firebaseReady', function() {
+      console.log('🔥 Firebase pronto! Inicializando...');
       initializeFirebase();
     });
     
+    // Fallback: tenta inicializar após DOM carregado
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        if (!firebaseInitialized && typeof firebase !== 'undefined') {
+          console.log('🔥 Firebase detectado após delay, inicializando...');
+          initializeFirebase();
+        } else if (!firebaseInitialized) {
+          console.error('❌ Firebase não disponível após timeout. Verifique a conexão.');
+        }
+      }, 3000);
+    });
+    
     function initializeFirebase() {
+      if (firebaseInitialized) {
+        console.log('⚠️ Firebase já foi inicializado');
+        return;
+      }
+      
       console.log('🔥 Inicializando Firebase...');
+      
+      // Verifica se Firebase está disponível
+      if (typeof firebase === 'undefined') {
+        console.error('❌ Firebase ainda não está disponível');
+        return;
+      }
       
       const firebaseConfig = {
         apiKey: "AIzaSyDB2BasIl64ILDd3m7b5TSgn8h5MrVVGKk",
@@ -3085,6 +3121,7 @@
         const db = firebase.firestore(app);
         
         console.log('✅ Firebase inicializado com sucesso!');
+        firebaseInitialized = true;
         
         // Torna as funções globais
         window.saveToCloud = saveToCloud;
