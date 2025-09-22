@@ -6,15 +6,24 @@
   <title>Competição de Perda de Peso</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Firebase SDKs - CDN Alternativo -->
-    <script src="https://cdn.jsdelivr.net/npm/firebase@12.3.0/app/dist/index.esm.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/firebase@12.3.0/firestore/dist/index.esm.js"></script>
+    <!-- Firebase SDKs - CDN UMD (Universal Module Definition) -->
+    <script src="https://cdn.jsdelivr.net/npm/firebase@12.3.0/app/dist/index.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/firebase@12.3.0/firestore/dist/index.umd.js"></script>
     
-    <!-- Fallback para CDN oficial -->
+    <!-- Verificação e Fallback -->
     <script>
-      // Verifica se Firebase carregou, se não, tenta CDN oficial
-      if (typeof firebase === 'undefined') {
-        console.log('🔄 Tentando CDN oficial do Firebase...');
+      // Verifica se Firebase carregou corretamente
+      function checkFirebase() {
+        if (typeof firebase !== 'undefined' && firebase.app) {
+          console.log('✅ Firebase carregado via CDN UMD');
+          window.dispatchEvent(new CustomEvent('firebaseReady'));
+        } else {
+          console.log('🔄 Firebase UMD não carregou, tentando CDN oficial...');
+          loadOfficialFirebase();
+        }
+      }
+      
+      function loadOfficialFirebase() {
         var script1 = document.createElement('script');
         script1.src = 'https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js';
         script1.onload = function() {
@@ -22,16 +31,21 @@
           script2.src = 'https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js';
           script2.onload = function() {
             console.log('✅ Firebase carregado via CDN oficial');
-            // Dispara evento customizado quando Firebase estiver pronto
             window.dispatchEvent(new CustomEvent('firebaseReady'));
+          };
+          script2.onerror = function() {
+            console.error('❌ Erro ao carregar Firestore do CDN oficial');
           };
           document.head.appendChild(script2);
         };
+        script1.onerror = function() {
+          console.error('❌ Erro ao carregar Firebase App do CDN oficial');
+        };
         document.head.appendChild(script1);
-      } else {
-        console.log('✅ Firebase já carregado via CDN alternativo');
-        window.dispatchEvent(new CustomEvent('firebaseReady'));
       }
+      
+      // Verifica após um pequeno delay
+      setTimeout(checkFirebase, 100);
     </script>
 
   <!-- CSS mínimo para rodar standalone (ajuste/una com seu styles.css se quiser) -->
