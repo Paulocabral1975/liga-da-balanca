@@ -6,43 +6,20 @@
   <title>Competição de Perda de Peso</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Firebase SDKs - CDN Oficial (Versão Compatível) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase SDKs - CDN Oficial v8.10.1 (Última Versão Estável) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <!-- Verificação de Carregamento -->
     <script>
       // Verifica se Firebase carregou corretamente
       function checkFirebase() {
         if (typeof firebase !== 'undefined' && firebase.app) {
-          console.log('✅ Firebase carregado via CDN oficial (v9.23.0)');
+          console.log('✅ Firebase carregado via CDN oficial (v8.10.1)');
           window.dispatchEvent(new CustomEvent('firebaseReady'));
         } else {
-          console.log('🔄 Firebase não carregou, tentando versão mais antiga...');
-          loadLegacyFirebase();
+          console.error('❌ Firebase não carregou após timeout');
         }
-      }
-      
-      function loadLegacyFirebase() {
-        // Tenta versão 8.x que é mais compatível
-        var script1 = document.createElement('script');
-        script1.src = 'https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js';
-        script1.onload = function() {
-          var script2 = document.createElement('script');
-          script2.src = 'https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js';
-          script2.onload = function() {
-            console.log('✅ Firebase carregado via CDN oficial (v8.10.1)');
-            window.dispatchEvent(new CustomEvent('firebaseReady'));
-          };
-          script2.onerror = function() {
-            console.error('❌ Erro ao carregar Firestore v8');
-          };
-          document.head.appendChild(script2);
-        };
-        script1.onerror = function() {
-          console.error('❌ Erro ao carregar Firebase App v8');
-        };
-        document.head.appendChild(script1);
       }
       
       // Verifica após um pequeno delay
@@ -3131,7 +3108,7 @@
       };
 
       try {
-        // Inicializar Firebase (versão 9.x compat)
+        // Inicializar Firebase (versão 8.x)
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
