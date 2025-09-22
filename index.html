@@ -6,40 +6,41 @@
   <title>Competição de Perda de Peso</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Firebase SDKs - CDN UMD (Universal Module Definition) -->
-    <script src="https://cdn.jsdelivr.net/npm/firebase@12.3.0/app/dist/index.umd.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/firebase@12.3.0/firestore/dist/index.umd.js"></script>
+    <!-- Firebase SDKs - CDN Oficial (Versão Compatível) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
-    <!-- Verificação e Fallback -->
+    <!-- Verificação de Carregamento -->
     <script>
       // Verifica se Firebase carregou corretamente
       function checkFirebase() {
         if (typeof firebase !== 'undefined' && firebase.app) {
-          console.log('✅ Firebase carregado via CDN UMD');
+          console.log('✅ Firebase carregado via CDN oficial (v9.23.0)');
           window.dispatchEvent(new CustomEvent('firebaseReady'));
         } else {
-          console.log('🔄 Firebase UMD não carregou, tentando CDN oficial...');
-          loadOfficialFirebase();
+          console.log('🔄 Firebase não carregou, tentando versão mais antiga...');
+          loadLegacyFirebase();
         }
       }
       
-      function loadOfficialFirebase() {
+      function loadLegacyFirebase() {
+        // Tenta versão 8.x que é mais compatível
         var script1 = document.createElement('script');
-        script1.src = 'https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js';
+        script1.src = 'https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js';
         script1.onload = function() {
           var script2 = document.createElement('script');
-          script2.src = 'https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js';
+          script2.src = 'https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js';
           script2.onload = function() {
-            console.log('✅ Firebase carregado via CDN oficial');
+            console.log('✅ Firebase carregado via CDN oficial (v8.10.1)');
             window.dispatchEvent(new CustomEvent('firebaseReady'));
           };
           script2.onerror = function() {
-            console.error('❌ Erro ao carregar Firestore do CDN oficial');
+            console.error('❌ Erro ao carregar Firestore v8');
           };
           document.head.appendChild(script2);
         };
         script1.onerror = function() {
-          console.error('❌ Erro ao carregar Firebase App do CDN oficial');
+          console.error('❌ Erro ao carregar Firebase App v8');
         };
         document.head.appendChild(script1);
       }
@@ -3130,9 +3131,9 @@
       };
 
       try {
-        // Inicializar Firebase
+        // Inicializar Firebase (versão 9.x compat)
         const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore(app);
+        const db = firebase.firestore();
         
         console.log('✅ Firebase inicializado com sucesso!');
         firebaseInitialized = true;
