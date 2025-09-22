@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -33,8 +32,25 @@
       --success:#16a34a; --info:#0891b2; --danger:#dc2626; --border:#1f2937;
     }
     * { box-sizing: border-box }
-    body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:linear-gradient(180deg,#0b1220,#0f172a 40%,#0b1220); color:var(--text); }
-    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    html, body { 
+      margin: 0; 
+      padding: 0; 
+      height: 100%; 
+      overflow-x: hidden; 
+      overflow-y: auto;
+    }
+    body { 
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; 
+      background: linear-gradient(180deg,#0b1220,#0f172a 40%,#0b1220); 
+      color: var(--text); 
+      min-height: 100vh;
+    }
+    .container { 
+      max-width: 1100px; 
+      margin: 24px auto; 
+      padding: 0 16px 40px 16px; 
+      min-height: calc(100vh - 48px);
+    }
     .header { background: rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; padding: 16px; }
     .header-content { display:flex; gap:16px; align-items: center; }
     .header-left { width: 120px; }
@@ -160,7 +176,7 @@
     
     .participants-container {
       transition: all 0.3s ease;
-      overflow: hidden;
+      overflow: visible;
     }
     
     .participants-container.hidden {
@@ -168,11 +184,13 @@
       opacity: 0;
       margin: 0;
       padding: 0;
+      overflow: hidden;
     }
     
     .participants-container:not(.hidden) {
-      max-height: 1000px;
+      max-height: none;
       opacity: 1;
+      overflow: visible;
     }
     
     /* Estilos para seção do usuário no canto superior direito */
@@ -378,6 +396,108 @@
     }
     .form-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
     .help { color: var(--muted); font-size:12px; }
+    
+    /* Estilos para múltiplas pesagens */
+    .weight-entry {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .weight-entry h4 {
+      color: var(--primary);
+      margin: 0 0 12px 0;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .weight-entry h4 i {
+      color: var(--success);
+    }
+    
+    #multipleWeightsSection {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    
+    .form-group input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
+    }
+    
+    .form-group label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    /* Estilos para fotos das pesagens */
+    .photo-preview {
+      margin-top: 8px;
+      display: none;
+    }
+
+    .photo-preview img {
+      max-width: 150px;
+      max-height: 150px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      object-fit: cover;
+    }
+
+    .photo-preview.show {
+      display: block;
+    }
+
+    .weight-entry input[type="file"] {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .weight-entry input[type="file"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    /* Estilos para edição de fotos */
+    .edit-photo-preview {
+      margin-top: 8px;
+      min-height: 20px;
+    }
+
+    .edit-photo-preview img {
+      max-width: 60px;
+      max-height: 60px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      object-fit: cover;
+    }
+
+    .weight-edit-item input[type="file"] {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .weight-edit-item input[type="file"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
 
     /* Stats/History */
     .stats-grid { display:grid; grid-template-columns: repeat(4,1fr); gap:10px; }
@@ -441,6 +561,414 @@
         font-size: 11px;
       }
     }
+
+    /* Estilos para campos de pesagem separados */
+    .participant-weights {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .weight-item {
+      text-align: center;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .weight-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .weight-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .weight-date {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .weight-percentage {
+      font-size: 12px;
+      font-weight: 600;
+      margin: 2px 0;
+    }
+
+    /* Estilos para modal de edição de pesos */
+    .edit-weights-content {
+      padding: 20px;
+    }
+
+    .participant-info {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .participant-info h3 {
+      margin: 0 0 8px 0;
+      color: var(--text);
+    }
+
+    .participant-info p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .weights-list {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .weight-edit-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr auto;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .weight-edit-item .form-group {
+      margin: 0;
+    }
+
+    .weight-edit-item label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .weight-edit-item input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .weight-edit-item input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    .weight-edit-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-remove-weight {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .btn-remove-weight:hover {
+      background: #b91c1c;
+    }
+
+    .no-weights {
+      text-align: center;
+      color: var(--muted);
+      padding: 40px;
+      font-style: italic;
+    }
+
+    /* Estilos para o novo ranking */
+    .leaderboard-header {
+      background: linear-gradient(135deg, var(--primary), #1e40af);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .lb-header-left h3 {
+      margin: 0 0 8px 0;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .lb-header-left p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .lb-header-right .lb-stats {
+      display: flex;
+      gap: 20px;
+    }
+
+    .lb-stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .leaderboard-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .leaderboard-item {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: auto auto 1fr auto;
+      gap: 16px;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .leaderboard-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .lb-position {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .position-gold .lb-position {
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #b45309;
+    }
+
+    .position-silver .lb-position {
+      background: linear-gradient(135deg, #c0c0c0, #e5e7eb);
+      color: #6b7280;
+    }
+
+    .position-bronze .lb-position {
+      background: linear-gradient(135deg, #cd7f32, #f59e0b);
+      color: #92400e;
+    }
+
+    .position-normal .lb-position {
+      background: var(--border);
+      color: var(--muted);
+    }
+
+    .lb-avatar {
+      display: flex;
+      align-items: center;
+    }
+
+    .lb-info {
+      flex: 1;
+    }
+
+    .lb-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .lb-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .lb-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .lb-detail-item {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .lb-detail-item i {
+      width: 12px;
+      text-align: center;
+    }
+
+    .lb-stats {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .lb-percentage {
+      font-size: 20px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .lb-percentage.positive {
+      color: #16a34a;
+      background: rgba(34, 197, 94, 0.1);
+    }
+
+    .lb-percentage.negative {
+      color: #dc2626;
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .lb-weight-current {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* Responsividade para o ranking */
+    @media (max-width: 768px) {
+      .leaderboard-header {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+
+      .lb-header-right .lb-stats {
+        justify-content: center;
+      }
+
+      .leaderboard-item {
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+      }
+
+      .lb-stats {
+        grid-column: 1 / -1;
+        text-align: left;
+        flex-direction: row;
+        justify-content: space-between;
+        margin-top: 8px;
+      }
+
+      .lb-details {
+        flex-direction: row;
+        gap: 12px;
+      }
+    }
+
+    /* Responsividade para campos de pesagem */
+    @media (max-width: 768px) {
+      .participant-weights {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin: 12px 0;
+        padding: 12px;
+      }
+      
+      .weight-item {
+        padding: 6px;
+      }
+      
+      .weight-value {
+        font-size: 14px;
+      }
+    }
+
+    /* Correções para rolagem */
+    .modal {
+      overflow-y: auto;
+      max-height: 90vh;
+    }
+    
+    .modal-content {
+      max-height: none;
+      overflow: visible;
+    }
+    
+    .modal-content.large {
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    
+    /* Garantir que todos os elementos sejam roláveis */
+    .leaderboard-list,
+    .participants-cards,
+    .participants-list,
+    .participants-grid {
+      overflow: visible;
+    }
+    
+    /* Estilos específicos para cards de participantes */
+    .participants-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      padding: 20px 0;
+      margin-bottom: 40px;
+    }
+    
+    .participants-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 20px 0;
+      margin-bottom: 40px;
+    }
+    
+    .participants-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      padding: 20px 0;
+      margin-bottom: 40px;
+    }
+    
+    /* Espaçamento extra no final da página */
+    .container::after {
+      content: '';
+      display: block;
+      height: 60px;
+    }
   </style>
 </head>
 <body>
@@ -489,6 +1017,7 @@
         <button id="viewStatsBtn" class="btn btn-info"><i class="fas fa-chart-line"></i> Estatísticas</button>
         <button id="chatgptBtn" class="btn btn-secondary"><i class="fas fa-robot"></i> ChatGPT</button>
         <button id="adminLoginBtn" class="btn btn-warning"><i class="fas fa-shield-alt"></i> Login Admin</button>
+        <button id="quickAdminBtn" class="btn btn-danger"><i class="fas fa-user-shield"></i> Admin Rápido</button>
         <button id="manageUsersBtn" class="btn btn-info admin-only" style="display: none;"><i class="fas fa-users-cog"></i> Gerenciar Usuários</button>
       </div>
     </div>
@@ -611,24 +1140,127 @@
       <form id="weightForm" class="form">
         <div class="form-group">
           <label for="weightParticipant">Participante *</label>
-          <select id="weightParticipant" required>
+          <select id="weightParticipant" name="weightParticipant" required>
             <option value="">Selecione um participante</option>
           </select>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="currentWeight">Peso Atual (kg) *</label>
-            <input type="number" id="currentWeight" step="0.1" min="30" max="300" required>
-          </div>
-          <div class="form-group">
-            <label for="weightDate">Data da Pesagem</label>
-            <input type="date" id="weightDate" required>
-          </div>
-        </div>
+        
+        <!-- Opção de Múltiplas Pesagens -->
         <div class="form-group">
-          <label for="notes">Observações</label>
-          <textarea id="notes" rows="3" placeholder="Como está se sentindo, dificuldades, conquistas..."></textarea>
+          <label>
+            <input type="checkbox" id="multipleWeights" onchange="toggleMultipleWeights()">
+            Registrar 3 pesagens (semanal)
+          </label>
         </div>
+        
+        <!-- Pesagem Única -->
+        <div id="singleWeightSection">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="currentWeight">Peso Atual (kg) *</label>
+              <input type="number" id="currentWeight" name="currentWeight" step="0.1" min="30" max="300" required>
+            </div>
+            <div class="form-group">
+              <label for="weightDate">Data da Pesagem</label>
+              <input type="date" id="weightDate" name="weightDate" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="notes">Observações</label>
+            <textarea id="notes" rows="3" placeholder="Como está se sentindo, dificuldades, conquistas..."></textarea>
+          </div>
+        </div>
+        
+        <!-- Múltiplas Pesagens -->
+        <div id="multipleWeightsSection" class="hidden">
+          <div class="form-group">
+            <label for="weekNumber">Semana da Competição</label>
+            <select id="weekNumber" name="weekNumber" required>
+              <option value="">Selecione a semana</option>
+              <option value="1">Semana 1</option>
+              <option value="2">Semana 2</option>
+              <option value="3">Semana 3</option>
+              <option value="4">Semana 4</option>
+              <option value="5">Semana 5</option>
+              <option value="6">Semana 6</option>
+              <option value="7">Semana 7</option>
+              <option value="8">Semana 8</option>
+            </select>
+          </div>
+          
+          <!-- Pesagem 1 -->
+          <div class="weight-entry">
+            <h4><i class="fas fa-weight"></i> Pesagem 1</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="weight1">Peso (kg) *</label>
+                <input type="number" id="weight1" step="0.1" min="30" max="300">
+              </div>
+              <div class="form-group">
+                <label for="date1">Data</label>
+                <input type="date" id="date1">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="photo1">Foto da Pesagem (opcional)</label>
+              <input type="file" id="photo1" accept="image/*" onchange="previewWeightPhoto('photo1', 'preview1')">
+              <div id="preview1" class="photo-preview"></div>
+            </div>
+            <div class="form-group">
+              <label for="notes1">Observações</label>
+              <textarea id="notes1" rows="2" placeholder="Como está se sentindo..."></textarea>
+            </div>
+          </div>
+          
+          <!-- Pesagem 2 -->
+          <div class="weight-entry">
+            <h4><i class="fas fa-weight"></i> Pesagem 2</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="weight2">Peso (kg) *</label>
+                <input type="number" id="weight2" step="0.1" min="30" max="300">
+              </div>
+              <div class="form-group">
+                <label for="date2">Data</label>
+                <input type="date" id="date2">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="photo2">Foto da Pesagem (opcional)</label>
+              <input type="file" id="photo2" accept="image/*" onchange="previewWeightPhoto('photo2', 'preview2')">
+              <div id="preview2" class="photo-preview"></div>
+            </div>
+            <div class="form-group">
+              <label for="notes2">Observações</label>
+              <textarea id="notes2" rows="2" placeholder="Como está se sentindo..."></textarea>
+            </div>
+          </div>
+          
+          <!-- Pesagem 3 -->
+          <div class="weight-entry">
+            <h4><i class="fas fa-weight"></i> Pesagem 3</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="weight3">Peso (kg) *</label>
+                <input type="number" id="weight3" step="0.1" min="30" max="300">
+              </div>
+              <div class="form-group">
+                <label for="date3">Data</label>
+                <input type="date" id="date3">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="photo3">Foto da Pesagem (opcional)</label>
+              <input type="file" id="photo3" accept="image/*" onchange="previewWeightPhoto('photo3', 'preview3')">
+              <div id="preview3" class="photo-preview"></div>
+            </div>
+            <div class="form-group">
+              <label for="notes3">Observações</label>
+              <textarea id="notes3" rows="2" placeholder="Como está se sentindo..."></textarea>
+            </div>
+          </div>
+        </div>
+        
         <div class="form-actions">
           <button type="button" id="cancelWeight" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</button>
           <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Registrar</button>
@@ -762,12 +1394,12 @@
         <input type="hidden" id="editParticipantId">
         <div class="form-group">
           <label for="editParticipantName">Nome Completo *</label>
-          <input type="text" id="editParticipantName" required>
+          <input type="text" id="editParticipantName" name="editParticipantName" required>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label for="editInitialWeight">Peso Inicial (kg) *</label>
-            <input type="number" id="editInitialWeight" step="0.1" min="30" max="300" required>
+            <input type="number" id="editInitialWeight" name="editInitialWeight" step="0.1" min="30" max="300" required>
           </div>
           <div class="form-group">
             <label for="editTargetWeight">Peso Meta (kg)</label>
@@ -781,7 +1413,7 @@
         
         <div class="form-group">
           <label for="editParticipantProfile">Perfil de Acesso *</label>
-          <select id="editParticipantProfile" required>
+          <select id="editParticipantProfile" name="editParticipantProfile" required>
             <option value="">Selecione o perfil</option>
             <option value="admin">Administrador</option>
             <option value="moderator">Moderador</option>
@@ -837,11 +1469,11 @@
         <div class="form-row">
           <div class="form-group">
             <label for="competitionStartDate">Data de Início *</label>
-            <input type="date" id="competitionStartDate" required>
+            <input type="date" id="competitionStartDate" name="competitionStartDate" required>
           </div>
           <div class="form-group">
             <label for="competitionEndDate">Data de Fim *</label>
-            <input type="date" id="competitionEndDate" required>
+            <input type="date" id="competitionEndDate" name="competitionEndDate" required>
           </div>
         </div>
         <div class="form-group">
@@ -857,6 +1489,29 @@
           <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Configuração</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: Editar Pesos -->
+  <div id="editWeightsModal" class="modal hidden">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <h2><i class="fas fa-weight"></i> Editar Pesos</h2>
+        <button id="closeEditWeightsModal" class="close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="edit-weights-content">
+        <div class="participant-info">
+          <h3 id="editWeightsParticipantName"></h3>
+          <p id="editWeightsParticipantInfo"></p>
+        </div>
+        <div class="weights-list" id="weightsList">
+          <!-- Lista de pesos será preenchida dinamicamente -->
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" onclick="saveEditedWeights()">Salvar Alterações</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('editWeightsModal')">Cancelar</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1081,6 +1736,53 @@
       if (!p.weights?.length) return null;
       return p.weights[p.weights.length - 1].value;
     }
+
+    // Função para obter as 3 últimas pesagens separadamente
+    function getLastThreeWeights(p) {
+      if (!p.weights?.length) return { 
+        weight1: null, weight2: null, weight3: null,
+        date1: null, date2: null, date3: null,
+        pct1: null, pct2: null, pct3: null,
+        photo1: null, photo2: null, photo3: null
+      };
+      
+      const sortedWeights = [...p.weights].sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      // Pesagem 01 é a mais recente (peso inicial para cálculo)
+      const weight1 = sortedWeights[0]?.value || null;
+      const weight2 = sortedWeights[1]?.value || null;
+      const weight3 = sortedWeights[2]?.value || null;
+      
+      // Calcula percentuais considerando Pesagem 01 como base (100%)
+      let pct1 = null, pct2 = null, pct3 = null;
+      
+      if (weight1) {
+        pct1 = 0; // Pesagem 01 é a referência (0% de perda)
+        
+        if (weight2) {
+          pct2 = ((weight1 - weight2) / weight1) * 100;
+        }
+        
+        if (weight3) {
+          pct3 = ((weight1 - weight3) / weight1) * 100;
+        }
+      }
+      
+      return {
+        weight1: weight1,
+        weight2: weight2,
+        weight3: weight3,
+        date1: sortedWeights[0]?.date || null,
+        date2: sortedWeights[1]?.date || null,
+        date3: sortedWeights[2]?.date || null,
+        pct1: pct1,
+        pct2: pct2,
+        pct3: pct3,
+        photo1: sortedWeights[0]?.photo || null,
+        photo2: sortedWeights[1]?.photo || null,
+        photo3: sortedWeights[2]?.photo || null
+      };
+    }
     function totalWeightLost() {
       return participants.reduce((acc,p)=>{
         const cw = currentWeight(p); if (!cw) return acc;
@@ -1219,6 +1921,7 @@
     const closeStatsModal = document.getElementById('closeStatsModal');
     const closeHistoryModal = document.getElementById('closeHistoryModal');
     const closeEditParticipantModal = document.getElementById('closeEditParticipantModal');
+    const closeEditWeightsModal = document.getElementById('closeEditWeightsModal');
     const closeConfigModal = document.getElementById('closeConfigModal');
     const closeChatgptModal = document.getElementById('closeChatgptModal');
 
@@ -1292,12 +1995,105 @@
     // ========= Abrir/Fechar Modais =========
     const open = (el) => el.classList.remove('hidden');
     const close = (el) => el.classList.add('hidden');
+    
+    // ========= Função para Alternar Múltiplas Pesagens =========
+    function toggleMultipleWeights() {
+      const checkbox = document.getElementById('multipleWeights');
+      const singleSection = document.getElementById('singleWeightSection');
+      const multipleSection = document.getElementById('multipleWeightsSection');
+      
+      if (checkbox.checked) {
+        singleSection.classList.add('hidden');
+        multipleSection.classList.remove('hidden');
+        
+        // Preenche datas automaticamente (3 dias consecutivos)
+        const today = new Date();
+        const date1 = new Date(today);
+        const date2 = new Date(today);
+        const date3 = new Date(today);
+        
+        date1.setDate(today.getDate() - 2);
+        date2.setDate(today.getDate() - 1);
+        date3.setDate(today.getDate());
+        
+        document.getElementById('date1').value = date1.toISOString().split('T')[0];
+        document.getElementById('date2').value = date2.toISOString().split('T')[0];
+        document.getElementById('date3').value = date3.toISOString().split('T')[0];
+        
+        // Define semana atual automaticamente
+        const currentWeek = getCompetitionWeek();
+        document.getElementById('weekNumber').value = currentWeek;
+        
+      } else {
+        singleSection.classList.remove('hidden');
+        multipleSection.classList.add('hidden');
+      }
+    }
+
+    // ========= Função para Preview de Fotos das Pesagens =========
+    function previewWeightPhoto(inputId, previewId) {
+      const input = document.getElementById(inputId);
+      const preview = document.getElementById(previewId);
+      
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          preview.innerHTML = `<img src="${e.target.result}" alt="Preview da foto">`;
+          preview.classList.add('show');
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+      } else {
+        preview.innerHTML = '';
+        preview.classList.remove('show');
+      }
+    }
+
+    // ========= Função para Preview de Fotos na Edição =========
+    function previewEditWeightPhoto(index) {
+      const weightItem = document.querySelector(`[data-index="${index}"]`);
+      const input = weightItem.querySelector('.photo-input');
+      const preview = document.getElementById(`editPreview${index}`);
+      
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          preview.innerHTML = `<img src="${e.target.result}" alt="Nova foto" style="max-width: 60px; max-height: 60px; border-radius: 4px; margin-top: 4px;">`;
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+      } else {
+        // Se não há arquivo selecionado, mantém a foto atual se existir
+        const currentPhoto = weightItem.dataset.currentPhoto;
+        if (currentPhoto) {
+          preview.innerHTML = `<img src="${currentPhoto}" alt="Foto atual" style="max-width: 60px; max-height: 60px; border-radius: 4px; margin-top: 4px;">`;
+        } else {
+          preview.innerHTML = '';
+        }
+      }
+    }
+    
+    // Tornar funções globais
+    window.toggleMultipleWeights = toggleMultipleWeights;
+    window.previewEditWeightPhoto = previewEditWeightPhoto;
 
     addParticipantBtn.addEventListener('click', () => open(participantModal));
     addWeightBtn.addEventListener('click', () => {
       populateParticipantsSelect(weightParticipant);
       // data de hoje
       weightDate.valueAsDate = new Date();
+      
+      // Limpar campos de múltiplas pesagens
+      document.getElementById('multipleWeights').checked = false;
+      document.getElementById('singleWeightSection').classList.remove('hidden');
+      document.getElementById('multipleWeightsSection').classList.add('hidden');
+      
+      // Limpar todos os campos
+      weightForm.reset();
+      weightDate.valueAsDate = new Date();
+      
       open(weightModal);
     });
     viewStatsBtn.addEventListener('click', () => {
@@ -1333,6 +2129,7 @@
     closeStatsModal.addEventListener('click', () => close(statsModal));
     closeHistoryModal.addEventListener('click', () => close(historyModal));
     closeEditParticipantModal.addEventListener('click', () => close(editParticipantModal));
+    closeEditWeightsModal.addEventListener('click', () => close(editWeightsModal));
     closeConfigModal.addEventListener('click', () => close(configCompetitionModal));
     closeChatgptModal.addEventListener('click', () => close(chatgptModal));
 
@@ -1605,32 +2402,98 @@
           </div>`;
         return;
       }
+      
       // Ordena por % de perda (desc)
       const sorted = [...participants].sort((a,b) => pctLoss(b) - pctLoss(a));
+      
+      // Cria cabeçalho do ranking
+      const header = document.createElement('div');
+      header.className = 'leaderboard-header';
+      header.innerHTML = `
+        <div class="lb-header-left">
+          <h3><i class="fas fa-trophy"></i> Ranking da Competição</h3>
+          <p>Classificação por percentual de perda de peso</p>
+        </div>
+        <div class="lb-header-right">
+          <div class="lb-stats">
+            <span class="lb-stat-item">
+              <i class="fas fa-users"></i>
+              ${participants.length} participante${participants.length !== 1 ? 's' : ''}
+            </span>
+            <span class="lb-stat-item">
+              <i class="fas fa-weight-hanging"></i>
+              ${totalWeightLost().toFixed(1)} kg perdidos
+            </span>
+          </div>
+        </div>
+      `;
+      leaderboardEl.appendChild(header);
+      
+      // Cria lista de participantes
+      const participantsList = document.createElement('div');
+      participantsList.className = 'leaderboard-list';
+      
       sorted.forEach((p, idx) => {
         const pos = idx + 1;
         const meta = p.department ? `<div class="lb-meta">${p.department}</div>` : '';
         const cur = currentWeight(p);
         const perc = pctLoss(p);
+        const initialWeight = p.initialWeight;
+        const weightLost = initialWeight ? (initialWeight - (cur || initialWeight)) : 0;
+        
+        // Define cor da posição
+        let positionClass = '';
+        let positionIcon = '';
+        if (pos === 1) {
+          positionClass = 'position-gold';
+          positionIcon = '🥇';
+        } else if (pos === 2) {
+          positionClass = 'position-silver';
+          positionIcon = '🥈';
+        } else if (pos === 3) {
+          positionClass = 'position-bronze';
+          positionIcon = '🥉';
+        } else {
+          positionClass = 'position-normal';
+          positionIcon = `#${pos}`;
+        }
+        
         const item = document.createElement('div');
-        item.className = 'leaderboard-item';
+        item.className = `leaderboard-item ${positionClass}`;
         item.innerHTML = `
-          <div class="lb-left">
+          <div class="lb-position">
+            <span class="position-number">${positionIcon}</span>
+          </div>
+          <div class="lb-avatar">
             ${avatarHTML(p)}
-            <div class="lb-info">
-              <strong>${pos}º</strong> ${p.name}
-              ${meta}
+          </div>
+          <div class="lb-info">
+            <div class="lb-name">${p.name}</div>
+            ${meta}
+            <div class="lb-details">
+              <span class="lb-detail-item">
+                <i class="fas fa-weight"></i>
+                ${initialWeight?.toFixed(1) || '-'} kg → ${cur?.toFixed(1) || '-'} kg
+              </span>
+              <span class="lb-detail-item">
+                <i class="fas fa-minus"></i>
+                ${weightLost.toFixed(1)} kg perdidos
+              </span>
             </div>
           </div>
-          <div class="lb-right">
-            <div style="text-align:right;">
-              <div><strong>${cur?.toFixed?.(1) ?? '-'}</strong> kg</div>
-              <div style="color:${perc>=0?'#22c55e':'#ef4444'}">${perc.toFixed(1)}%</div>
+          <div class="lb-stats">
+            <div class="lb-percentage ${perc >= 0 ? 'positive' : 'negative'}">
+              ${perc.toFixed(1)}%
+            </div>
+            <div class="lb-weight-current">
+              ${cur?.toFixed(1) || '-'} kg
             </div>
           </div>
         `;
-        leaderboardEl.appendChild(item);
+        participantsList.appendChild(item);
       });
+      
+      leaderboardEl.appendChild(participantsList);
     }
 
     function renderParticipantsCards() {
@@ -1644,8 +2507,16 @@
         card.className = 'participant-card';
         const cur = currentWeight(p);
         const perc = pctLoss(p);
+        const threeWeights = getLastThreeWeights(p);
         const meta = p.department ? `<div class="department">${p.department}</div>` : '';
         const profile = p.profile ? `<div class="profile-badge"><i class="${getProfileIcon(p.profile)}"></i> ${getProfileDisplayName(p.profile)}</div>` : '';
+        
+        // Formatar datas das pesagens
+        const formatDate = (dateStr) => {
+          if (!dateStr) return '-';
+          return new Date(dateStr).toLocaleDateString('pt-BR');
+        };
+        
         card.innerHTML = `
           <div class="participant-card-header">
             <div class="participant-name-card">${p.name}</div>
@@ -1662,8 +2533,32 @@
               <div class="stat-value" style="color:${perc>=0?'#28a745':'#dc3545'}">${perc.toFixed(1)}%</div>
             </div>
           </div>
+          <div class="participant-weights">
+            <div class="weight-item">
+              <div class="weight-label">Pesagem 01 (Base)</div>
+              <div class="weight-value">${threeWeights.weight1?.toFixed(1) ?? '-'} kg</div>
+              <div class="weight-percentage" style="color: #6b7280;">0.0%</div>
+              <div class="weight-date">${formatDate(threeWeights.date1)}</div>
+              ${threeWeights.photo1 ? `<div class="weight-photo"><img src="${threeWeights.photo1}" alt="Foto da pesagem 1" style="max-width: 60px; max-height: 60px; border-radius: 4px; margin-top: 4px;"></div>` : ''}
+            </div>
+            <div class="weight-item">
+              <div class="weight-label">Pesagem 02</div>
+              <div class="weight-value">${threeWeights.weight2?.toFixed(1) ?? '-'} kg</div>
+              <div class="weight-percentage" style="color: ${threeWeights.pct2 >= 0 ? '#16a34a' : '#dc2626'};">${threeWeights.pct2 !== null ? threeWeights.pct2.toFixed(1) + '%' : '-'}</div>
+              <div class="weight-date">${formatDate(threeWeights.date2)}</div>
+              ${threeWeights.photo2 ? `<div class="weight-photo"><img src="${threeWeights.photo2}" alt="Foto da pesagem 2" style="max-width: 60px; max-height: 60px; border-radius: 4px; margin-top: 4px;"></div>` : ''}
+            </div>
+            <div class="weight-item">
+              <div class="weight-label">Pesagem 03</div>
+              <div class="weight-value">${threeWeights.weight3?.toFixed(1) ?? '-'} kg</div>
+              <div class="weight-percentage" style="color: ${threeWeights.pct3 >= 0 ? '#16a34a' : '#dc2626'};">${threeWeights.pct3 !== null ? threeWeights.pct3.toFixed(1) + '%' : '-'}</div>
+              <div class="weight-date">${formatDate(threeWeights.date3)}</div>
+              ${threeWeights.photo3 ? `<div class="weight-photo"><img src="${threeWeights.photo3}" alt="Foto da pesagem 3" style="max-width: 60px; max-height: 60px; border-radius: 4px; margin-top: 4px;"></div>` : ''}
+            </div>
+          </div>
           <div class="participant-actions">
             <button class="btn btn-secondary" data-edit="${p.id}"><i class="fas fa-pen"></i> Editar</button>
+            <button class="btn btn-primary" data-edit-weights="${p.id}"><i class="fas fa-weight"></i> Editar Pesos</button>
             <button class="btn btn-info" data-history="${p.id}"><i class="fas fa-chart-line"></i> Histórico</button>
             <button class="btn btn-warning" data-credentials="${p.id}"><i class="fas fa-key"></i> Credenciais</button>
           </div>
@@ -1719,8 +2614,16 @@
         card.className = 'participant-card';
         const cur = currentWeight(p);
         const perc = pctLoss(p);
+        const threeWeights = getLastThreeWeights(p);
         const meta = p.department ? `<div class="department">${p.department}</div>` : '';
         const profile = p.profile ? `<div class="profile-badge"><i class="${getProfileIcon(p.profile)}"></i> ${getProfileDisplayName(p.profile)}</div>` : '';
+        
+        // Formatar datas das pesagens
+        const formatDate = (dateStr) => {
+          if (!dateStr) return '-';
+          return new Date(dateStr).toLocaleDateString('pt-BR');
+        };
+        
         card.innerHTML = `
           <div class="participant-card-header">
             ${avatarHTML(p)}
@@ -1738,8 +2641,29 @@
               <div class="stat-value" style="color:${perc>=0?'#28a745':'#dc3545'}">${perc.toFixed(1)}%</div>
             </div>
           </div>
+          <div class="participant-weights">
+            <div class="weight-item">
+              <div class="weight-label">Pesagem 01 (Base)</div>
+              <div class="weight-value">${threeWeights.weight1?.toFixed(1) ?? '-'} kg</div>
+              <div class="weight-percentage" style="color: #6b7280;">0.0%</div>
+              <div class="weight-date">${formatDate(threeWeights.date1)}</div>
+            </div>
+            <div class="weight-item">
+              <div class="weight-label">Pesagem 02</div>
+              <div class="weight-value">${threeWeights.weight2?.toFixed(1) ?? '-'} kg</div>
+              <div class="weight-percentage" style="color: ${threeWeights.pct2 >= 0 ? '#16a34a' : '#dc2626'};">${threeWeights.pct2 !== null ? threeWeights.pct2.toFixed(1) + '%' : '-'}</div>
+              <div class="weight-date">${formatDate(threeWeights.date2)}</div>
+            </div>
+            <div class="weight-item">
+              <div class="weight-label">Pesagem 03</div>
+              <div class="weight-value">${threeWeights.weight3?.toFixed(1) ?? '-'} kg</div>
+              <div class="weight-percentage" style="color: ${threeWeights.pct3 >= 0 ? '#16a34a' : '#dc2626'};">${threeWeights.pct3 !== null ? threeWeights.pct3.toFixed(1) + '%' : '-'}</div>
+              <div class="weight-date">${formatDate(threeWeights.date3)}</div>
+            </div>
+          </div>
           <div class="participant-actions">
             <button class="btn btn-secondary" data-edit="${p.id}"><i class="fas fa-pen"></i> Editar</button>
+            <button class="btn btn-primary" data-edit-weights="${p.id}"><i class="fas fa-weight"></i> Editar Pesos</button>
             <button class="btn btn-info" data-history="${p.id}"><i class="fas fa-chart-line"></i> Histórico</button>
             <button class="btn btn-warning" data-credentials="${p.id}"><i class="fas fa-key"></i> Credenciais</button>
           </div>
@@ -1768,6 +2692,25 @@
           }
           
           openEditModal(id);
+        });
+      });
+
+      // bind editar pesos
+      const editWeightsButtons = container.querySelectorAll('[data-edit-weights]');
+      console.log('Botões de editar pesos encontrados:', editWeightsButtons.length); // Debug
+      
+      editWeightsButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-edit-weights');
+          console.log('Botão de editar pesos clicado para ID:', id); // Debug
+          
+          // Verifica permissão para editar
+          if (!hasPermission('edit_participant')) {
+            alert('Acesso negado! Apenas administradores podem editar pesos.');
+            return;
+          }
+          
+          editParticipantWeights(id);
         });
       });
       
@@ -1873,6 +2816,10 @@
         console.log('Salvando no localStorage...'); // Debug
         saveParticipants();
         
+        // Sincroniza imediatamente com Firebase
+        console.log('Sincronizando com Firebase...'); // Debug
+        saveToCloud();
+        
         // Limpa o formulário
         console.log('Limpando formulário...'); // Debug
         participantForm.reset();
@@ -1920,14 +2867,92 @@
     weightForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const id = weightParticipant.value;
-      const w = parseFloat(currentWeightInput.value);
-      const d = weightDate.value ? new Date(weightDate.value) : new Date();
-      const n = notes.value.trim();
-
+      const isMultiple = document.getElementById('multipleWeights').checked;
+      
       const idx = participants.findIndex(p => p.id === id);
-      if (idx === -1 || isNaN(w)) return;
-      participants[idx].weights.push({ value: w, date: d.toISOString(), notes: n });
+      if (idx === -1) return;
+      
+      if (isMultiple) {
+        // Registrar múltiplas pesagens
+        const weekNumber = document.getElementById('weekNumber').value;
+        const weights = [];
+        
+        // Processar cada pesagem
+        for (let i = 1; i <= 3; i++) {
+          const weight = parseFloat(document.getElementById(`weight${i}`).value);
+          const date = document.getElementById(`date${i}`).value;
+          const notes = document.getElementById(`notes${i}`).value.trim();
+          const photoInput = document.getElementById(`photo${i}`);
+          
+          if (!isNaN(weight) && weight > 0 && date) {
+            const weightData = {
+              value: weight,
+              date: new Date(date).toISOString(),
+              notes: notes || `Pesagem ${i} - Semana ${weekNumber}`,
+              week: parseInt(weekNumber),
+              entry: i
+            };
+            
+            // Processar foto se existir
+            if (photoInput.files && photoInput.files[0]) {
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                weightData.photo = e.target.result;
+                weights.push(weightData);
+                
+                // Se for a última pesagem, salvar tudo
+                if (i === 3) {
+                  if (weights.length === 0) {
+                    alert('Por favor, preencha pelo menos uma pesagem válida.');
+                    return;
+                  }
+                  
+                  participants[idx].weights.push(...weights);
+                  saveParticipants();
+                  saveToCloud();
+                  close(weightModal);
+                  refreshAll();
+                }
+              };
+              reader.readAsDataURL(photoInput.files[0]);
+            } else {
+              weights.push(weightData);
+            }
+          }
+        }
+        
+        if (weights.length === 0) {
+          alert('Por favor, preencha pelo menos uma pesagem válida.');
+          return;
+        }
+        
+        // Adicionar todas as pesagens
+        participants[idx].weights.push(...weights);
+        
+        console.log(`✅ ${weights.length} pesagens registradas para ${participants[idx].name}`);
+        
+      } else {
+        // Registrar pesagem única (comportamento original)
+        const w = parseFloat(currentWeightInput.value);
+        const d = weightDate.value ? new Date(weightDate.value) : new Date();
+        const n = notes.value.trim();
+
+        if (isNaN(w)) return;
+        
+        participants[idx].weights.push({ 
+          value: w, 
+          date: d.toISOString(), 
+          notes: n || 'Pesagem única'
+        });
+        
+        console.log(`✅ Pesagem única registrada para ${participants[idx].name}`);
+      }
+      
       saveParticipants();
+      
+      // Sincroniza imediatamente com Firebase
+      saveToCloud();
+      
       close(weightModal);
       refreshAll();
     });
@@ -1973,6 +2998,160 @@
       historyParticipantFilter.value = id;
       renderHistory();
       open(historyModal);
+    }
+
+    // Função para abrir modal de edição de pesos
+    function editParticipantWeights(id) {
+      const participant = participants.find(p => p.id === id);
+      if (!participant) return;
+
+      // Preenche informações do participante
+      document.getElementById('editWeightsParticipantName').textContent = participant.name;
+      document.getElementById('editWeightsParticipantInfo').textContent = 
+        `Departamento: ${participant.department || 'Não informado'} | Peso inicial: ${participant.initialWeight || 'Não informado'} kg`;
+
+      // Limpa lista de pesos
+      const weightsList = document.getElementById('weightsList');
+      weightsList.innerHTML = '';
+
+      if (!participant.weights || participant.weights.length === 0) {
+        weightsList.innerHTML = '<div class="no-weights">Nenhuma pesagem registrada</div>';
+        return;
+      }
+
+      // Ordena pesos por data (mais recente primeiro)
+      const sortedWeights = [...participant.weights].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      // Cria campos de edição para cada peso
+      sortedWeights.forEach((weight, index) => {
+        const weightItem = document.createElement('div');
+        weightItem.className = 'weight-edit-item';
+        weightItem.dataset.index = index;
+        weightItem.dataset.currentPhoto = weight.photo || '';
+        
+        const date = new Date(weight.date);
+        const formattedDate = date.toISOString().split('T')[0];
+        
+        weightItem.innerHTML = `
+          <div class="form-group">
+            <label>Peso (kg)</label>
+            <input type="number" step="0.1" min="0" value="${weight.value}" class="weight-input">
+          </div>
+          <div class="form-group">
+            <label>Data</label>
+            <input type="date" value="${formattedDate}" class="date-input">
+          </div>
+          <div class="form-group">
+            <label>Observações</label>
+            <input type="text" value="${weight.notes || ''}" class="notes-input" placeholder="Observações...">
+          </div>
+          <div class="form-group">
+            <label>Foto da Pesagem</label>
+            <input type="file" class="photo-input" accept="image/*" onchange="previewEditWeightPhoto('${index}')">
+            <div class="edit-photo-preview" id="editPreview${index}">
+              ${weight.photo ? `<img src="${weight.photo}" alt="Foto atual" style="max-width: 60px; max-height: 60px; border-radius: 4px; margin-top: 4px;">` : ''}
+            </div>
+          </div>
+          <div class="weight-edit-actions">
+            <button type="button" class="btn-remove-weight" onclick="removeWeight(${index})">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `;
+        
+        weightsList.appendChild(weightItem);
+      });
+
+      // Armazena ID do participante para salvar depois
+      weightsList.dataset.participantId = id;
+      
+      open(editWeightsModal);
+    }
+
+    // Função para remover peso
+    function removeWeight(index) {
+      if (confirm('Tem certeza que deseja remover esta pesagem?')) {
+        const weightItem = document.querySelector(`[data-index="${index}"]`);
+        if (weightItem) {
+          weightItem.remove();
+        }
+      }
+    }
+
+    // Função para salvar pesos editados
+    function saveEditedWeights() {
+      const weightsList = document.getElementById('weightsList');
+      const participantId = weightsList.dataset.participantId;
+      
+      if (!participantId) return;
+
+      const participant = participants.find(p => p.id === participantId);
+      if (!participant) return;
+
+      // Coleta dados editados
+      const editedWeights = [];
+      const weightItems = weightsList.querySelectorAll('.weight-edit-item');
+      
+      weightItems.forEach(item => {
+        const weight = parseFloat(item.querySelector('.weight-input').value);
+        const date = item.querySelector('.date-input').value;
+        const notes = item.querySelector('.notes-input').value.trim();
+        const photoInput = item.querySelector('.photo-input');
+        
+        if (!isNaN(weight) && weight > 0 && date) {
+          const weightData = {
+            value: weight,
+            date: new Date(date).toISOString(),
+            notes: notes || 'Pesagem editada'
+          };
+          
+          // Processar foto se existir
+          if (photoInput.files && photoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              weightData.photo = e.target.result;
+              editedWeights.push(weightData);
+              
+              // Se for o último item, salvar tudo
+              if (item === weightItems[weightItems.length - 1]) {
+                saveEditedWeightsFinal(participantId, editedWeights);
+              }
+            };
+            reader.readAsDataURL(photoInput.files[0]);
+          } else {
+            // Manter foto atual se existir
+            const currentPhoto = item.dataset.currentPhoto;
+            if (currentPhoto) {
+              weightData.photo = currentPhoto;
+            }
+            editedWeights.push(weightData);
+          }
+        }
+      });
+      
+      // Se não há fotos para processar, salvar imediatamente
+      if (editedWeights.length > 0 && !Array.from(weightItems).some(item => item.querySelector('.photo-input').files && item.querySelector('.photo-input').files[0])) {
+        saveEditedWeightsFinal(participantId, editedWeights);
+      }
+    }
+
+    // ========= Função para Salvar Pesos Editados (Final) =========
+    function saveEditedWeightsFinal(participantId, editedWeights) {
+      const participant = participants.find(p => p.id === participantId);
+      if (!participant) return;
+
+      // Atualiza pesos do participante
+      participant.weights = editedWeights;
+      
+      // Salva alterações
+      saveParticipants();
+      saveToCloud(); // Sincroniza com Firebase
+      
+      // Fecha modal e atualiza interface
+      close(editWeightsModal);
+      refreshAll();
+      
+      alert('Pesos atualizados com sucesso!');
     }
     
     function showParticipantCredentials(id) {
@@ -2319,7 +3498,30 @@
         } else {
           switchView('cards');
         }
+        
+        // Força atualização da rolagem após renderizar
+        setTimeout(() => {
+          ensureScrollable();
+        }, 100);
       }
+    }
+    
+    // ========= Função para garantir rolagem =========
+    function ensureScrollable() {
+      // Remove limitações de altura
+      const container = document.getElementById('participantsContainer');
+      if (container) {
+        container.style.maxHeight = 'none';
+        container.style.height = 'auto';
+        container.style.overflow = 'visible';
+      }
+      
+      // Garante que o body pode rolar
+      document.body.style.height = 'auto';
+      document.documentElement.style.height = 'auto';
+      
+      // Força recálculo do layout
+      document.body.offsetHeight;
     }
 
     // ========= Toggle de Participantes =========
@@ -2338,6 +3540,17 @@
         if (participants.length > 0) {
           renderParticipants();
         }
+        
+        // Força atualização do layout e rolagem
+        setTimeout(() => {
+          container.style.height = 'auto';
+          container.style.maxHeight = 'none';
+          container.style.overflow = 'visible';
+          
+          // Garante que a página pode rolar até o final
+          document.body.style.height = 'auto';
+          document.documentElement.style.height = 'auto';
+        }, 100);
       } else {
         // Esconde a seção de participantes
         container.classList.add('hidden');
@@ -2375,18 +3588,24 @@
     
     // Função para verificar se é administrador
     function isAdmin() {
-      const isAdmin = localStorage.getItem('isAdmin');
-      const loginTime = localStorage.getItem('adminLoginTime');
-      
-      if (isAdmin === 'true' && loginTime) {
-        const loginDate = new Date(loginTime);
-        const now = new Date();
-        const hoursDiff = (now - loginDate) / (1000 * 60 * 60);
+      try {
+        const session = JSON.parse(localStorage.getItem('lb_session_v1') || '{}');
+        const users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+        const user = users.find(u => u.id === session.userId);
         
-        return hoursDiff < 8; // Sessão válida por 8 horas
+        if (user && user.role === 'admin') {
+          const loginDate = new Date(session.loginTime);
+          const now = new Date();
+          const hoursDiff = (now - loginDate) / (1000 * 60 * 60);
+          
+          return hoursDiff < 8; // Sessão válida por 8 horas
+        }
+        
+        return false;
+      } catch (error) {
+        console.error('Erro ao verificar admin:', error);
+        return false;
       }
-      
-      return false;
     }
     
     // Função para obter dados do usuário atual
@@ -2905,8 +4124,169 @@
     
     // Função para redirecionar para login de admin
     function goToAdminLogin() {
-      window.open('admin.html', '_blank');
+      // Verifica se existe usuário admin
+      const users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+      const adminExists = users.some(u => u.role === 'admin');
+      
+      if (!adminExists) {
+        // Cria usuário admin padrão
+        createDefaultAdmin();
+      }
+      
+      // Tenta fazer login automático como admin
+      const adminUser = users.find(u => u.role === 'admin');
+      if (adminUser) {
+        performAdminLogin(adminUser);
+      } else {
+        window.open('admin.html', '_blank');
+      }
     }
+    
+    // Função para criar admin padrão
+    function createDefaultAdmin() {
+      const adminUser = {
+        id: 'admin-default',
+        name: 'Administrador',
+        email: 'admin@liga.com',
+        password: '123456',
+        role: 'admin',
+        department: 'Administração',
+        phone: '',
+        permissions: ['add_participant', 'edit_participant', 'delete_participant', 'register_weight', 'manage_users', 'config_competition', 'view_stats', 'export_data', 'clear_data'],
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        lastAccess: null
+      };
+      
+      const users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+      users.push(adminUser);
+      localStorage.setItem('lb_users_v1', JSON.stringify(users));
+      
+      console.log('✅ Usuário admin padrão criado!');
+      console.log('Login: admin@liga.com');
+      console.log('Senha: 123456');
+    }
+    
+    // Função para fazer login como admin
+    function performAdminLogin(adminUser) {
+      const session = {
+        userId: adminUser.id,
+        loginTime: new Date().toISOString()
+      };
+      
+      localStorage.setItem('lb_session_v1', JSON.stringify(session));
+      localStorage.setItem('isAdmin', 'true');
+      localStorage.setItem('adminUser', adminUser.name);
+      localStorage.setItem('adminLoginTime', new Date().toISOString());
+      
+      console.log('✅ Login admin realizado com sucesso!');
+      
+      // Atualiza interface
+      updateAdminInterface();
+      updateUserInfo();
+      
+      alert('Login de administrador realizado com sucesso!');
+    }
+    
+    // Função para login admin rápido (sem verificação)
+    function quickAdminLogin() {
+      console.log('🚀 Iniciando login admin rápido...');
+      
+      // Criar usuário admin se não existir
+      let users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+      let adminUser = users.find(u => u.role === 'admin');
+      
+      if (!adminUser) {
+        console.log('📝 Criando usuário admin...');
+        adminUser = {
+          id: 'admin-quick-' + Date.now(),
+          name: 'Administrador',
+          email: 'admin@liga.com',
+          password: 'admin123',
+          role: 'admin',
+          department: 'Administração',
+          phone: '',
+          permissions: ['add_participant', 'edit_participant', 'delete_participant', 'register_weight', 'manage_users', 'config_competition', 'view_stats', 'export_data', 'clear_data'],
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          lastAccess: null
+        };
+        
+        users.push(adminUser);
+        localStorage.setItem('lb_users_v1', JSON.stringify(users));
+        console.log('✅ Usuário admin criado!');
+      }
+      
+      // Fazer login direto
+      const session = {
+        userId: adminUser.id,
+        loginTime: new Date().toISOString()
+      };
+      
+      localStorage.setItem('lb_session_v1', JSON.stringify(session));
+      localStorage.setItem('isAdmin', 'true');
+      localStorage.setItem('adminUser', adminUser.name);
+      localStorage.setItem('adminLoginTime', new Date().toISOString());
+      localStorage.setItem('currentUserId', adminUser.id);
+      
+      console.log('✅ Login admin rápido realizado!');
+      console.log('👤 Usuário:', adminUser.name);
+      console.log('🔑 ID:', adminUser.id);
+      
+      // Atualiza interface
+      updateAdminInterface();
+      updateUserInfo();
+      
+      // Recarrega a página para aplicar todas as mudanças
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    }
+    
+    // Tornar função global
+    window.quickAdminLogin = quickAdminLogin;
+    
+    // Função de debug para verificar status do admin
+    window.debugAdmin = function() {
+      console.log('🔍 === DEBUG ADMIN ===');
+      
+      const session = JSON.parse(localStorage.getItem('lb_session_v1') || '{}');
+      const users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+      const isAdmin = localStorage.getItem('isAdmin');
+      const adminUser = localStorage.getItem('adminUser');
+      const currentUserId = localStorage.getItem('currentUserId');
+      
+      console.log('Sessão:', session);
+      console.log('Usuários:', users.length);
+      console.log('isAdmin:', isAdmin);
+      console.log('adminUser:', adminUser);
+      console.log('currentUserId:', currentUserId);
+      
+      const user = users.find(u => u.id === session.userId);
+      console.log('Usuário atual:', user);
+      
+      if (user) {
+        console.log('Role do usuário:', user.role);
+        console.log('É admin?', user.role === 'admin');
+      }
+      
+      console.log('Função isAdmin():', isAdmin());
+      console.log('==================');
+    };
+    
+    // Função para resetar login admin
+    window.resetAdmin = function() {
+      console.log('🔄 Resetando login admin...');
+      
+      localStorage.removeItem('lb_session_v1');
+      localStorage.removeItem('isAdmin');
+      localStorage.removeItem('adminUser');
+      localStorage.removeItem('adminLoginTime');
+      localStorage.removeItem('currentUserId');
+      
+      console.log('✅ Login admin resetado!');
+      location.reload();
+    };
     
     // Função para verificar permissões antes de ações administrativas
     function checkAdminPermission(action) {
@@ -2951,6 +4331,12 @@
       
       if (adminLoginBtn) {
         adminLoginBtn.addEventListener('click', goToAdminLogin);
+      }
+      
+      // Botão de login admin rápido
+      const quickAdminBtn = document.getElementById('quickAdminBtn');
+      if (quickAdminBtn) {
+        quickAdminBtn.addEventListener('click', quickAdminLogin);
       }
       
       if (logoutBtn) {
@@ -3126,8 +4512,79 @@
         // Sincronizar a cada mudança
         window.addEventListener('beforeunload', saveToCloud);
         
-        // Sincronizar automaticamente a cada 30 segundos
-        setInterval(saveToCloud, 30000);
+    // Sincronizar automaticamente a cada 30 segundos
+    setInterval(saveToCloud, 30000);
+    
+    // Função para testar sincronização
+    window.testFirebaseSync = function() {
+      console.log('🧪 Testando sincronização Firebase...');
+      
+      // Testa salvamento
+      saveToCloud().then(() => {
+        console.log('✅ Teste de salvamento: OK');
+        
+        // Testa carregamento
+        loadFromCloud().then(() => {
+          console.log('✅ Teste de carregamento: OK');
+          console.log('🎉 Sincronização Firebase funcionando!');
+        }).catch(error => {
+          console.error('❌ Erro no teste de carregamento:', error);
+        });
+      }).catch(error => {
+        console.error('❌ Erro no teste de salvamento:', error);
+      });
+    };
+    
+    // Função para forçar sincronização
+    window.forceSync = function() {
+      console.log('🔄 Forçando sincronização...');
+      saveToCloud();
+    };
+    
+    // Função para forçar atualização em dispositivos móveis
+    window.forceUpdate = function() {
+      console.log('📱 Forçando atualização para dispositivos móveis...');
+      
+      // Carrega dados da nuvem
+      loadFromCloud().then(() => {
+        console.log('✅ Dados atualizados da nuvem!');
+        
+        // Recarrega a interface
+        refreshAll();
+        
+        // Mostra notificação
+        if (navigator.userAgent.includes('Mobile')) {
+          alert('Dados atualizados! Recarregue a página se necessário.');
+        }
+      }).catch(error => {
+        console.error('❌ Erro ao atualizar:', error);
+      });
+    };
+    
+    // Função para detectar mudanças em tempo real
+    window.enableRealTimeSync = function() {
+      console.log('🔄 Ativando sincronização em tempo real...');
+      
+      // Sincroniza a cada 10 segundos em vez de 30
+      setInterval(() => {
+        console.log('🔄 Sincronização automática...');
+        saveToCloud();
+      }, 10000);
+      
+      // Sincroniza quando a página ganha foco
+      window.addEventListener('focus', () => {
+        console.log('📱 Página ganhou foco, sincronizando...');
+        loadFromCloud();
+      });
+      
+      // Sincroniza quando volta do background (mobile)
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          console.log('📱 Página voltou do background, sincronizando...');
+          loadFromCloud();
+        }
+      });
+    };
         
       } catch (error) {
         console.error('❌ Erro ao inicializar Firebase:', error);
@@ -3190,4 +4647,5 @@
   </script>
 </body>
 </html>
+
 
