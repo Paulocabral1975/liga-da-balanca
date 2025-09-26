@@ -2168,12 +2168,20 @@
         subtitleElement.textContent = competitionConfig.description;
       }
       
-      // Atualiza as datas abaixo da barra de progresso
+      // Atualiza as datas abaixo da barra de progresso COM CORREÇÃO DE FUSO HORÁRIO
       const datesElement = document.getElementById('competitionDates');
       if (datesElement && competitionConfig.startDate && competitionConfig.endDate) {
-        const startDate = new Date(competitionConfig.startDate).toLocaleDateString('pt-BR');
-        const endDate = new Date(competitionConfig.endDate).toLocaleDateString('pt-BR');
-        datesElement.innerHTML = `📅 Período: ${startDate} a ${endDate}`;
+        // CORREÇÃO: Adiciona 1 dia para compensar o fuso horário
+        const startDate = new Date(competitionConfig.startDate);
+        startDate.setDate(startDate.getDate() + 1);
+        
+        const endDate = new Date(competitionConfig.endDate);
+        endDate.setDate(endDate.getDate() + 1);
+        
+        const startFormatted = startDate.toLocaleDateString('pt-BR');
+        const endFormatted = endDate.toLocaleDateString('pt-BR');
+        
+        datesElement.innerHTML = `📅 Período: ${startFormatted} a ${endFormatted}`;
       } else if (datesElement) {
         datesElement.innerHTML = '';
       }
