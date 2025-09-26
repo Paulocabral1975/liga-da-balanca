@@ -1551,10 +1551,7 @@
         <button id="addParticipantBtn" class="btn btn-primary admin-only" style="display: none;"><i class="fas fa-user-plus"></i> Adicionar Participante</button>
         <button id="addWeightBtn" class="btn btn-success"><i class="fas fa-weight"></i> Registrar Peso</button>
         <button id="viewStatsBtn" class="btn btn-info"><i class="fas fa-chart-line"></i> Estatísticas</button>
-        <button id="chatgptBtn" class="btn btn-secondary"><i class="fas fa-robot"></i> ChatGPT</button>
         <button id="adminLoginBtn" class="btn btn-warning"><i class="fas fa-shield-alt"></i> Login Admin</button>
-        <button id="quickAdminBtn" class="btn btn-danger"><i class="fas fa-user-shield"></i> Admin Rápido</button>
-        <button id="manageUsersBtn" class="btn btn-info admin-only" style="display: none;"><i class="fas fa-users-cog"></i> Gerenciar Usuários</button>
       </div>
     </div>
                 
@@ -1588,8 +1585,6 @@
           </div>
           <button id="viewWeightHistory" class="btn btn-info"><i class="fas fa-history"></i> Histórico de Pesagens</button>
           <button id="configCompetition" class="btn btn-secondary admin-only"><i class="fas fa-cog"></i> Configurar</button>
-          <button id="clearData" class="btn btn-danger admin-only"><i class="fas fa-trash"></i> Limpar Dados</button>
-          <button id="adminLogin" class="btn btn-warning"><i class="fas fa-user-shield"></i> Admin</button>
         </div>
       </div>
       <div id="participantsContainer" class="participants-container hidden">
@@ -2636,9 +2631,6 @@
       open(statsModal);
     });
     
-    document.getElementById('chatgptBtn').addEventListener('click', () => {
-      open(chatgptModal);
-    });
     viewHistoryBtn.addEventListener('click', () => {
       populateParticipantsSelect(historyParticipantFilter, true);
       renderHistory();
@@ -2653,11 +2645,6 @@
       openConfigModal();
     });
     
-    document.getElementById('clearData').addEventListener('click', () => {
-      if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita!')) {
-        clearAllData();
-      }
-    });
 
     closeParticipantModal.addEventListener('click', () => close(participantModal));
     closeWeightModal.addEventListener('click', () => close(weightModal));
@@ -4211,18 +4198,11 @@
       
       // Atualiza botões de login/logout
       const loginBtn = document.getElementById('adminLoginBtn');
-      const manageUsersBtn = document.getElementById('manageUsersBtn');
       
       if (isAdminUser) {
         if (loginBtn) loginBtn.style.display = 'none';
-        
-        // Mostra botão de gerenciar usuários apenas para quem tem permissão
-        if (manageUsersBtn) {
-          manageUsersBtn.style.display = hasPermission('manage_users') ? '' : 'none';
-        }
       } else {
         if (loginBtn) loginBtn.style.display = '';
-        if (manageUsersBtn) manageUsersBtn.style.display = 'none';
       }
       
       // Atualiza botões específicos baseados em permissões
@@ -4237,7 +4217,6 @@
       const addParticipantBtn = document.getElementById('addParticipantBtn');
       const addWeightBtn = document.getElementById('addWeightBtn');
       const configCompetitionBtn = document.getElementById('configCompetitionBtn');
-      const clearDataBtn = document.getElementById('clearAllDataBtn');
       
       if (addParticipantBtn) {
         addParticipantBtn.style.display = hasPermission('add_participant') ? '' : 'none';
@@ -4249,10 +4228,6 @@
       
       if (configCompetitionBtn) {
         configCompetitionBtn.style.display = hasPermission('config_competition') ? '' : 'none';
-      }
-      
-      if (clearDataBtn) {
-        clearDataBtn.style.display = hasPermission('clear_data') ? '' : 'none';
       }
     }
     
@@ -4867,7 +4842,6 @@
     document.addEventListener('DOMContentLoaded', function() {
       const adminLoginBtn = document.getElementById('adminLoginBtn');
       const logoutBtn = document.getElementById('logoutBtn');
-      const manageUsersBtn = document.getElementById('manageUsersBtn');
       
       // Configura atualização automática do login
       setupLoginUpdate();
@@ -4876,11 +4850,6 @@
         adminLoginBtn.addEventListener('click', goToAdminLogin);
       }
       
-      // Botão de login admin rápido
-      const quickAdminBtn = document.getElementById('quickAdminBtn');
-      if (quickAdminBtn) {
-        quickAdminBtn.addEventListener('click', quickAdminLogin);
-      }
       
       if (logoutBtn) {
         console.log('Botão logout encontrado, adicionando event listener');
@@ -4897,11 +4866,6 @@
         console.error('Botão logout não encontrado!');
       }
       
-      if (manageUsersBtn) {
-        manageUsersBtn.addEventListener('click', function() {
-          window.open('user-management.html', '_blank');
-        });
-      }
       
       // Atualiza interface na inicialização
       updateAdminInterface();
