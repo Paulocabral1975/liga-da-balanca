@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -2075,9 +2076,8 @@
       }
     }
     
-    // Tornar funções globais
+    // Tornar função global
     window.toggleMultipleWeights = toggleMultipleWeights;
-    window.previewEditWeightPhoto = previewEditWeightPhoto;
 
     addParticipantBtn.addEventListener('click', () => open(participantModal));
     addWeightBtn.addEventListener('click', () => {
@@ -4644,6 +4644,159 @@
         console.error('❌ Erro ao carregar:', error);
       }
     }
+
+    // ========= Função de Verificação de Dados Carregados (Corrigida) =========
+    window.verificarDadosCarregadosCorrigido = function() {
+      console.log('=== VERIFICANDO DADOS CARREGADOS (CORRIGIDO) ===');
+      
+      // Verificar se a variável participants existe
+      if (typeof participants !== 'undefined') {
+        console.log('✅ Variável participants existe');
+        console.log('Tamanho:', participants.length);
+      } else {
+        console.log('❌ Variável participants não existe');
+        return false;
+      }
+      
+      // Verificar localStorage
+      console.log('=== VERIFICANDO LOCALSTORAGE ===');
+      const lsKey = 'lb_participants_v1';
+      const rawData = localStorage.getItem(lsKey);
+      console.log('Dados brutos no localStorage:', rawData ? 'Existem' : 'Não existem');
+      
+      if (rawData) {
+        try {
+          const parsedData = JSON.parse(rawData);
+          console.log('Dados parseados:', parsedData);
+          console.log('Quantidade no localStorage:', parsedData.length);
+        } catch (error) {
+          console.log('❌ Erro ao fazer parse dos dados:', error);
+        }
+      }
+      
+      // Verificar se participants está vazio
+      if (participants.length === 0) {
+        console.log('❌ Variável participants ainda está vazia');
+        console.log('=== TENTANDO CORRIGIR ===');
+        
+        // Tentar recarregar os dados
+        if (rawData) {
+          try {
+            const parsedData = JSON.parse(rawData);
+            participants.length = 0;
+            participants.push(...parsedData);
+            console.log('✅ Dados recarregados na variável participants');
+            console.log('Novo tamanho:', participants.length);
+            
+            // Atualizar interface
+            if (typeof renderParticipantsCards === 'function') {
+              renderParticipantsCards();
+              console.log('✅ Interface atualizada');
+            }
+            
+            // Atualizar contadores
+            if (typeof updateHeaderCounters === 'function') {
+              updateHeaderCounters();
+              console.log('✅ Contadores atualizados');
+            }
+            
+          } catch (error) {
+            console.log('❌ Erro ao recarregar dados:', error);
+          }
+        } else {
+          console.log('❌ Não há dados no localStorage para recarregar');
+          console.log('=== CRIANDO DADOS DE EXEMPLO ===');
+          
+          // Criar dados de exemplo se não existirem
+          const exemploParticipantes = [
+            {
+              id: 'exemplo1',
+              name: 'João Silva',
+              initialWeight: 80,
+              targetWeight: 70,
+              department: 'TI',
+              profile: 'user',
+              password: '123456',
+              weights: []
+            },
+            {
+              id: 'exemplo2', 
+              name: 'Maria Santos',
+              initialWeight: 65,
+              targetWeight: 60,
+              department: 'RH',
+              profile: 'user',
+              password: '123456',
+              weights: []
+            }
+          ];
+          
+          // Salvar no localStorage
+          localStorage.setItem('lb_participants_v1', JSON.stringify(exemploParticipantes));
+          console.log('✅ Dados de exemplo criados');
+          
+          // Carregar na variável
+          participants.length = 0;
+          participants.push(...exemploParticipantes);
+          console.log('✅ Dados de exemplo carregados');
+          
+          // Atualizar interface
+          if (typeof renderParticipantsCards === 'function') {
+            renderParticipantsCards();
+            console.log('✅ Interface atualizada com dados de exemplo');
+          }
+        }
+      } else {
+        console.log('✅ Variável participants tem dados:', participants.length);
+      }
+      
+      console.log('=== VERIFICACAO CONCLUIDA ===');
+      return participants.length > 0;
+    };
+
+    // ========= Função para Forçar Recarregamento =========
+    window.forcarRecarregamentoDados = function() {
+      console.log('=== FORCANDO RECARREGAMENTO DE DADOS ===');
+      
+      // Limpar cache
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          names.forEach(function(name) {
+            caches.delete(name);
+          });
+        });
+      }
+      
+      // Recarregar dados do localStorage
+      const lsKey = 'lb_participants_v1';
+      const rawData = localStorage.getItem(lsKey);
+      
+      if (rawData) {
+        try {
+          const parsedData = JSON.parse(rawData);
+          
+          // Limpar e recarregar participants
+          participants.length = 0;
+          participants.push(...parsedData);
+          
+          console.log('✅ Dados recarregados:', participants.length);
+          
+          // Atualizar todas as interfaces
+          if (typeof renderParticipantsCards === 'function') renderParticipantsCards();
+          if (typeof renderParticipantsList === 'function') renderParticipantsList();
+          if (typeof renderParticipantsGrid === 'function') renderParticipantsGrid();
+          if (typeof updateHeaderCounters === 'function') updateHeaderCounters();
+          if (typeof renderLeaderboard === 'function') renderLeaderboard();
+          
+          console.log('✅ Todas as interfaces atualizadas');
+          
+        } catch (error) {
+          console.log('❌ Erro ao recarregar:', error);
+        }
+      } else {
+        console.log('❌ Nenhum dado encontrado no localStorage');
+      }
+    };
   </script>
 </body>
 </html>
