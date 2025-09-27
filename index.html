@@ -1765,6 +1765,7 @@
         <button id="addWeightBtn" class="btn btn-success"><i class="fas fa-weight"></i> Registrar Peso</button>
         <button id="viewStatsBtn" class="btn btn-info"><i class="fas fa-chart-line"></i> Estatísticas</button>
         <button id="adminLoginBtn" class="btn btn-warning"><i class="fas fa-shield-alt"></i> Login Admin</button>
+        <button id="debugBtn" class="btn btn-info" onclick="debugStorage()"><i class="fas fa-bug"></i> Debug</button>
       </div>
     </div>
                 
@@ -2312,14 +2313,80 @@
     // ========= Estado & Persistência =========
     const LS_KEY = 'lb_participants_v1';
     const CONFIG_KEY = 'lb_competition_config_v1';
+    
+    // Função de debug para smartphones
+    function debugStorage() {
+      console.log('🔍 Debug de armazenamento:');
+      console.log('- localStorage disponível:', typeof(Storage) !== "undefined");
+      console.log('- Chave principal:', LS_KEY);
+      console.log('- Dados na chave principal:', localStorage.getItem(LS_KEY) ? 'Sim' : 'Não');
+      console.log('- Chave alternativa:', 'weightCompetitionParticipants');
+      console.log('- Dados na chave alternativa:', localStorage.getItem('weightCompetitionParticipants') ? 'Sim' : 'Não');
+      console.log('- Total de chaves no localStorage:', Object.keys(localStorage).length);
+      
+      // Lista todas as chaves relacionadas à competição
+      const competitionKeys = Object.keys(localStorage).filter(key => 
+        key.includes('lb_') || key.includes('weight') || key.includes('competition')
+      );
+      console.log('- Chaves relacionadas à competição:', competitionKeys);
+    }
+    
     let participants = loadParticipants();
     let competitionConfig = loadCompetitionConfig();
+    
+    // Debug inicial
+    debugStorage();
+    
+    // Tornar função global para acesso via botão
+    window.debugStorage = debugStorage;
+    
+    // Função para sincronizar dados entre chaves
+    function syncData() {
+      try {
+        const mainData = localStorage.getItem(LS_KEY);
+        const altData = localStorage.getItem('weightCompetitionParticipants');
+        
+        if (mainData && !altData) {
+          // Sincroniza da chave principal para alternativa
+          localStorage.setItem('weightCompetitionParticipants', mainData);
+          console.log('✅ Dados sincronizados para chave alternativa');
+        } else if (!mainData && altData) {
+          // Sincroniza da chave alternativa para principal
+          localStorage.setItem(LS_KEY, altData);
+          console.log('✅ Dados sincronizados para chave principal');
+        }
+      } catch (error) {
+        console.error('❌ Erro na sincronização:', error);
+      }
+    }
+    
+    // Sincroniza dados na inicialização
+    syncData();
 
     function loadParticipants() {
-      const raw = localStorage.getItem(LS_KEY);
-      if (!raw) return [];
-      try { 
-        const data = JSON.parse(raw) || [];
+      try {
+        // Verifica se localStorage está disponível
+        if (typeof(Storage) === "undefined") {
+          console.warn('⚠️ localStorage não suportado neste dispositivo');
+          return [];
+        }
+
+        const raw = localStorage.getItem(LS_KEY);
+        console.log('📱 Carregando participantes:', raw ? 'dados encontrados' : 'nenhum dado');
+        
+        if (!raw) {
+          console.log('ℹ️ Nenhum participante encontrado no localStorage');
+          return [];
+        }
+
+        const data = JSON.parse(raw);
+        if (!Array.isArray(data)) {
+          console.warn('⚠️ Dados de participantes inválidos, resetando...');
+          return [];
+        }
+
+        console.log(`✅ ${data.length} participantes carregados`);
+        
         // Migração: adiciona perfil e senha padrão para participantes existentes
         return data.map(p => {
           const updatedParticipant = {
@@ -2336,7 +2403,24 @@
           
           return updatedParticipant;
         });
-      } catch { return []; }
+      } catch (error) {
+        console.error('❌ Erro ao carregar participantes:', error);
+        console.log('🔄 Tentando carregar dados alternativos...');
+        
+        // Fallback: tenta carregar de chaves alternativas
+        try {
+          const fallbackData = localStorage.getItem('weightCompetitionParticipants');
+          if (fallbackData) {
+            const data = JSON.parse(fallbackData);
+            console.log('✅ Dados carregados do fallback');
+            return Array.isArray(data) ? data : [];
+          }
+        } catch (fallbackError) {
+          console.error('❌ Erro no fallback:', fallbackError);
+        }
+        
+        return [];
+      }
     }
     function saveParticipants() {
       try {
