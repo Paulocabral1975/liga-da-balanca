@@ -1330,6 +1330,11 @@
       color: var(--muted);
     }
 
+    .position-neutral .lb-position {
+      background: linear-gradient(135deg, #6b7280, #9ca3af);
+      color: #ffffff;
+    }
+
     .lb-avatar {
       display: flex;
       align-items: center;
@@ -2976,16 +2981,16 @@
         let positionIcon = '';
         if (pos === 1) {
           positionClass = 'position-gold';
-          positionIcon = '🥇';
+          positionIcon = '1º';
         } else if (pos === 2) {
           positionClass = 'position-silver';
-          positionIcon = '🥈';
+          positionIcon = '2º';
         } else if (pos === 3) {
           positionClass = 'position-bronze';
-          positionIcon = '🥉';
+          positionIcon = '3º';
         } else {
-          positionClass = 'position-normal';
-          positionIcon = `#${pos}`;
+          positionClass = 'position-neutral'; // Usar cor neutra para 4º em diante
+          positionIcon = `${pos}º`;
         }
         
         const item = document.createElement('div');
@@ -5437,5 +5442,3 @@
   </script>
 </body>
 </html>
-
-
