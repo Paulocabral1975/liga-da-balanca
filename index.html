@@ -1282,21 +1282,47 @@
     }
 
     .leaderboard-item {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
+      background: linear-gradient(135deg, #1f2937, #374151);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
-      padding: 16px;
+      padding: 12px;
       display: grid;
-      grid-template-columns: auto auto 1fr auto;
-      gap: 16px;
+      grid-template-columns: 50px 60px 1fr 80px 80px 80px 100px;
+      gap: 12px;
       align-items: center;
       transition: all 0.3s ease;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+      animation: slideInUp 0.6s ease-out;
+    }
+
+    .leaderboard-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
     }
 
     .leaderboard-item:hover {
-      background: rgba(255, 255, 255, 0.08);
+      background: linear-gradient(135deg, #374151, #4b5563);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+      border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .lb-position {
@@ -1307,22 +1333,26 @@
       height: 40px;
       border-radius: 50%;
       font-weight: 700;
-      font-size: 16px;
+      font-size: 14px;
     }
 
     .position-gold .lb-position {
-      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      background: linear-gradient(135deg, #ffd700, #ffed4e, #ffd700);
       color: #b45309;
+      box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+      animation: goldShine 2s ease-in-out infinite alternate;
     }
 
     .position-silver .lb-position {
       background: linear-gradient(135deg, #c0c0c0, #e5e7eb);
       color: #6b7280;
+      box-shadow: 0 4px 12px rgba(192, 192, 192, 0.3);
     }
 
     .position-bronze .lb-position {
       background: linear-gradient(135deg, #cd7f32, #f59e0b);
       color: #92400e;
+      box-shadow: 0 4px 12px rgba(205, 127, 50, 0.3);
     }
 
     .position-normal .lb-position {
@@ -1333,28 +1363,75 @@
     .position-neutral .lb-position {
       background: linear-gradient(135deg, #6b7280, #9ca3af);
       color: #ffffff;
+      box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+    }
+
+    @keyframes goldShine {
+      0% { box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3); }
+      100% { box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6); }
     }
 
     .lb-avatar {
       display: flex;
       align-items: center;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid #667eea;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+
+    .lb-avatar:hover {
+      transform: scale(1.05);
+      border-color: #ffd700;
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .lb-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .lb-info {
       flex: 1;
+      padding: 0 10px;
     }
 
     .lb-name {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 4px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 2px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .lb-meta {
       font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 8px;
+      color: #a1a1aa;
+      margin-bottom: 4px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lb-weight-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #d1d5db;
+    }
+
+    .lb-weight-icon {
+      color: #667eea;
+      font-size: 14px;
     }
 
     .lb-details {
@@ -1384,26 +1461,52 @@
     }
 
     .lb-percentage {
-      font-size: 20px;
-      font-weight: 700;
-      padding: 4px 8px;
+      background: transparent;
+      color: #d1d5db;
+      padding: 4px 6px;
       border-radius: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      text-align: center;
+      min-width: 80px;
     }
 
     .lb-percentage.positive {
-      color: #16a34a;
-      background: rgba(34, 197, 94, 0.1);
+      color: #10b981;
     }
 
     .lb-percentage.negative {
-      color: #dc2626;
-      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
     }
 
     .lb-weight-current {
       font-size: 14px;
       color: var(--muted);
       font-weight: 500;
+    }
+
+    /* Colunas de pesagem */
+    .lb-weight-1, .lb-weight-2, .lb-weight-3 {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #d1d5db;
+      background: transparent;
+      border-radius: 6px;
+      padding: 4px 6px;
+    }
+
+    .lb-weight-label {
+      font-size: 10px;
+      color: #9ca3af;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .lb-weight-value {
+      font-size: 14px;
+      font-weight: 700;
     }
 
     /* Responsividade para o ranking */
@@ -1419,16 +1522,39 @@
       }
 
       .leaderboard-item {
-        grid-template-columns: auto 1fr;
-        gap: 12px;
+        grid-template-columns: 1fr;
+        gap: 6px;
+        text-align: center;
+        padding: 8px;
       }
 
-      .lb-stats {
-        grid-column: 1 / -1;
-        text-align: left;
-        flex-direction: row;
-        justify-content: space-between;
-        margin-top: 8px;
+      .lb-position, .lb-avatar, .lb-info, .lb-weight-1, .lb-weight-2, .lb-weight-3, .lb-percentage {
+        grid-column: 1;
+        margin-bottom: 6px;
+      }
+
+      .lb-position {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+        margin: 0 auto;
+      }
+
+      .lb-avatar {
+        width: 35px;
+        height: 35px;
+        margin: 0 auto;
+      }
+
+      .lb-info {
+        padding: 0;
+        margin: 0;
+      }
+
+      .lb-weight-1, .lb-weight-2, .lb-weight-3 {
+        display: inline-block;
+        width: 60px;
+        margin: 0 4px;
       }
 
       .lb-details {
@@ -2975,6 +3101,7 @@
         const perc = pctLoss(p);
         const initialWeight = p.initialWeight;
         const weightLost = initialWeight ? (initialWeight - (cur || initialWeight)) : 0;
+        const threeWeights = getLastThreeWeights(p);
         
         // Define cor da posição
         let positionClass = '';
@@ -3005,24 +3132,21 @@
           <div class="lb-info">
             <div class="lb-name">${p.name}</div>
             ${meta}
-            <div class="lb-details">
-              <span class="lb-detail-item">
-                <i class="fas fa-weight"></i>
-                ${initialWeight?.toFixed(1) || '-'} kg → ${cur?.toFixed(1) || '-'} kg
-              </span>
-              <span class="lb-detail-item">
-                <i class="fas fa-minus"></i>
-                ${weightLost.toFixed(1)} kg perdidos
-              </span>
-            </div>
           </div>
-          <div class="lb-stats">
-            <div class="lb-percentage ${perc >= 0 ? 'positive' : 'negative'}">
-              ${perc.toFixed(1)}%
-            </div>
-            <div class="lb-weight-current">
-              ${cur?.toFixed(1) || '-'} kg
-            </div>
+          <div class="lb-weight-1">
+            <div class="lb-weight-label">Pesagem 1</div>
+            <div class="lb-weight-value">${threeWeights.weight1?.toFixed(1) ?? '-'} kg</div>
+          </div>
+          <div class="lb-weight-2">
+            <div class="lb-weight-label">Pesagem 2</div>
+            <div class="lb-weight-value">${threeWeights.weight2?.toFixed(1) ?? '-'} kg</div>
+          </div>
+          <div class="lb-weight-3">
+            <div class="lb-weight-label">Pesagem 3</div>
+            <div class="lb-weight-value">${threeWeights.weight3?.toFixed(1) ?? '-'} kg</div>
+          </div>
+          <div class="lb-percentage ${perc >= 0 ? 'positive' : 'negative'}">
+            ${perc.toFixed(1)}%
           </div>
         `;
         participantsList.appendChild(item);
