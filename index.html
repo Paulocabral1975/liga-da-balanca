@@ -2268,26 +2268,27 @@
         const session = JSON.parse(localStorage.getItem('lb_session_v1') || '{}');
         const now = new Date();
         
+        // Se não há sessão, permite acesso público (modo offline)
         if (!session.userId || !session.loginTime) {
-          redirectToLogin();
-          return false;
+          console.log('ℹ️ Modo offline - sem login obrigatório');
+          return true; // Permite acesso sem login
         }
         
         const loginDate = new Date(session.loginTime);
         const hoursDiff = (now - loginDate) / (1000 * 60 * 60);
         
         if (hoursDiff >= 8) {
-          // Sessão expirada
+          // Sessão expirada - limpa mas permite acesso
+          console.log('⚠️ Sessão expirada, mas permitindo acesso offline');
           clearSession();
-          redirectToLogin();
-          return false;
+          return true; // Permite acesso offline
         }
         
         return true;
       } catch (error) {
         console.error('Erro ao verificar login:', error);
-        redirectToLogin();
-        return false;
+        console.log('ℹ️ Permitindo acesso offline devido ao erro');
+        return true; // Permite acesso offline em caso de erro
       }
     }
     
@@ -2304,11 +2305,8 @@
       localStorage.removeItem('currentUserId');
     }
     
-    // Verifica login antes de continuar
-    if (!checkLogin()) {
-      // Para a execução se não estiver logado
-      throw new Error('Usuário não autenticado');
-    }
+    // Verifica login (mas não bloqueia acesso)
+    checkLogin();
     
     // ========= Estado & Persistência =========
     const LS_KEY = 'lb_participants_v1';
@@ -2362,6 +2360,62 @@
     
     // Sincroniza dados na inicialização
     syncData();
+    
+    // Função para criar dados de exemplo se necessário
+    function createSampleData() {
+      if (participants.length === 0) {
+        console.log('📝 Criando dados de exemplo...');
+        
+        const sampleParticipants = [
+          {
+            id: 'sample-1',
+            name: 'João Silva',
+            initialWeight: 80.0,
+            currentWeight: 80.0,
+            targetWeight: 75.0,
+            department: 'TI',
+            profile: 'user',
+            password: '123456',
+            joinDate: new Date().toISOString()
+          },
+          {
+            id: 'sample-2', 
+            name: 'Maria Santos',
+            initialWeight: 65.0,
+            currentWeight: 65.0,
+            targetWeight: 60.0,
+            department: 'RH',
+            profile: 'user',
+            password: '123456',
+            joinDate: new Date().toISOString()
+          }
+        ];
+        
+        participants = sampleParticipants;
+        saveParticipants();
+        console.log('✅ Dados de exemplo criados');
+      }
+    }
+    
+    // Cria dados de exemplo se necessário
+    createSampleData();
+    
+    // Função para mostrar status do sistema
+    function showSystemStatus() {
+      console.log('📊 Status do Sistema:');
+      console.log('- Participantes carregados:', participants.length);
+      console.log('- Modo offline ativo:', !localStorage.getItem('lb_session_v1'));
+      console.log('- Dados de exemplo criados:', participants.some(p => p.id.startsWith('sample-')));
+      
+      if (participants.length === 0) {
+        console.warn('⚠️ Nenhum participante encontrado!');
+      } else {
+        console.log('✅ Sistema funcionando normalmente');
+      }
+    }
+    
+    // Mostra status do sistema
+    showSystemStatus();
 
     function loadParticipants() {
       try {
