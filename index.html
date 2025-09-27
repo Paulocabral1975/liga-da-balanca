@@ -1485,7 +1485,7 @@
       font-weight: 500;
     }
 
-    /* Colunas de pesagem */
+    /* Colunas de pesagem - visíveis no desktop */
     .lb-weight-1, .lb-weight-2, .lb-weight-3 {
       text-align: center;
       font-size: 12px;
@@ -1494,6 +1494,12 @@
       background: transparent;
       border-radius: 6px;
       padding: 4px 6px;
+      display: block;
+    }
+
+    /* Linha de pesagens - escondida no desktop */
+    .lb-weights-row {
+      display: none;
     }
 
     .lb-weight-label {
@@ -1509,7 +1515,49 @@
       font-weight: 700;
     }
 
-    /* Responsividade para o ranking */
+    /* Desktop - garante colunas individuais */
+    @media (min-width: 1025px) {
+      .lb-weight-1, .lb-weight-2, .lb-weight-3 {
+        display: block;
+      }
+      .lb-weights-row {
+        display: none;
+      }
+    }
+
+    /* Responsividade para tablets - mantém colunas */
+    @media (max-width: 1024px) and (min-width: 769px) {
+      .leaderboard-item {
+        grid-template-columns: 40px 50px 1fr 60px 60px 60px 80px;
+        gap: 8px;
+        padding: 10px;
+      }
+
+      .lb-weight-label {
+        font-size: 9px;
+      }
+
+      .lb-weight-value {
+        font-size: 11px;
+      }
+
+      .lb-percentage {
+        font-size: 12px;
+        padding: 4px 8px;
+      }
+
+      /* Esconde a linha de pesagens no tablet/desktop */
+      .lb-weights-row {
+        display: none;
+      }
+
+      /* Mostra colunas individuais no tablet */
+      .lb-weight-1, .lb-weight-2, .lb-weight-3 {
+        display: block;
+      }
+    }
+
+    /* Responsividade para o ranking mobile */
     @media (max-width: 768px) {
       .leaderboard-header {
         flex-direction: column;
@@ -1523,38 +1571,72 @@
 
       .leaderboard-item {
         grid-template-columns: 1fr;
-        gap: 6px;
+        gap: 8px;
         text-align: center;
-        padding: 8px;
+        padding: 12px;
       }
 
-      .lb-position, .lb-avatar, .lb-info, .lb-weight-1, .lb-weight-2, .lb-weight-3, .lb-percentage {
+      /* Primeira linha: Posição + Avatar + Nome + Percentual */
+      .lb-position, .lb-avatar, .lb-info, .lb-percentage {
         grid-column: 1;
-        margin-bottom: 6px;
+        margin-bottom: 0;
       }
 
       .lb-position {
-        width: 30px;
-        height: 30px;
-        font-size: 12px;
-        margin: 0 auto;
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+        margin: 0 auto 8px auto;
       }
 
       .lb-avatar {
-        width: 35px;
-        height: 35px;
-        margin: 0 auto;
+        width: 40px;
+        height: 40px;
+        margin: 0 auto 8px auto;
       }
 
       .lb-info {
         padding: 0;
+        margin: 0 0 8px 0;
+      }
+
+      .lb-percentage {
+        margin: 0 auto 12px auto;
+        font-size: 16px;
+        font-weight: 800;
+      }
+
+      /* Esconde colunas individuais no mobile */
+      .lb-weight-1, .lb-weight-2, .lb-weight-3 {
+        display: none;
+      }
+
+      /* Mostra linha de pesagens no mobile */
+      .lb-weights-row {
+        display: flex;
+        justify-content: space-around;
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .lb-weights-row .lb-weight-1, 
+      .lb-weights-row .lb-weight-2, 
+      .lb-weights-row .lb-weight-3 {
+        display: block;
+        flex: 1;
+        min-width: 0;
         margin: 0;
       }
 
-      .lb-weight-1, .lb-weight-2, .lb-weight-3 {
-        display: inline-block;
-        width: 60px;
-        margin: 0 4px;
+      .lb-weight-label {
+        font-size: 9px;
+        margin-bottom: 2px;
+      }
+
+      .lb-weight-value {
+        font-size: 12px;
       }
 
       .lb-details {
@@ -3133,6 +3215,7 @@
             <div class="lb-name">${p.name}</div>
             ${meta}
           </div>
+          <!-- Colunas individuais para desktop -->
           <div class="lb-weight-1">
             <div class="lb-weight-label">Pesagem 1</div>
             <div class="lb-weight-value">${threeWeights.weight1?.toFixed(1) ?? '-'} kg</div>
@@ -3147,6 +3230,21 @@
           </div>
           <div class="lb-percentage ${perc >= 0 ? 'positive' : 'negative'}">
             ${perc.toFixed(1)}%
+          </div>
+          <!-- Linha de pesagens para mobile -->
+          <div class="lb-weights-row">
+            <div class="lb-weight-1">
+              <div class="lb-weight-label">P1</div>
+              <div class="lb-weight-value">${threeWeights.weight1?.toFixed(1) ?? '-'} kg</div>
+            </div>
+            <div class="lb-weight-2">
+              <div class="lb-weight-label">P2</div>
+              <div class="lb-weight-value">${threeWeights.weight2?.toFixed(1) ?? '-'} kg</div>
+            </div>
+            <div class="lb-weight-3">
+              <div class="lb-weight-label">P3</div>
+              <div class="lb-weight-value">${threeWeights.weight3?.toFixed(1) ?? '-'} kg</div>
+            </div>
           </div>
         `;
         participantsList.appendChild(item);
