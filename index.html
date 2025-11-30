@@ -2373,10 +2373,25 @@
     
     function redirectToLogin() {
       alert('Sessão expirada ou inválida. Redirecionando para o login...');
-      const currentPath = window.location.pathname;
-      const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-      const loginPath = basePath ? `${basePath}/login.html` : './login.html';
-      window.location.href = loginPath;
+      
+      // Detecta se está no GitHub Pages ou local
+      const isGitHubPages = window.location.hostname.includes('github.io');
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      
+      let loginUrl;
+      if (isGitHubPages) {
+        const pathParts = window.location.pathname.split('/');
+        const repoName = pathParts[1] || 'liga-da-balanca';
+        loginUrl = `/${repoName}/login.html`;
+      } else if (isLocal) {
+        loginUrl = './login.html';
+      } else {
+        const currentPath = window.location.pathname;
+        const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+        loginUrl = basePath ? `${basePath}/login.html` : './login.html';
+      }
+      
+      window.location.href = loginUrl;
     }
     
     function clearSession() {
@@ -2976,6 +2991,153 @@
       // Torna disponível imediatamente
       console.log('✅ Função diagnosticarMobile disponível! Use: diagnosticarMobile("claudia")');
     })();
+    
+    // Função para verificar avatares no Firebase
+    window.verificarAvataresFirebase = async function() {
+      console.log('🔍 === VERIFICAÇÃO DE AVATARES NO FIREBASE ===\n');
+      
+      try {
+        // 1. Verificar avatares no localStorage
+        console.log('📱 1. VERIFICANDO AVATARES NO LOCALSTORAGE:');
+        
+        const participantsData = localStorage.getItem('lb_participants_v1');
+        const usersData = localStorage.getItem('lb_users_v1');
+        
+        let participants = [];
+        let users = [];
+        
+        if (participantsData) {
+          participants = JSON.parse(participantsData);
+        }
+        if (usersData) {
+          users = JSON.parse(usersData);
+        }
+        
+        const participantsComAvatar = participants.filter(p => p.photo);
+        const usersComAvatar = users.filter(u => u.photo || u.avatar || u.img_avatar);
+        
+        console.log(`   ✅ Participantes com avatar: ${participantsComAvatar.length} de ${participants.length}`);
+        participantsComAvatar.forEach((p, i) => {
+          const photoSize = p.photo ? (p.photo.length / 1024).toFixed(2) : 0;
+          console.log(`      ${i + 1}. ${p.name}: ${photoSize} KB`);
+        });
+        
+        console.log(`   ✅ Usuários com avatar: ${usersComAvatar.length} de ${users.length}`);
+        usersComAvatar.forEach((u, i) => {
+          const photo = u.photo || u.avatar || u.img_avatar;
+          const photoSize = photo ? (photo.length / 1024).toFixed(2) : 0;
+          console.log(`      ${i + 1}. ${u.name}: ${photoSize} KB`);
+        });
+        
+        // 2. Verificar Firebase
+        console.log('\n🔥 2. VERIFICANDO FIREBASE:');
+        
+        if (typeof firebase === 'undefined' || !window.db) {
+          console.log('   ⚠️ Firebase não está disponível');
+          console.log('   💡 As fotos são armazenadas apenas no localStorage para evitar exceder o limite de 1MB do Firestore');
+          return;
+        }
+        
+        try {
+          const docRef = window.db.collection('competition').doc('data');
+          const doc = await docRef.get();
+          
+          if (!doc.exists) {
+            console.log('   ❌ Documento não encontrado no Firebase');
+            return;
+          }
+          
+          const data = doc.data();
+          console.log('   ✅ Documento encontrado no Firebase');
+          
+          // Verificar se há fotos no Firebase (não deveria ter)
+          let temFotosNoFirebase = false;
+          const fotosEncontradas = [];
+          
+          function buscarFotos(obj, path = '') {
+            if (obj === null || obj === undefined) return;
+            if (Array.isArray(obj)) {
+              obj.forEach((item, idx) => buscarFotos(item, `${path}[${idx}]`));
+            } else if (typeof obj === 'object') {
+              for (const key in obj) {
+                const newPath = path ? `${path}.${key}` : key;
+                if (key.toLowerCase().includes('photo') || 
+                    key.toLowerCase().includes('avatar') ||
+                    key.toLowerCase().includes('image') ||
+                    (typeof obj[key] === 'string' && obj[key].startsWith('data:image'))) {
+                  temFotosNoFirebase = true;
+                  fotosEncontradas.push(newPath);
+                } else {
+                  buscarFotos(obj[key], newPath);
+                }
+              }
+            }
+          }
+          
+          buscarFotos(data);
+          
+          if (temFotosNoFirebase) {
+            console.log('   ⚠️ ATENÇÃO: Fotos encontradas no Firebase!');
+            console.log('   📍 Localizações:', fotosEncontradas);
+            console.log('   💡 Isso pode causar erro de tamanho (limite 1MB)');
+          } else {
+            console.log('   ✅ Nenhuma foto encontrada no Firebase (correto!)');
+            console.log('   💡 As fotos são armazenadas apenas no localStorage');
+          }
+          
+          // Verificar tamanho do documento
+          const docSize = JSON.stringify(data).length;
+          const docSizeKB = (docSize / 1024).toFixed(2);
+          const docSizeMB = (docSize / (1024 * 1024)).toFixed(2);
+          
+          console.log(`\n📊 3. TAMANHO DO DOCUMENTO FIREBASE:`);
+          console.log(`   Tamanho: ${docSizeKB} KB (${docSizeMB} MB)`);
+          if (docSize > 1048576) {
+            console.log('   ⚠️ ATENÇÃO: Documento excede 1MB!');
+          } else {
+            console.log('   ✅ Documento dentro do limite (1MB)');
+          }
+          
+          // Comparar dados
+          console.log('\n📊 4. COMPARAÇÃO:');
+          const firebaseParticipants = data.participants || [];
+          const firebaseUsers = data.users || [];
+          
+          console.log(`   LocalStorage: ${participants.length} participantes, ${users.length} usuários`);
+          console.log(`   Firebase: ${firebaseParticipants.length} participantes, ${firebaseUsers.length} usuários`);
+          
+          // Verificar sincronização
+          const participantesSincronizados = participants.every(p => {
+            const fbP = firebaseParticipants.find(fbp => fbp.id === p.id);
+            return fbP !== undefined;
+          });
+          
+          const usuariosSincronizados = users.every(u => {
+            const fbU = firebaseUsers.find(fbu => fbu.id === u.id);
+            return fbU !== undefined;
+          });
+          
+          if (participantesSincronizados && usuariosSincronizados) {
+            console.log('   ✅ Dados sincronizados entre localStorage e Firebase');
+          } else {
+            console.log('   ⚠️ Alguns dados não estão sincronizados');
+          }
+          
+        } catch (error) {
+          console.error('   ❌ Erro ao acessar Firebase:', error);
+        }
+        
+        // Resumo
+        console.log('\n📋 RESUMO:');
+        console.log(`   ✅ Avatares no localStorage: ${participantsComAvatar.length + usersComAvatar.length}`);
+        console.log(`   🔥 Avatares no Firebase: ${temFotosNoFirebase ? 'SIM (não recomendado)' : 'NÃO (correto)'}`);
+        console.log('\n💡 NOTA: Avatares são armazenados apenas no localStorage para evitar exceder o limite de 1MB do Firestore.');
+        console.log('   Os avatares são preservados localmente e mesclados quando os dados são carregados do Firebase.');
+        
+      } catch (error) {
+        console.error('❌ Erro na verificação:', error);
+      }
+    };
     
     function totalWeightLost() {
       return participants.reduce((acc,p)=>{
@@ -5078,22 +5240,31 @@
       // Limpa a sessão
       clearSession();
       
-      // Redireciona para login - usa caminho relativo que funciona em qualquer ambiente
+      // Redireciona para login - usa caminho baseado na origem atual
       console.log('Redirecionando para login.html');
-      const currentPath = window.location.pathname;
-      const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-      const loginPath = basePath ? `${basePath}/login.html` : './login.html';
       
-      // Tenta caminho relativo primeiro, depois absoluto
-      window.location.href = loginPath;
+      // Detecta se está no GitHub Pages ou local
+      const isGitHubPages = window.location.hostname.includes('github.io');
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       
-      // Fallback se o caminho relativo não funcionar
-      setTimeout(() => {
-        if (window.location.pathname === currentPath) {
-          // Se não redirecionou, tenta caminho absoluto
-          window.location.href = window.location.origin + (basePath || '') + '/login.html';
-        }
-      }, 100);
+      let loginUrl;
+      if (isGitHubPages) {
+        // GitHub Pages: usa caminho absoluto baseado no repositório
+        const pathParts = window.location.pathname.split('/');
+        const repoName = pathParts[1] || 'liga-da-balanca';
+        loginUrl = `/${repoName}/login.html`;
+      } else if (isLocal) {
+        // Local: usa caminho relativo
+        loginUrl = './login.html';
+      } else {
+        // Outros ambientes: tenta caminho relativo primeiro
+        const currentPath = window.location.pathname;
+        const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+        loginUrl = basePath ? `${basePath}/login.html` : './login.html';
+      }
+      
+      console.log('URL de login:', loginUrl);
+      window.location.href = loginUrl;
     }
     
     // Função global para testar logout
