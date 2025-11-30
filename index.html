@@ -10,6 +10,34 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
+    <!-- Eruda - Console de Desenvolvimento para Mobile (Inspeção sem computador) -->
+    <script>
+      // Carrega Eruda dinamicamente
+      (function() {
+        const erudaScript = document.createElement('script');
+        erudaScript.src = 'https://cdn.jsdelivr.net/npm/eruda';
+        erudaScript.onload = function() {
+          // Ativa Eruda apenas se houver parâmetro ?debug=true na URL ou se localStorage tiver flag
+          if (window.location.search.includes('debug=true') || localStorage.getItem('eruda_enabled') === 'true') {
+            eruda.init();
+            console.log('🔧 Eruda ativado! Toque no ícone no canto inferior direito para abrir o console.');
+          }
+        };
+        document.head.appendChild(erudaScript);
+      })();
+      
+      // Função para ativar/desativar Eruda via console
+      window.toggleEruda = function() {
+        if (localStorage.getItem('eruda_enabled') === 'true') {
+          localStorage.removeItem('eruda_enabled');
+          location.reload();
+        } else {
+          localStorage.setItem('eruda_enabled', 'true');
+          location.reload();
+        }
+      };
+    </script>
+    
     <!-- Verificação de Carregamento -->
     <script>
       // Verifica se Firebase carregou corretamente
@@ -227,7 +255,6 @@
       object-fit: cover;
     }
     
-    
     .user-details-right {
       display: flex;
       flex-direction: column;
@@ -278,13 +305,107 @@
     .lb-meta { color: var(--muted); font-size:12px; }
 
     .no-participants { text-align:center; color:var(--muted); padding:24px; }
-    .participants-list .participant-row { display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid var(--border); border-radius:12px; background: rgba(255,255,255,0.02); }
-    .participants-list .participant-row + .participant-row { margin-top:8px; }
+    
+    /* Estilos para cards de participantes */
+    .participants-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    
+    .participant-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    .participant-card:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .participant-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .participant-name-card {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--text);
+    }
+    
+    .participant-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 12px 0;
+    }
+    
+    .stat-item {
+      text-align: center;
+      padding: 8px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 8px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    
+    .stat-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .participant-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .participant-actions .btn {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 12px;
+      text-align: center;
+    }
+    
+    /* Estilos para lista de participantes */
+    .participants-list .participant-row { 
+      display:flex; 
+      justify-content:space-between; 
+      align-items:center; 
+      padding:12px; 
+      border:1px solid var(--border); 
+      border-radius:12px; 
+      background: rgba(255,255,255,0.02); 
+      margin-bottom: 8px;
+    }
+    
     .pr-left { display:flex; align-items:center; gap:12px; }
     .pr-info .pr-name { font-weight:600; }
     .pr-info .pr-dept { color: var(--muted); font-size:12px; }
     .pr-info .pr-profile { color: #fbbf24; font-size:11px; margin-top:2px; }
     .pr-profile i { margin-right:4px; }
+    
+    /* Estilos para grade de participantes */
+    .participants-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
     
     .profile-badge { 
       display: inline-flex; 
@@ -330,6 +451,65 @@
       width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#0a1222; color:var(--text);
     }
     
+    /* Estilos para o modal ChatGPT */
+    .chatgpt-options { display: flex; flex-direction: column; gap: 24px; }
+    .chatgpt-section h3 { color: var(--text); margin-bottom: 16px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+    .option-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .chatgpt-option { 
+      background: rgba(255,255,255,0.05); 
+      border: 1px solid var(--border); 
+      border-radius: 12px; 
+      padding: 16px; 
+      text-align: center; 
+      cursor: pointer; 
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .chatgpt-option:hover { 
+      background: rgba(59,130,246,0.1); 
+      border-color: #3b82f6; 
+      transform: translateY(-2px); 
+    }
+    .chatgpt-option i { font-size: 24px; color: #3b82f6; margin-bottom: 4px; }
+    .chatgpt-option span { font-weight: 600; color: var(--text); }
+    .chatgpt-option small { color: #94a3b8; font-size: 12px; }
+    .chat-input-section { display: flex; flex-direction: column; gap: 12px; }
+    .chat-input-section textarea { 
+      background: rgba(255,255,255,0.05); 
+      border: 1px solid var(--border); 
+      border-radius: 8px; 
+      padding: 12px; 
+      color: var(--text); 
+      resize: vertical; 
+      min-height: 100px;
+      font-family: inherit;
+    }
+    .chat-input-section textarea:focus { 
+      outline: none; 
+      border-color: #3b82f6; 
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.1); 
+    }
+    .direct-links { display: flex; gap: 12px; flex-wrap: wrap; }
+    .chatgpt-link { 
+      background: rgba(59,130,246,0.1); 
+      border: 1px solid #3b82f6; 
+      border-radius: 8px; 
+      padding: 12px 16px; 
+      color: #3b82f6; 
+      text-decoration: none; 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .chatgpt-link:hover { 
+      background: rgba(59,130,246,0.2); 
+      transform: translateY(-1px); 
+    }
     
     .form-group input[readonly] {
       background: rgba(255,255,255,0.05); 
@@ -452,56 +632,497 @@
     .history-filters { display:flex; gap:10px; justify-content:space-between; align-items:center; margin-bottom:12px; }
     .history-list { display:flex; flex-direction:column; gap:8px; }
     .history-item { display:flex; justify-content:space-between; border:1px solid var(--border); padding:10px; border-radius:10px; background: rgba(255,255,255,0.02); }
-    @media (max-width: 760px) {
-      .header-content { flex-direction:column; align-items:flex-start; }
-      .header-left, .header-right { width: 100%; }
-      .header-left { order: 1; }
-      .header-center { order: 2; width: 100%; }
-      .header-right { order: 3; }
+    /* ========= RESPONSIVIDADE COMPLETA ========= */
+    
+    /* Tablets e telas médias */
+    @media (max-width: 1024px) {
+      .container { 
+        max-width: 100%; 
+        margin: 16px auto; 
+        padding: 0 12px; 
+      }
+      
+      .header-content { 
+        gap: 12px; 
+      }
+      
+      .header-icon { 
+        width: 80px; 
+        height: 80px; 
+        font-size: 40px; 
+      }
+      
+      .control-buttons { 
+        gap: 8px; 
+      }
+      
+      .btn { 
+        padding: 8px 12px; 
+        font-size: 13px; 
+      }
+      
+      .modal-content { 
+        max-width: 90%; 
+        margin: 10px; 
+      }
+      
+      .stats-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 8px; 
+      }
+    }
+    
+    /* Smartphones e telas pequenas */
+    @media (max-width: 768px) {
+      .container { 
+        margin: 12px auto; 
+        padding: 0 8px; 
+      }
+      
+      .header { 
+        padding: 12px; 
+        border-radius: 12px; 
+      }
+      
+      .header-content { 
+        flex-direction: column; 
+        align-items: center; 
+        text-align: center; 
+        gap: 16px; 
+      }
+      
+      .header-left, .header-right { 
+        width: 100%; 
+      }
+      
+      .header-left { 
+        order: 1; 
+        display: flex; 
+        justify-content: center; 
+      }
+      
+      .header-center { 
+        order: 2; 
+        width: 100%; 
+      }
+      
+      .header-right { 
+        order: 3; 
+      }
+      
+      .header-icon { 
+        width: 60px; 
+        height: 60px; 
+        font-size: 30px; 
+        margin: 0 auto; 
+      }
+      
+      .timeline-section { 
+        margin-top: 12px; 
+      }
+      
+      .progress-bar { 
+        max-width: 100%; 
+        height: 6px; 
+      }
+      
+      .competition-dates { 
+        font-size: 11px; 
+        margin-top: 6px; 
+      }
       
       .user-info-section {
         flex-direction: row;
         align-items: center;
-        justify-content: flex-end;
+        justify-content: center;
         gap: 12px;
         width: 100%;
+        margin-top: 8px;
       }
       
       .user-avatar-small {
-        width: 40px;
-        height: 40px;
+        width: 35px;
+        height: 35px;
       }
       
       .user-avatar-small i {
-        font-size: 20px;
+        font-size: 18px;
       }
       
       .user-details-right {
         flex: 1;
-        align-items: flex-end;
+        align-items: center;
+        text-align: center;
+      }
+      
+      .user-name {
+        font-size: 14px;
+      }
+      
+      .user-role {
+        font-size: 11px;
+      }
+      
+      .user-department {
+        font-size: 10px;
       }
       
       .logout-btn {
         align-self: center;
         margin-top: 0;
+        padding: 6px 10px;
+        font-size: 11px;
       }
-      .stats-grid { grid-template-columns: repeat(2,1fr); }
-      .form-row { flex-direction:column; }
       
-      .user-info-header {
-        flex-direction: row;
-        justify-content: space-between;
+      .controls-section { 
+        margin: 12px 0; 
+      }
+      
+      .control-buttons { 
+        display: grid; 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 8px; 
+      }
+      
+      .btn { 
+        padding: 10px 8px; 
+        font-size: 12px; 
+        text-align: center; 
+        display: flex; 
         align-items: center; 
-        margin-top: 10px;
+        justify-content: center; 
+        gap: 4px; 
       }
       
-      .user-details {
+      .btn i { 
+        font-size: 14px; 
+      }
+      
+      .section-header { 
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 8px; 
+        margin-top: 16px; 
+        margin-bottom: 12px; 
+      }
+      
+      .section-header h2 { 
+        font-size: 18px; 
+        margin: 0; 
+      }
+      
+      .competition-info { 
+        flex-direction: column; 
+        gap: 4px; 
         font-size: 12px; 
       }
       
-      .btn-small {
-        padding: 6px 10px;
+      .leaderboard { 
+        padding: 8px; 
+        border-radius: 10px; 
+      }
+      
+      .leaderboard-item { 
+        padding: 8px; 
+        flex-direction: column; 
+        gap: 8px; 
+        text-align: center; 
+      }
+      
+      .lb-left { 
+        flex-direction: column; 
+        gap: 8px; 
+      }
+      
+      .lb-info { 
+        text-align: center; 
+      }
+      
+      .participants-container { 
+        margin-top: 12px; 
+      }
+      
+      .participants-cards { 
+        display: grid; 
+        grid-template-columns: 1fr; 
+        gap: 12px; 
+      }
+      
+      .participant-card { 
+        padding: 12px; 
+        border-radius: 10px; 
+      }
+      
+      .participant-card-header { 
+        text-align: center; 
+        margin-bottom: 8px; 
+      }
+      
+      .participant-stats { 
+        display: grid; 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 8px; 
+        margin: 8px 0; 
+      }
+      
+      .stat-item { 
+        text-align: center; 
+      }
+      
+      .stat-label { 
         font-size: 11px; 
+        margin-bottom: 2px; 
+      }
+      
+      .stat-value { 
+        font-size: 14px; 
+        font-weight: 600; 
+      }
+      
+      .participant-actions { 
+        display: grid; 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 6px; 
+        margin-top: 8px; 
+      }
+      
+      .participant-actions .btn { 
+        padding: 6px 4px; 
+        font-size: 10px; 
+      }
+      
+      .participants-list .participant-row { 
+        flex-direction: column; 
+        gap: 8px; 
+        text-align: center; 
+      }
+      
+      .pr-left { 
+        flex-direction: column; 
+        gap: 8px; 
+      }
+      
+      .pr-right { 
+        flex-direction: column; 
+        gap: 8px; 
+        align-items: center; 
+      }
+      
+      .participants-grid { 
+        display: grid; 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 8px; 
+      }
+      
+      .modal { 
+        padding: 8px; 
+      }
+      
+      .modal-content { 
+        max-width: 100%; 
+        padding: 12px; 
+        border-radius: 10px; 
+      }
+      
+      .modal-header h2 { 
+        font-size: 16px; 
+      }
+      
+      .form { 
+        gap: 10px; 
+      }
+      
+      .form-row { 
+        flex-direction: column; 
+        gap: 10px; 
+      }
+      
+      .form-group label { 
+        font-size: 13px; 
+        margin-bottom: 4px; 
+      }
+      
+      .form-group input, 
+      .form-group select, 
+      .form-group textarea { 
+        padding: 8px 10px; 
+        font-size: 14px; 
+        border-radius: 8px; 
+      }
+      
+      .form-actions { 
+        flex-direction: column; 
+        gap: 8px; 
+      }
+      
+      .form-actions .btn { 
+        width: 100%; 
+        padding: 10px; 
+      }
+      
+      .stats-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 8px; 
+      }
+      
+      .stat-card { 
+        padding: 8px; 
+        flex-direction: column; 
+        text-align: center; 
+        gap: 6px; 
+      }
+      
+      .stat-icon { 
+        width: 30px; 
+        height: 30px; 
+        font-size: 14px; 
+      }
+      
+      .stat-info h3 { 
+        font-size: 16px; 
+        margin: 0; 
+      }
+      
+      .stat-info p { 
+        font-size: 11px; 
+        margin: 0; 
+      }
+      
+      .history-filters { 
+        flex-direction: column; 
+        gap: 8px; 
+        align-items: stretch; 
+      }
+      
+      .history-item { 
+        flex-direction: column; 
+        gap: 6px; 
+        text-align: center; 
+      }
+      
+      .chatgpt-options { 
+        gap: 16px; 
+      }
+      
+      .option-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 8px; 
+      }
+      
+      .chatgpt-option { 
+        padding: 12px; 
+      }
+      
+      .chatgpt-option i { 
+        font-size: 20px; 
+      }
+      
+      .chatgpt-option span { 
+        font-size: 13px; 
+      }
+      
+      .chatgpt-option small { 
+        font-size: 10px; 
+      }
+      
+      .direct-links { 
+        flex-direction: column; 
+        gap: 8px; 
+      }
+      
+      .chatgpt-link { 
+        padding: 10px 12px; 
+        justify-content: center; 
+      }
+    }
+    
+    /* Telas muito pequenas */
+    @media (max-width: 480px) {
+      .container { 
+        margin: 8px auto; 
+        padding: 0 4px; 
+      }
+      
+      .header { 
+        padding: 8px; 
+        border-radius: 8px; 
+      }
+      
+      .header-icon { 
+        width: 50px; 
+        height: 50px; 
+        font-size: 25px; 
+      }
+      
+      .control-buttons { 
+        grid-template-columns: 1fr; 
+        gap: 6px; 
+      }
+      
+      .btn { 
+        padding: 8px 6px; 
+        font-size: 11px; 
+      }
+      
+      .participants-grid { 
+        grid-template-columns: 1fr; 
+      }
+      
+      .participant-actions { 
+        grid-template-columns: 1fr; 
+      }
+      
+      .stats-grid { 
+        grid-template-columns: 1fr; 
+      }
+      
+      .option-grid { 
+        grid-template-columns: 1fr; 
+      }
+      
+      .modal-content { 
+        padding: 8px; 
+      }
+      
+      .form-group input, 
+      .form-group select, 
+      .form-group textarea { 
+        padding: 6px 8px; 
+        font-size: 13px; 
+      }
+    }
+    
+    /* Orientação landscape em dispositivos móveis */
+    @media (max-width: 768px) and (orientation: landscape) {
+      .header-content { 
+        flex-direction: row; 
+        align-items: center; 
+        gap: 12px; 
+      }
+      
+      .header-left { 
+        order: 1; 
+        width: auto; 
+      }
+      
+      .header-center { 
+        order: 2; 
+        flex: 1; 
+      }
+      
+      .header-right { 
+        order: 3; 
+        width: auto; 
+      }
+      
+      .header-icon { 
+        width: 40px; 
+        height: 40px; 
+        font-size: 20px; 
+      }
+      
+      .control-buttons { 
+        grid-template-columns: repeat(3, 1fr); 
       }
     }
 
@@ -645,71 +1266,6 @@
       font-style: italic;
     }
 
-    /* Estilos para modal de upload de foto */
-    .photo-upload-content {
-      padding: 20px;
-      text-align: center;
-    }
-    
-    .photo-preview {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    
-    .no-photo-placeholder {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      background: var(--bg-secondary);
-      border: 3px dashed var(--border);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-secondary);
-      font-size: 14px;
-    }
-    
-    .no-photo-placeholder i {
-      font-size: 32px;
-      margin-bottom: 8px;
-      color: var(--text-secondary);
-    }
-    
-    .photo-upload-controls {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    
-    .photo-save-section {
-      margin-bottom: 15px;
-    }
-    
-    .photo-info {
-      background: rgba(59, 130, 246, 0.1);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      border-radius: 8px;
-      padding: 10px;
-      margin-top: 15px;
-    }
-    
-    .photo-info p {
-      margin: 0;
-      color: var(--text-secondary);
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-    }
-    
-    .photo-info i {
-      color: #3b82f6;
-    }
-
     /* Estilos para o novo ranking */
     .leaderboard-header {
       background: linear-gradient(135deg, var(--primary), #1e40af);
@@ -754,21 +1310,47 @@
     }
 
     .leaderboard-item {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
+      background: linear-gradient(135deg, #1f2937, #374151);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
-      padding: 16px;
+      padding: 12px;
       display: grid;
-      grid-template-columns: auto auto 1fr auto;
-      gap: 16px;
+      grid-template-columns: 50px 60px 1fr 80px 80px 80px 100px;
+      gap: 12px;
       align-items: center;
       transition: all 0.3s ease;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+      animation: slideInUp 0.6s ease-out;
+    }
+
+    .leaderboard-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
     }
 
     .leaderboard-item:hover {
-      background: rgba(255, 255, 255, 0.08);
+      background: linear-gradient(135deg, #374151, #4b5563);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+      border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .lb-position {
@@ -779,22 +1361,26 @@
       height: 40px;
       border-radius: 50%;
       font-weight: 700;
-      font-size: 16px;
+      font-size: 14px;
     }
 
     .position-gold .lb-position {
-      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      background: linear-gradient(135deg, #ffd700, #ffed4e, #ffd700);
       color: #b45309;
+      box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+      animation: goldShine 2s ease-in-out infinite alternate;
     }
 
     .position-silver .lb-position {
       background: linear-gradient(135deg, #c0c0c0, #e5e7eb);
       color: #6b7280;
+      box-shadow: 0 4px 12px rgba(192, 192, 192, 0.3);
     }
 
     .position-bronze .lb-position {
       background: linear-gradient(135deg, #cd7f32, #f59e0b);
       color: #92400e;
+      box-shadow: 0 4px 12px rgba(205, 127, 50, 0.3);
     }
 
     .position-normal .lb-position {
@@ -802,26 +1388,78 @@
       color: var(--muted);
     }
 
+    .position-neutral .lb-position {
+      background: linear-gradient(135deg, #6b7280, #9ca3af);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+    }
+
+    @keyframes goldShine {
+      0% { box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3); }
+      100% { box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6); }
+    }
+
     .lb-avatar {
       display: flex;
       align-items: center;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid #667eea;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+
+    .lb-avatar:hover {
+      transform: scale(1.05);
+      border-color: #ffd700;
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .lb-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .lb-info {
       flex: 1;
+      padding: 0 10px;
     }
 
     .lb-name {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 4px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 2px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .lb-meta {
       font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 8px;
+      color: #a1a1aa;
+      margin-bottom: 4px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lb-weight-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #d1d5db;
+    }
+
+    .lb-weight-icon {
+      color: #667eea;
+      font-size: 14px;
     }
 
     .lb-details {
@@ -851,20 +1489,22 @@
     }
 
     .lb-percentage {
-      font-size: 20px;
-      font-weight: 700;
-      padding: 4px 8px;
+      background: transparent;
+      color: #d1d5db;
+      padding: 4px 6px;
       border-radius: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      text-align: center;
+      min-width: 80px;
     }
 
     .lb-percentage.positive {
-      color: #16a34a;
-      background: rgba(34, 197, 94, 0.1);
+      color: #10b981;
     }
 
     .lb-percentage.negative {
-      color: #dc2626;
-      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
     }
 
     .lb-weight-current {
@@ -873,7 +1513,79 @@
       font-weight: 500;
     }
 
-    /* Responsividade para o ranking */
+    /* Colunas de pesagem - visíveis no desktop */
+    .lb-weight-1, .lb-weight-2, .lb-weight-3 {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #d1d5db;
+      background: transparent;
+      border-radius: 6px;
+      padding: 4px 6px;
+      display: block;
+    }
+
+    /* Linha de pesagens - escondida no desktop */
+    .lb-weights-row {
+      display: none;
+    }
+
+    .lb-weight-label {
+      font-size: 10px;
+      color: #9ca3af;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .lb-weight-value {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* Desktop - garante colunas individuais */
+    @media (min-width: 1025px) {
+      .lb-weight-1, .lb-weight-2, .lb-weight-3 {
+        display: block;
+      }
+      .lb-weights-row {
+        display: none;
+      }
+    }
+
+    /* Responsividade para tablets - mantém colunas */
+    @media (max-width: 1024px) and (min-width: 769px) {
+      .leaderboard-item {
+        grid-template-columns: 40px 50px 1fr 60px 60px 60px 80px;
+        gap: 8px;
+        padding: 10px;
+      }
+
+      .lb-weight-label {
+        font-size: 9px;
+      }
+
+      .lb-weight-value {
+        font-size: 11px;
+      }
+
+      .lb-percentage {
+        font-size: 12px;
+        padding: 4px 8px;
+      }
+
+      /* Esconde a linha de pesagens no tablet/desktop */
+      .lb-weights-row {
+        display: none;
+      }
+
+      /* Mostra colunas individuais no tablet */
+      .lb-weight-1, .lb-weight-2, .lb-weight-3 {
+        display: block;
+      }
+    }
+
+    /* Responsividade para o ranking mobile */
     @media (max-width: 768px) {
       .leaderboard-header {
         flex-direction: column;
@@ -886,16 +1598,98 @@
       }
 
       .leaderboard-item {
-        grid-template-columns: auto 1fr;
-        gap: 12px;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        text-align: center;
+        padding: 12px;
       }
 
-      .lb-stats {
-        grid-column: 1 / -1;
-        text-align: left;
-        flex-direction: row;
-        justify-content: space-between;
+      /* Primeira linha: Posição + Avatar + Nome + Percentual */
+      .lb-position, .lb-avatar, .lb-info, .lb-percentage {
+        grid-column: 1;
+        margin-bottom: 0;
+      }
+
+      .lb-position {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+        margin: 0 auto 8px auto;
+      }
+
+      .lb-avatar {
+        width: 40px;
+        height: 40px;
+        margin: 0 auto 8px auto;
+      }
+
+      .lb-info {
+        padding: 0;
+        margin: 0 0 8px 0;
+      }
+
+      .lb-percentage {
+        margin: 0 auto 12px auto;
+        font-size: 16px;
+        font-weight: 800;
+      }
+
+      /* Esconde colunas individuais no mobile */
+      .lb-weight-1, .lb-weight-2, .lb-weight-3 {
+        display: none;
+      }
+
+      /* Mostra linha de pesagens no mobile */
+      .lb-weights-row {
+        display: flex;
+        justify-content: space-around;
+        gap: 8px;
         margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .lb-weights-row .lb-weight-1, 
+      .lb-weights-row .lb-weight-2, 
+      .lb-weights-row .lb-weight-3 {
+        display: block !important;
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+      
+      /* Garantir que o valor da pesagem 2 seja visível */
+      .lb-weights-row .lb-weight-2 .lb-weight-value {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+      
+      /* Destaque visual para debug - remover depois */
+      .leaderboard-item[data-has-weight2="true"] {
+        border-left: 3px solid #10b981;
+      }
+      
+      .lb-weights-row .lb-weight-2[data-has-weight2="true"] {
+        background: rgba(16, 185, 129, 0.1);
+        border-radius: 4px;
+        padding: 4px;
+      }
+      
+      .lb-weights-row .lb-weight-2[data-has-weight2="true"] .lb-weight-value {
+        color: #10b981;
+        font-weight: 800;
+      }
+
+      .lb-weight-label {
+        font-size: 9px;
+        margin-bottom: 2px;
+      }
+
+      .lb-weight-value {
+        font-size: 12px;
       }
 
       .lb-details {
@@ -1000,8 +1794,9 @@
         </div>
         <div class="header-right">
           <div class="user-info-section">
-            <div class="user-avatar-small" onclick="openUserPhotoModal()" style="cursor: pointer;" title="Clique para alterar foto">
+            <div class="user-avatar-small">
               <i class="fas fa-user-circle" id="userAvatarIcon"></i>
+              <img id="userAvatarImage" class="user-avatar-img hidden" alt="Avatar do usuário">
             </div>
             <div class="user-details-right">
               <div class="user-name" id="currentUserName">Usuário</div>
@@ -1023,7 +1818,8 @@
         <button id="addWeightBtn" class="btn btn-success"><i class="fas fa-weight"></i> Registrar Peso</button>
         <button id="viewStatsBtn" class="btn btn-info"><i class="fas fa-chart-line"></i> Estatísticas</button>
         <button id="adminLoginBtn" class="btn btn-warning"><i class="fas fa-shield-alt"></i> Login Admin</button>
-        <button id="manageUsersBtn" class="btn btn-info admin-only" style="display: none;"><i class="fas fa-users-cog"></i> Gerenciar Usuários</button>
+        <button id="debugBtn" class="btn btn-info" onclick="debugStorage()"><i class="fas fa-bug"></i> Debug</button>
+        <button id="mobileDebugBtn" class="btn btn-secondary" onclick="ativarErudaMobile()" title="Ativa console de debug para mobile"><i class="fas fa-mobile-alt"></i> Debug Mobile</button>
       </div>
     </div>
                 
@@ -1057,8 +1853,6 @@
           </div>
           <button id="viewWeightHistory" class="btn btn-info"><i class="fas fa-history"></i> Histórico de Pesagens</button>
           <button id="configCompetition" class="btn btn-secondary admin-only"><i class="fas fa-cog"></i> Configurar</button>
-          <!-- <button id="clearData" class="btn btn-danger admin-only"><i class="fas fa-trash"></i> Limpar Dados</button> -->
-          <button id="adminLogin" class="btn btn-warning"><i class="fas fa-user-shield"></i> Admin</button>
         </div>
       </div>
       <div id="participantsContainer" class="participants-container hidden">
@@ -1274,6 +2068,66 @@
     </div>
   </div>
 
+  <!-- Modal: ChatGPT -->
+  <div id="chatgptModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-robot"></i> Assistente IA - ChatGPT</h2>
+        <button id="closeChatgptModal" class="close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="chatgpt-options">
+        <div class="chatgpt-section">
+          <h3><i class="fas fa-lightbulb"></i> Sugestões de Uso</h3>
+          <div class="option-grid">
+            <button class="chatgpt-option" data-type="tips">
+              <i class="fas fa-dumbbell"></i>
+              <span>Dicas de Exercícios</span>
+              <small>Receba sugestões personalizadas de exercícios</small>
+            </button>
+            <button class="chatgpt-option" data-type="nutrition">
+              <i class="fas fa-apple-alt"></i>
+              <span>Conselhos Nutricionais</span>
+              <small>Orientações sobre alimentação saudável</small>
+            </button>
+            <button class="chatgpt-option" data-type="motivation">
+              <i class="fas fa-heart"></i>
+              <span>Motivação</span>
+              <small>Mensagens motivacionais para continuar</small>
+            </button>
+            <button class="chatgpt-option" data-type="progress">
+              <i class="fas fa-chart-line"></i>
+              <span>Análise de Progresso</span>
+              <small>Interpretação dos seus resultados</small>
+            </button>
+          </div>
+        </div>
+        
+        <div class="chatgpt-section">
+          <h3><i class="fas fa-comments"></i> Chat Personalizado</h3>
+          <div class="chat-input-section">
+            <textarea id="chatgptInput" placeholder="Digite sua pergunta ou solicitação aqui..."></textarea>
+            <button id="sendChatgptBtn" class="btn btn-primary">
+              <i class="fas fa-paper-plane"></i> Enviar
+            </button>
+          </div>
+        </div>
+        
+        <div class="chatgpt-section">
+          <h3><i class="fas fa-link"></i> Acesso Direto</h3>
+          <div class="direct-links">
+            <a href="https://chat.openai.com/" target="_blank" class="chatgpt-link">
+              <i class="fas fa-external-link-alt"></i>
+              Abrir ChatGPT Web
+            </a>
+            <button id="copyPromptBtn" class="chatgpt-link">
+              <i class="fas fa-copy"></i>
+              Copiar Prompt Personalizado
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal: Estatísticas -->
   <div id="statsModal" class="modal hidden">
@@ -1454,46 +2308,7 @@
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-primary" onclick="saveEditedWeights()">Salvar Alterações</button>
-          <button type="button" class="btn btn-secondary" onclick="close(document.getElementById('editWeightsModal'))">Cancelar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal: Upload de Foto do Usuário -->
-  <div id="userPhotoModal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2><i class="fas fa-camera"></i> Foto do Usuário</h2>
-        <button id="closeUserPhotoModal" class="close-btn"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="photo-upload-content">
-        <div class="photo-preview">
-          <img id="currentUserPhoto" src="" alt="Foto atual" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; display: none; border: 3px solid var(--primary);">
-          <div id="noPhotoPlaceholder" class="no-photo-placeholder">
-            <i class="fas fa-user"></i>
-            <span>Sem foto</span>
-          </div>
-        </div>
-        
-        <div class="photo-upload-controls">
-          <input type="file" id="userPhotoInput" accept="image/*" style="display: none;">
-          <button type="button" class="btn btn-primary" onclick="document.getElementById('userPhotoInput').click()">
-            <i class="fas fa-camera"></i> Selecionar Foto
-          </button>
-          <button type="button" class="btn btn-secondary" onclick="removeUserPhoto()" id="removePhotoBtn" style="display: none;">
-            <i class="fas fa-trash"></i> Remover
-          </button>
-        </div>
-        
-        <div class="photo-save-section">
-          <button type="button" class="btn btn-success" onclick="saveUserPhoto()" id="savePhotoBtn" style="display: none;">
-            <i class="fas fa-save"></i> Salvar Foto
-          </button>
-        </div>
-        
-        <div class="photo-info">
-          <p><i class="fas fa-info-circle"></i> Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB</p>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('editWeightsModal')">Cancelar</button>
         </div>
       </div>
     </div>
@@ -1507,26 +2322,27 @@
         const session = JSON.parse(localStorage.getItem('lb_session_v1') || '{}');
         const now = new Date();
         
+        // Se não há sessão, permite acesso público (modo offline)
         if (!session.userId || !session.loginTime) {
-          redirectToLogin();
-          return false;
+          console.log('ℹ️ Modo offline - sem login obrigatório');
+          return true; // Permite acesso sem login
         }
         
         const loginDate = new Date(session.loginTime);
         const hoursDiff = (now - loginDate) / (1000 * 60 * 60);
         
         if (hoursDiff >= 8) {
-          // Sessão expirada
+          // Sessão expirada - limpa mas permite acesso
+          console.log('⚠️ Sessão expirada, mas permitindo acesso offline');
           clearSession();
-          redirectToLogin();
-          return false;
+          return true; // Permite acesso offline
         }
         
         return true;
       } catch (error) {
         console.error('Erro ao verificar login:', error);
-        redirectToLogin();
-        return false;
+        console.log('ℹ️ Permitindo acesso offline devido ao erro');
+        return true; // Permite acesso offline em caso de erro
       }
     }
     
@@ -1543,23 +2359,146 @@
       localStorage.removeItem('currentUserId');
     }
     
-    // Verifica login antes de continuar
-    if (!checkLogin()) {
-      // Para a execução se não estiver logado
-      throw new Error('Usuário não autenticado');
-    }
+    // Verifica login (mas não bloqueia acesso)
+    checkLogin();
     
     // ========= Estado & Persistência =========
     const LS_KEY = 'lb_participants_v1';
     const CONFIG_KEY = 'lb_competition_config_v1';
+    
+    // Função de debug para smartphones
+    function debugStorage() {
+      console.log('🔍 Debug de armazenamento:');
+      console.log('- localStorage disponível:', typeof(Storage) !== "undefined");
+      console.log('- Chave principal:', LS_KEY);
+      console.log('- Dados na chave principal:', localStorage.getItem(LS_KEY) ? 'Sim' : 'Não');
+      console.log('- Chave alternativa:', 'weightCompetitionParticipants');
+      console.log('- Dados na chave alternativa:', localStorage.getItem('weightCompetitionParticipants') ? 'Sim' : 'Não');
+      console.log('- Total de chaves no localStorage:', Object.keys(localStorage).length);
+      
+      // Lista todas as chaves relacionadas à competição
+      const competitionKeys = Object.keys(localStorage).filter(key => 
+        key.includes('lb_') || key.includes('weight') || key.includes('competition')
+      );
+      console.log('- Chaves relacionadas à competição:', competitionKeys);
+    }
+    
     let participants = loadParticipants();
     let competitionConfig = loadCompetitionConfig();
+    
+    // Debug inicial
+    debugStorage();
+    
+    // Tornar função global para acesso via botão
+    window.debugStorage = debugStorage;
+    
+    // Função para sincronizar dados entre chaves
+    function syncData() {
+      try {
+        const mainData = localStorage.getItem(LS_KEY);
+        const altData = localStorage.getItem('weightCompetitionParticipants');
+        
+        if (mainData && !altData) {
+          // Sincroniza da chave principal para alternativa
+          localStorage.setItem('weightCompetitionParticipants', mainData);
+          console.log('✅ Dados sincronizados para chave alternativa');
+        } else if (!mainData && altData) {
+          // Sincroniza da chave alternativa para principal
+          localStorage.setItem(LS_KEY, altData);
+          console.log('✅ Dados sincronizados para chave principal');
+        }
+      } catch (error) {
+        console.error('❌ Erro na sincronização:', error);
+      }
+    }
+    
+    // Sincroniza dados na inicialização
+    syncData();
+    
+    // Função para criar dados de exemplo se necessário
+    function createSampleData() {
+      if (participants.length === 0) {
+        console.log('📝 Criando dados de exemplo...');
+        
+        const sampleParticipants = [
+          {
+            id: 'sample-1',
+            name: 'João Silva',
+            initialWeight: 80.0,
+            currentWeight: 80.0,
+            targetWeight: 75.0,
+            department: 'TI',
+            profile: 'user',
+            password: '123456',
+            joinDate: new Date().toISOString()
+          },
+          {
+            id: 'sample-2', 
+            name: 'Maria Santos',
+            initialWeight: 65.0,
+            currentWeight: 65.0,
+            targetWeight: 60.0,
+            department: 'RH',
+            profile: 'user',
+            password: '123456',
+            joinDate: new Date().toISOString()
+          }
+        ];
+        
+        participants = sampleParticipants;
+        saveParticipants();
+        console.log('✅ Dados de exemplo criados');
+      }
+    }
+    
+    // Cria dados de exemplo se necessário
+    createSampleData();
+    
+    // Função para mostrar status do sistema
+    function showSystemStatus() {
+      console.log('📊 Status do Sistema:');
+      console.log('- Participantes carregados:', participants.length);
+      console.log('- Modo offline ativo:', !localStorage.getItem('lb_session_v1'));
+      console.log('- Dados de exemplo criados:', participants.some(p => p.id.startsWith('sample-')));
+      
+      if (participants.length === 0) {
+        console.warn('⚠️ Nenhum participante encontrado!');
+      } else {
+        console.log('✅ Sistema funcionando normalmente');
+      }
+    }
+    
+    // Mostra status do sistema
+    showSystemStatus();
 
     function loadParticipants() {
+      try {
+        // Verifica se localStorage está disponível
+        if (typeof(Storage) === "undefined") {
+          console.warn('⚠️ localStorage não suportado neste dispositivo');
+          return [];
+        }
+
         const raw = localStorage.getItem(LS_KEY);
-      if (!raw) return [];
-      try { 
-        const data = JSON.parse(raw) || [];
+        console.log('📱 Carregando participantes:', raw ? 'dados encontrados' : 'nenhum dado');
+        
+        if (!raw) {
+          console.log('ℹ️ Nenhum participante encontrado no localStorage');
+          return [];
+        }
+
+        const data = JSON.parse(raw);
+        if (!Array.isArray(data)) {
+          console.warn('⚠️ Dados de participantes inválidos, resetando...');
+          return [];
+        }
+
+        console.log(`✅ ${data.length} participantes carregados`);
+        
+        // Conta quantos têm foto
+        const withPhotos = data.filter(p => p.photo && p.photo.trim() !== '').length;
+        console.log(`📸 ${withPhotos} participantes têm foto no localStorage`);
+        
         // Migração: adiciona perfil e senha padrão para participantes existentes
         return data.map(p => {
           const updatedParticipant = {
@@ -1576,7 +2515,24 @@
           
           return updatedParticipant;
         });
-      } catch { return []; }
+      } catch (error) {
+        console.error('❌ Erro ao carregar participantes:', error);
+        console.log('🔄 Tentando carregar dados alternativos...');
+        
+        // Fallback: tenta carregar de chaves alternativas
+        try {
+          const fallbackData = localStorage.getItem('weightCompetitionParticipants');
+          if (fallbackData) {
+            const data = JSON.parse(fallbackData);
+            console.log('✅ Dados carregados do fallback');
+            return Array.isArray(data) ? data : [];
+          }
+        } catch (fallbackError) {
+          console.error('❌ Erro no fallback:', fallbackError);
+        }
+        
+        return [];
+      }
     }
     function saveParticipants() {
       try {
@@ -1723,31 +2679,72 @@
 
     // Função para obter as 3 últimas pesagens separadamente
     function getLastThreeWeights(p) {
-      if (!p.weights?.length) return { 
+      if (!p.weights || !Array.isArray(p.weights) || p.weights.length === 0) {
+        return { 
         weight1: null, weight2: null, weight3: null,
         date1: null, date2: null, date3: null,
         pct1: null, pct2: null, pct3: null,
         photo1: null, photo2: null, photo3: null
       };
+      }
       
-      const sortedWeights = [...p.weights].sort((a, b) => new Date(b.date) - new Date(a.date));
+      // Filtra e valida pesagens (remove entradas inválidas)
+      const validWeights = p.weights.filter(w => {
+        return w && 
+               (w.value !== null && w.value !== undefined && !isNaN(w.value)) &&
+               (w.date || w.timestamp);
+      });
+      
+      if (validWeights.length === 0) {
+        return { 
+          weight1: null, weight2: null, weight3: null,
+          date1: null, date2: null, date3: null,
+          pct1: null, pct2: null, pct3: null,
+          photo1: null, photo2: null, photo3: null
+        };
+      }
+      
+      // Ordena por data (mais recente primeiro) - melhor tratamento de datas
+      // Se as datas forem iguais, usa o índice original como critério secundário
+      const sortedWeights = [...validWeights].map((w, idx) => ({ ...w, _originalIndex: idx }))
+        .sort((a, b) => {
+          const dateA = a.date ? new Date(a.date) : (a.timestamp ? new Date(a.timestamp) : new Date(0));
+          const dateB = b.date ? new Date(b.date) : (b.timestamp ? new Date(b.timestamp) : new Date(0));
+          const dateDiff = dateB - dateA;
+          // Se as datas forem iguais (ou muito próximas), usa o índice original
+          if (Math.abs(dateDiff) < 1000) { // Menos de 1 segundo de diferença
+            return b._originalIndex - a._originalIndex; // Mais recente por índice
+          }
+          return dateDiff; // Mais recente primeiro
+        });
+      
+      // Remove duplicatas baseado em valor e data (evita mostrar a mesma pesagem duas vezes)
+      const uniqueWeights = [];
+      const seen = new Set();
+      sortedWeights.forEach(w => {
+        const key = `${w.value}_${w.date || w.timestamp}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          uniqueWeights.push(w);
+        }
+      });
       
       // Pesagem 01 é a mais recente (peso inicial para cálculo)
-      const weight1 = sortedWeights[0]?.value || null;
-      const weight2 = sortedWeights[1]?.value || null;
-      const weight3 = sortedWeights[2]?.value || null;
+      const weight1 = uniqueWeights[0]?.value || null;
+      const weight2 = uniqueWeights[1]?.value || null;
+      const weight3 = uniqueWeights[2]?.value || null;
       
       // Calcula percentuais considerando Pesagem 01 como base (100%)
       let pct1 = null, pct2 = null, pct3 = null;
       
-      if (weight1) {
+      if (weight1 && !isNaN(weight1) && weight1 > 0) {
         pct1 = 0; // Pesagem 01 é a referência (0% de perda)
         
-        if (weight2) {
+        if (weight2 && !isNaN(weight2) && weight2 > 0) {
           pct2 = ((weight1 - weight2) / weight1) * 100;
         }
         
-        if (weight3) {
+        if (weight3 && !isNaN(weight3) && weight3 > 0) {
           pct3 = ((weight1 - weight3) / weight1) * 100;
         }
       }
@@ -1756,17 +2753,196 @@
         weight1: weight1,
         weight2: weight2,
         weight3: weight3,
-        date1: sortedWeights[0]?.date || null,
-        date2: sortedWeights[1]?.date || null,
-        date3: sortedWeights[2]?.date || null,
+        date1: uniqueWeights[0]?.date || uniqueWeights[0]?.timestamp || null,
+        date2: uniqueWeights[1]?.date || uniqueWeights[1]?.timestamp || null,
+        date3: uniqueWeights[2]?.date || uniqueWeights[2]?.timestamp || null,
         pct1: pct1,
         pct2: pct2,
         pct3: pct3,
-        photo1: sortedWeights[0]?.photo || null,
-        photo2: sortedWeights[1]?.photo || null,
-        photo3: sortedWeights[2]?.photo || null
+        photo1: uniqueWeights[0]?.photo || null,
+        photo2: uniqueWeights[1]?.photo || null,
+        photo3: uniqueWeights[2]?.photo || null
       };
     }
+    
+    // Função para forçar exibição de todas as pesagens
+    window.forcarExibirPesagens = function() {
+      console.log('🔄 Forçando exibição de todas as pesagens...');
+      
+      // Recarrega participantes do localStorage
+      if (typeof participants !== 'undefined') {
+        const reloaded = loadParticipants();
+        participants.length = 0;
+        participants.push(...reloaded);
+      }
+      
+      // Força re-renderização
+      if (typeof renderParticipants === 'function') {
+        renderParticipants();
+      }
+      
+      if (typeof renderLeaderboard === 'function') {
+        renderLeaderboard();
+      }
+      
+      if (typeof refreshAll === 'function') {
+        refreshAll();
+      }
+      
+      console.log('✅ Renderização forçada concluída');
+      
+      // Verifica elementos na tela
+      setTimeout(() => {
+        const weightItems = document.querySelectorAll('.weight-item');
+        const lbWeights = document.querySelectorAll('.lb-weight-2');
+        console.log(`📊 Elementos encontrados: ${weightItems.length} weight-items, ${lbWeights.length} lb-weight-2`);
+        
+        lbWeights.forEach((el, i) => {
+          const value = el.querySelector('.lb-weight-value')?.textContent || 'vazio';
+          console.log(`   ${i + 1}. ${value}`);
+        });
+      }, 500);
+    };
+    
+    // Função de diagnóstico para verificar pesagens
+    window.diagnosticarPesagens = function(participantName = null) {
+      console.log('🔍 === DIAGNÓSTICO DE PESAGENS ===\n');
+      
+      const participantsToCheck = participantName 
+        ? participants.filter(p => p.name.toLowerCase().includes(participantName.toLowerCase()))
+        : participants;
+      
+      if (participantsToCheck.length === 0) {
+        console.log('❌ Nenhum participante encontrado');
+        return;
+      }
+      
+      participantsToCheck.forEach(p => {
+        console.log(`\n👤 ${p.name} (ID: ${p.id}):`);
+        console.log(`   Total de pesagens: ${p.weights?.length || 0}`);
+        
+        if (p.weights && p.weights.length > 0) {
+          console.log('   📋 Pesagens brutas:');
+          p.weights.forEach((w, i) => {
+            console.log(`      ${i + 1}. Valor: ${w.value} kg, Data: ${w.date || w.timestamp || 'sem data'}`);
+          });
+          
+          const threeWeights = getLastThreeWeights(p);
+          console.log('   📊 Resultado getLastThreeWeights:');
+          console.log(`      Pesagem 1: ${threeWeights.weight1 || 'null'} kg (${threeWeights.date1 || 'sem data'})`);
+          console.log(`      Pesagem 2: ${threeWeights.weight2 || 'null'} kg (${threeWeights.date2 || 'sem data'})`);
+          console.log(`      Pesagem 3: ${threeWeights.weight3 || 'null'} kg (${threeWeights.date3 || 'sem data'})`);
+          
+          if (p.weights.length >= 2 && !threeWeights.weight2) {
+            console.warn('   ⚠️ PROBLEMA: Tem 2+ pesagens mas weight2 é null!');
+            console.warn('   ⚠️ Verificando ordenação...');
+            const sorted = [...p.weights].sort((a, b) => {
+              const dateA = a.date ? new Date(a.date) : (a.timestamp ? new Date(a.timestamp) : new Date(0));
+              const dateB = b.date ? new Date(b.date) : (b.timestamp ? new Date(b.timestamp) : new Date(0));
+              return dateB - dateA;
+            });
+            console.warn('   Ordenação:', sorted.map(w => ({ value: w.value, date: w.date || w.timestamp })));
+          }
+        } else {
+          console.log('   ❌ Nenhuma pesagem encontrada');
+        }
+      });
+    };
+    
+    // Função para ativar Eruda no mobile
+    window.ativarErudaMobile = function() {
+      if (typeof eruda === 'undefined') {
+        // Carrega Eruda se não estiver carregado
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/eruda';
+        script.onload = function() {
+          eruda.init();
+          localStorage.setItem('eruda_enabled', 'true');
+          alert('✅ Eruda ativado! Toque no ícone no canto inferior direito para abrir o console.');
+          console.log('🔧 Eruda ativado! Use o ícone no canto inferior direito.');
+        };
+        document.head.appendChild(script);
+      } else {
+        eruda.init();
+        localStorage.setItem('eruda_enabled', 'true');
+        alert('✅ Eruda ativado! Toque no ícone no canto inferior direito para abrir o console.');
+        console.log('🔧 Eruda ativado! Use o ícone no canto inferior direito.');
+      }
+    };
+    
+    // Função de diagnóstico específica para mobile
+    window.diagnosticarMobile = function(participantName = 'claudia') {
+      console.log('📱 === DIAGNÓSTICO MOBILE ===\n');
+      
+      const p = participants.find(p => p.name && p.name.toLowerCase().includes(participantName.toLowerCase()));
+      if (!p) {
+        console.log(`❌ Participante "${participantName}" não encontrado`);
+        console.log('📋 Participantes disponíveis:');
+        participants.forEach((p, i) => console.log(`   ${i + 1}. ${p.name}`));
+        return;
+      }
+      
+      console.log(`👤 ${p.name} (ID: ${p.id})`);
+      console.log(`📊 Total de pesagens: ${p.weights?.length || 0}`);
+      
+      if (p.weights && p.weights.length > 0) {
+        console.log('\n📋 Pesagens brutas:');
+        p.weights.forEach((w, i) => {
+          console.log(`   ${i + 1}. ${w.value} kg - ${w.date || w.timestamp || 'sem data'}`);
+        });
+        
+        const threeWeights = getLastThreeWeights(p);
+        console.log('\n📊 Resultado getLastThreeWeights:');
+        console.log(`   weight1: ${threeWeights.weight1} (${threeWeights.date1 || 'null'})`);
+        console.log(`   weight2: ${threeWeights.weight2} (${threeWeights.date2 || 'null'})`);
+        console.log(`   weight3: ${threeWeights.weight3} (${threeWeights.date3 || 'null'})`);
+        
+        console.log('\n🖼️ Verificando elementos na tela:');
+        
+        // Verificar no leaderboard (mobile)
+        const mobileRow = document.querySelector(`.lb-weights-row .lb-weight-2[data-participant-id="${p.id}"]`);
+        if (mobileRow) {
+          const style = window.getComputedStyle(mobileRow);
+          const valueEl = mobileRow.querySelector('.lb-weight-value');
+          console.log('✅ Elemento mobile encontrado no leaderboard!');
+          console.log(`   display: ${style.display}`);
+          console.log(`   visibility: ${style.visibility}`);
+          console.log(`   opacity: ${style.opacity}`);
+          console.log(`   Valor exibido: ${valueEl ? valueEl.textContent : 'N/A'}`);
+        } else {
+          console.log('❌ Elemento mobile NÃO encontrado no leaderboard');
+        }
+        
+        // Verificar nos cards
+        const cardWeight2 = document.querySelector(`.participant-card .weight-item[data-participant="${p.id}"][data-weight2="true"]`);
+        if (cardWeight2) {
+          const style = window.getComputedStyle(cardWeight2);
+          const valueEl = cardWeight2.querySelector('.weight-value');
+          console.log('✅ Elemento encontrado nos cards!');
+          console.log(`   display: ${style.display}`);
+          console.log(`   Valor exibido: ${valueEl ? valueEl.textContent : 'N/A'}`);
+        } else {
+          console.log('❌ Elemento NÃO encontrado nos cards');
+        }
+        
+        // Verificar na lista
+        const listWeight2 = document.querySelector(`.participants-list .lb-weight-2[data-participant-id="${p.id}"]`);
+        if (listWeight2) {
+          const style = window.getComputedStyle(listWeight2);
+          const valueEl = listWeight2.querySelector('.lb-weight-value');
+          console.log('✅ Elemento encontrado na lista!');
+          console.log(`   display: ${style.display}`);
+          console.log(`   Valor exibido: ${valueEl ? valueEl.textContent : 'N/A'}`);
+        } else {
+          console.log('❌ Elemento NÃO encontrado na lista');
+        }
+      } else {
+        console.log('❌ Nenhuma pesagem encontrada');
+      }
+      
+      console.log('\n💡 DICA: Para ativar o console Eruda, adicione ?debug=true na URL');
+    };
+    
     function totalWeightLost() {
       return participants.reduce((acc,p)=>{
         const cw = currentWeight(p); if (!cw) return acc;
@@ -1898,7 +3074,7 @@
     const historyModal = document.getElementById('historyModal');
     const editParticipantModal = document.getElementById('editParticipantModal');
     const configCompetitionModal = document.getElementById('configCompetitionModal');
-    const userPhotoModal = document.getElementById('userPhotoModal');
+    const chatgptModal = document.getElementById('chatgptModal');
 
     const closeParticipantModal = document.getElementById('closeParticipantModal');
     const closeWeightModal = document.getElementById('closeWeightModal');
@@ -1907,7 +3083,7 @@
     const closeEditParticipantModal = document.getElementById('closeEditParticipantModal');
     const closeEditWeightsModal = document.getElementById('closeEditWeightsModal');
     const closeConfigModal = document.getElementById('closeConfigModal');
-    const closeUserPhotoModal = document.getElementById('closeUserPhotoModal');
+    const closeChatgptModal = document.getElementById('closeChatgptModal');
 
     const participantsCardsEl = document.getElementById('participantsCards');
     const participantsListEl = document.getElementById('participantsList');
@@ -1980,34 +3156,19 @@
     const open = (el) => el.classList.remove('hidden');
     const close = (el) => el.classList.add('hidden');
     
-    // Função global para fechar modal por ID (string)
-    window.closeModal = function(modalId) {
-      const modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
-      if (modal) {
-        close(modal);
-      } else {
-        console.error('Modal não encontrado:', modalId);
-      }
-    };
-    
-    // Torna a função close global também
-    window.close = close;
-    window.open = open;
-    
     // ========= Função para Alternar Múltiplas Pesagens =========
     function toggleMultipleWeights() {
       const checkbox = document.getElementById('multipleWeights');
       const singleSection = document.getElementById('singleWeightSection');
       const multipleSection = document.getElementById('multipleWeightsSection');
-      const weekNumberField = document.getElementById('weekNumber');
+      const weekNumberSelect = document.getElementById('weekNumber');
       
       if (checkbox.checked) {
         singleSection.classList.add('hidden');
         multipleSection.classList.remove('hidden');
-        // Adiciona required quando a seção está visível
-        if (weekNumberField) {
-          weekNumberField.setAttribute('required', 'required');
-        }
+        
+        // Adicionar required quando visível
+        weekNumberSelect.setAttribute('required', 'required');
         
         // Preenche datas automaticamente (3 dias consecutivos)
         const today = new Date();
@@ -2025,15 +3186,14 @@
         
         // Define semana atual automaticamente
         const currentWeek = getCompetitionWeek();
-        document.getElementById('weekNumber').value = currentWeek;
+        weekNumberSelect.value = currentWeek;
         
       } else {
         singleSection.classList.remove('hidden');
         multipleSection.classList.add('hidden');
-        // Remove required quando a seção está escondida
-        if (weekNumberField) {
-          weekNumberField.removeAttribute('required');
-        }
+        
+        // Remover required quando oculto
+        weekNumberSelect.removeAttribute('required');
       }
     }
 
@@ -2082,9 +3242,8 @@
       }
     }
     
-    // Tornar funções globais
+    // Tornar função global
     window.toggleMultipleWeights = toggleMultipleWeights;
-    window.previewEditWeightPhoto = previewEditWeightPhoto;
 
     addParticipantBtn.addEventListener('click', () => open(participantModal));
     addWeightBtn.addEventListener('click', () => {
@@ -2097,11 +3256,8 @@
       document.getElementById('singleWeightSection').classList.remove('hidden');
       document.getElementById('multipleWeightsSection').classList.add('hidden');
       
-      // Remove required do weekNumber quando escondido
-      const weekNumberField = document.getElementById('weekNumber');
-      if (weekNumberField) {
-        weekNumberField.removeAttribute('required');
-      }
+      // Remover required do weekNumber quando modal é aberto
+      document.getElementById('weekNumber').removeAttribute('required');
       
       // Limpar todos os campos
       weightForm.reset();
@@ -2128,11 +3284,6 @@
       openConfigModal();
     });
     
-    document.getElementById('clearData').addEventListener('click', () => {
-      if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita!')) {
-        clearAllData();
-      }
-    });
 
     closeParticipantModal.addEventListener('click', () => close(participantModal));
     closeWeightModal.addEventListener('click', () => close(weightModal));
@@ -2141,7 +3292,7 @@
     closeEditParticipantModal.addEventListener('click', () => close(editParticipantModal));
     closeEditWeightsModal.addEventListener('click', () => close(editWeightsModal));
     closeConfigModal.addEventListener('click', () => close(configCompetitionModal));
-    closeUserPhotoModal.addEventListener('click', () => close(userPhotoModal));
+    closeChatgptModal.addEventListener('click', () => close(chatgptModal));
 
     cancelParticipantBtn.addEventListener('click', () => close(participantModal));
     cancelWeightBtn.addEventListener('click', () => close(weightModal));
@@ -2178,12 +3329,20 @@
         subtitleElement.textContent = competitionConfig.description;
       }
       
-      // Atualiza as datas abaixo da barra de progresso
+      // Atualiza as datas abaixo da barra de progresso COM CORREÇÃO DE FUSO HORÁRIO
       const datesElement = document.getElementById('competitionDates');
       if (datesElement && competitionConfig.startDate && competitionConfig.endDate) {
-        const startDate = new Date(competitionConfig.startDate).toLocaleDateString('pt-BR');
-        const endDate = new Date(competitionConfig.endDate).toLocaleDateString('pt-BR');
-        datesElement.innerHTML = `📅 Período: ${startDate} a ${endDate}`;
+        // CORREÇÃO: Adiciona 1 dia para compensar o fuso horário
+        const startDate = new Date(competitionConfig.startDate);
+        startDate.setDate(startDate.getDate() + 1);
+        
+        const endDate = new Date(competitionConfig.endDate);
+        endDate.setDate(endDate.getDate() + 1);
+        
+        const startFormatted = startDate.toLocaleDateString('pt-BR');
+        const endFormatted = endDate.toLocaleDateString('pt-BR');
+        
+        datesElement.innerHTML = `📅 Período: ${startFormatted} a ${endFormatted}`;
       } else if (datesElement) {
         datesElement.innerHTML = '';
       }
@@ -2450,26 +3609,50 @@
         const perc = pctLoss(p);
         const initialWeight = p.initialWeight;
         const weightLost = initialWeight ? (initialWeight - (cur || initialWeight)) : 0;
+        const threeWeights = getLastThreeWeights(p);
+        
+        // Prepara valores ANTES de inserir no HTML (garante consistência desktop/mobile)
+        const hasWeight1 = threeWeights.weight1 !== null && threeWeights.weight1 !== undefined;
+        const hasWeight2 = threeWeights.weight2 !== null && threeWeights.weight2 !== undefined;
+        const hasWeight3 = threeWeights.weight3 !== null && threeWeights.weight3 !== undefined;
+        
+        const weight1Display = hasWeight1 ? threeWeights.weight1.toFixed(1) : '-';
+        const weight2Display = hasWeight2 ? threeWeights.weight2.toFixed(1) : '-';
+        const weight3Display = hasWeight3 ? threeWeights.weight3.toFixed(1) : '-';
+        
+        // Debug específico para Claudia Maria no leaderboard (mobile)
+        if (p.name && p.name.toLowerCase().includes('claudia')) {
+          console.log(`🔍 DEBUG Claudia no Leaderboard (mobile):`);
+          console.log(`   threeWeights:`, threeWeights);
+          console.log(`   weight2: ${threeWeights.weight2}, será renderizado: ${hasWeight2}`);
+          console.log(`   Valores preparados: weight2Display = "${weight2Display}"`);
+        }
         
         // Define cor da posição
         let positionClass = '';
         let positionIcon = '';
         if (pos === 1) {
           positionClass = 'position-gold';
-          positionIcon = '🥇';
+          positionIcon = '1º';
         } else if (pos === 2) {
           positionClass = 'position-silver';
-          positionIcon = '🥈';
+          positionIcon = '2º';
         } else if (pos === 3) {
           positionClass = 'position-bronze';
-          positionIcon = '🥉';
+          positionIcon = '3º';
         } else {
-          positionClass = 'position-normal';
-          positionIcon = `#${pos}`;
+          positionClass = 'position-neutral'; // Usar cor neutra para 4º em diante
+          positionIcon = `${pos}º`;
         }
         
         const item = document.createElement('div');
         item.className = `leaderboard-item ${positionClass}`;
+        
+        // Adiciona atributo data para facilitar identificação visual (após criar o item)
+        if (hasWeight2) {
+          item.setAttribute('data-has-weight2', 'true');
+          item.setAttribute('data-weight2-value', threeWeights.weight2);
+        }
         item.innerHTML = `
           <div class="lb-position">
             <span class="position-number">${positionIcon}</span>
@@ -2477,12 +3660,39 @@
           <div class="lb-avatar">
             ${avatarHTML(p)}
           </div>
-          <div class="lb-stats">
+          <div class="lb-info">
+            <div class="lb-name">${p.name}</div>
+            ${meta}
+          </div>
+          <!-- Colunas individuais para desktop -->
+          <div class="lb-weight-1">
+            <div class="lb-weight-label">Pesagem 1</div>
+            <div class="lb-weight-value">${weight1Display} kg</div>
+          </div>
+          <div class="lb-weight-2" data-has-weight2="${hasWeight2}" data-participant-id="${p.id}">
+            <div class="lb-weight-label">Pesagem 2</div>
+            <div class="lb-weight-value">${weight2Display} kg</div>
+          </div>
+          <div class="lb-weight-3">
+            <div class="lb-weight-label">Pesagem 3</div>
+            <div class="lb-weight-value">${weight3Display} kg</div>
+          </div>
           <div class="lb-percentage ${perc >= 0 ? 'positive' : 'negative'}">
             ${perc.toFixed(1)}%
           </div>
-            <div class="lb-weight-current">
-              ${cur?.toFixed(1) || '-'} kg
+          <!-- Linha de pesagens para mobile -->
+          <div class="lb-weights-row">
+            <div class="lb-weight-1">
+              <div class="lb-weight-label">P1</div>
+              <div class="lb-weight-value">${weight1Display} kg</div>
+            </div>
+            <div class="lb-weight-2" data-has-weight2="${hasWeight2}" data-participant-id="${p.id}" data-weight-value="${weight2Display}">
+              <div class="lb-weight-label">P2</div>
+              <div class="lb-weight-value">${weight2Display} kg</div>
+            </div>
+            <div class="lb-weight-3">
+              <div class="lb-weight-label">P3</div>
+              <div class="lb-weight-value">${weight3Display} kg</div>
             </div>
           </div>
         `;
@@ -2504,6 +3714,15 @@
         const cur = currentWeight(p);
         const perc = pctLoss(p);
         const threeWeights = getLastThreeWeights(p);
+        
+        // Debug específico para Claudia Maria
+        if (p.name && p.name.toLowerCase().includes('claudia')) {
+          console.log(`🔍 DEBUG Claudia Maria em renderParticipantsCards:`);
+          console.log(`   threeWeights:`, threeWeights);
+          console.log(`   weight2 existe?`, threeWeights.weight2 !== null && threeWeights.weight2 !== undefined);
+          console.log(`   weight2 valor:`, threeWeights.weight2);
+        }
+        
         const meta = p.department ? `<div class="department">${p.department}</div>` : '';
         const profile = p.profile ? `<div class="profile-badge"><i class="${getProfileIcon(p.profile)}"></i> ${getProfileDisplayName(p.profile)}</div>` : '';
         
@@ -2512,6 +3731,18 @@
           if (!dateStr) return '-';
           return new Date(dateStr).toLocaleDateString('pt-BR');
         };
+        
+        // Prepara valores da pesagem 2 ANTES de inserir no HTML
+        const hasWeight2 = threeWeights.weight2 !== null && threeWeights.weight2 !== undefined;
+        const weight2Display = hasWeight2 ? threeWeights.weight2.toFixed(1) : '-';
+        const weight2DateDisplay = formatDate(threeWeights.date2);
+        const weight2PctDisplay = threeWeights.pct2 !== null ? threeWeights.pct2.toFixed(1) + '%' : '-';
+        const weight2PctColor = threeWeights.pct2 !== null && threeWeights.pct2 >= 0 ? '#16a34a' : '#dc2626';
+        
+        if (p.name && p.name.toLowerCase().includes('claudia')) {
+          console.log(`   Valores preparados para renderização:`);
+          console.log(`   hasWeight2: ${hasWeight2}, weight2Display: ${weight2Display}`);
+        }
         
         card.innerHTML = `
           <div class="participant-card-header">
@@ -2537,11 +3768,11 @@
               <div class="weight-date">${formatDate(threeWeights.date1)}</div>
               ${threeWeights.photo1 ? `<div class="weight-photo"><img src="${threeWeights.photo1}" alt="Foto da pesagem 1" style="max-width: 60px; max-height: 60px; border-radius: 4px; margin-top: 4px;"></div>` : ''}
             </div>
-            <div class="weight-item">
+            <div class="weight-item" data-participant="${p.id}" data-weight2="${hasWeight2}">
               <div class="weight-label">Pesagem 02</div>
-              <div class="weight-value">${threeWeights.weight2?.toFixed(1) ?? '-'} kg</div>
-              <div class="weight-percentage" style="color: ${threeWeights.pct2 >= 0 ? '#16a34a' : '#dc2626'};">${threeWeights.pct2 !== null ? threeWeights.pct2.toFixed(1) + '%' : '-'}</div>
-              <div class="weight-date">${formatDate(threeWeights.date2)}</div>
+              <div class="weight-value">${weight2Display} kg</div>
+              <div class="weight-percentage" style="color: ${weight2PctColor};">${weight2PctDisplay}</div>
+              <div class="weight-date">${weight2DateDisplay}</div>
               ${threeWeights.photo2 ? `<div class="weight-photo"><img src="${threeWeights.photo2}" alt="Foto da pesagem 2" style="max-width: 60px; max-height: 60px; border-radius: 4px; margin-top: 4px;"></div>` : ''}
             </div>
             <div class="weight-item">
@@ -2646,9 +3877,10 @@
             </div>
             <div class="weight-item">
               <div class="weight-label">Pesagem 02</div>
-              <div class="weight-value">${threeWeights.weight2?.toFixed(1) ?? '-'} kg</div>
-              <div class="weight-percentage" style="color: ${threeWeights.pct2 >= 0 ? '#16a34a' : '#dc2626'};">${threeWeights.pct2 !== null ? threeWeights.pct2.toFixed(1) + '%' : '-'}</div>
+              <div class="weight-value">${(threeWeights.weight2 !== null && threeWeights.weight2 !== undefined) ? threeWeights.weight2.toFixed(1) : '-'} kg</div>
+              <div class="weight-percentage" style="color: ${threeWeights.pct2 !== null && threeWeights.pct2 >= 0 ? '#16a34a' : '#dc2626'};">${threeWeights.pct2 !== null ? threeWeights.pct2.toFixed(1) + '%' : '-'}</div>
               <div class="weight-date">${formatDate(threeWeights.date2)}</div>
+              ${threeWeights.photo2 ? `<div class="weight-photo"><img src="${threeWeights.photo2}" alt="Foto da pesagem 2" style="max-width: 60px; max-height: 60px; border-radius: 4px; margin-top: 4px;"></div>` : ''}
             </div>
             <div class="weight-item">
               <div class="weight-label">Pesagem 03</div>
@@ -2736,10 +3968,27 @@
     }
 
     function renderParticipants() {
+      // Garante que a variável global está sincronizada com localStorage
+      if (typeof participants !== 'undefined') {
+        const saved = loadParticipants();
+        if (saved.length !== participants.length) {
+          console.log('🔄 Sincronizando variável global com localStorage...');
+          participants.length = 0;
+          participants.push(...saved);
+        }
+      }
+      
       // Renderiza todas as visualizações
       renderParticipantsCards();
       renderParticipantsList();
       renderParticipantsGrid();
+      
+      // Garante que o container está visível se houver participantes
+      const container = document.getElementById('participantsContainer');
+      if (container && participants.length > 0) {
+        container.classList.remove('hidden');
+        container.style.display = '';
+      }
     }
 
     function updateHeaderCounters() {
@@ -2812,9 +4061,49 @@
         console.log('Salvando no localStorage...'); // Debug
         saveParticipants();
         
+        // Verifica se salvou corretamente
+        const savedData = localStorage.getItem('lb_participants_v1');
+        const savedParticipants = savedData ? JSON.parse(savedData) : [];
+        console.log(`✅ ${savedParticipants.length} participantes salvos no localStorage`);
+        
+        // Verifica se o novo participante está na lista
+        const newParticipantFound = savedParticipants.find(p => p.id === participantId);
+        if (!newParticipantFound) {
+          console.error('❌ ERRO: Novo participante não foi encontrado após salvar!');
+          console.error('Participante criado:', np);
+          console.error('Lista salva:', savedParticipants);
+          alert('Erro: Participante não foi salvo corretamente. Verifique o console.');
+          return;
+        }
+        
+        console.log('✅ Novo participante confirmado no localStorage:', newParticipantFound.name);
+        
         // Sincroniza imediatamente com Firebase
         console.log('Sincronizando com Firebase...'); // Debug
-        saveToCloud();
+        try {
+          await saveToCloud();
+          console.log('✅ Sincronização com Firebase concluída');
+          
+          // Verifica se foi salvo no Firebase
+          if (window.db) {
+            const doc = await window.db.collection('competition').doc('data').get();
+            if (doc.exists) {
+              const firebaseData = doc.data();
+              const firebaseParticipants = firebaseData.participants || [];
+              const foundInFirebase = firebaseParticipants.find(p => p.id === participantId);
+              if (foundInFirebase) {
+                console.log('✅ Participante confirmado no Firebase');
+              } else {
+                console.warn('⚠️ Participante não encontrado no Firebase após sincronização');
+              }
+            }
+          }
+        } catch (firebaseError) {
+          console.error('❌ Erro ao sincronizar com Firebase:', firebaseError);
+          console.error('Detalhes do erro:', firebaseError.message);
+          // Continua mesmo se o Firebase falhar - os dados estão no localStorage
+          alert('Participante salvo localmente, mas houve um problema ao sincronizar com a nuvem. Tente novamente mais tarde.');
+        }
         
         // Limpa o formulário
         console.log('Limpando formulário...'); // Debug
@@ -2828,12 +4117,52 @@
         console.log('Fechando modal...'); // Debug
         close(participantModal);
         
+        // Força atualização da variável global ANTES de renderizar
+        console.log('Atualizando variável global...'); // Debug
+        if (typeof participants !== 'undefined') {
+          // Recarrega do localStorage para garantir sincronização
+          const reloaded = loadParticipants();
+          participants.length = 0;
+          participants.push(...reloaded);
+          console.log(`✅ Variável global atualizada: ${participants.length} participantes`);
+          
+          // Verifica se o novo participante está na variável
+          const foundInVariable = participants.find(p => p.id === participantId);
+          if (!foundInVariable) {
+            console.error('❌ ERRO: Participante não encontrado na variável global após recarregar!');
+            console.error('Forçando adição manual...');
+            participants.push(np);
+            saveParticipants(); // Salva novamente
+          }
+        }
+        
         // Atualiza a interface
         console.log('Atualizando interface...'); // Debug
         refreshAll();
         
+        // Força renderização novamente após um pequeno delay
+        setTimeout(() => {
+          console.log('Forçando renderização final...');
+          if (typeof renderParticipants === 'function') {
+            renderParticipants();
+          }
+          if (typeof updateHeaderCounters === 'function') {
+            updateHeaderCounters();
+          }
+          
+          // Verifica se o participante aparece na tela
+          const participantCards = document.querySelectorAll('.participant-card, .participant-row');
+          console.log(`✅ ${participantCards.length} participantes renderizados na tela`);
+          
+          if (participantCards.length !== participants.length) {
+            console.warn(`⚠️ Diferença: ${participants.length} na variável, ${participantCards.length} na tela`);
+            console.warn('Forçando re-renderização completa...');
+            refreshAll();
+          }
+        }, 500);
+        
         console.log('Participante adicionado com sucesso!'); // Debug
-        alert('Participante adicionado com sucesso!');
+        alert(`Participante "${name}" adicionado com sucesso!\n\nTotal: ${participants.length} participantes`);
         
       } catch (error) {
         console.error('Erro detalhado ao adicionar participante:', error);
@@ -2860,34 +4189,29 @@
       });
     }
 
-    weightForm.addEventListener('submit', (e) => {
+    weightForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const id = weightParticipant.value;
       const isMultiple = document.getElementById('multipleWeights').checked;
       
       const idx = participants.findIndex(p => p.id === id);
-      if (idx === -1) return;
-      
-      // Remover required de campos escondidos antes da validação
-      const weekNumberField = document.getElementById('weekNumber');
-      const multipleSection = document.getElementById('multipleWeightsSection');
-      if (weekNumberField && multipleSection.classList.contains('hidden')) {
-        weekNumberField.removeAttribute('required');
-      } else if (weekNumberField && !multipleSection.classList.contains('hidden')) {
-        weekNumberField.setAttribute('required', 'required');
+      if (idx === -1) {
+        alert('Participante não encontrado!');
+        return;
       }
       
       if (isMultiple) {
-        // Registrar múltiplas pesagens
+        // Validar semana quando múltiplas pesagens estão ativas
         const weekNumber = document.getElementById('weekNumber').value;
-        
-        // Validação manual do weekNumber quando múltiplas pesagens estão ativas
-        if (!weekNumber || weekNumber === '') {
+        if (!weekNumber) {
           alert('Por favor, selecione a semana da competição.');
-          weekNumberField?.focus();
+          document.getElementById('weekNumber').focus();
           return;
         }
+        
+        // Registrar múltiplas pesagens
         const weights = [];
+        const photoPromises = [];
         
         // Processar cada pesagem
         for (let i = 1; i <= 3; i++) {
@@ -2905,32 +4229,29 @@
               entry: i
             };
             
-            // Processar foto se existir
+            // Processar foto se existir (usando Promise)
             if (photoInput.files && photoInput.files[0]) {
+              const photoPromise = new Promise((resolve) => {
               const reader = new FileReader();
               reader.onload = function(e) {
                 weightData.photo = e.target.result;
-                weights.push(weightData);
-                
-                // Se for a última pesagem, salvar tudo
-                if (i === 3) {
-                  if (weights.length === 0) {
-                    alert('Por favor, preencha pelo menos uma pesagem válida.');
-                    return;
-                  }
-                  
-                  participants[idx].weights.push(...weights);
-                  saveParticipants();
-                  saveToCloud();
-                  close(weightModal);
-                  refreshAll();
-                }
-              };
+                  resolve(weightData);
+                };
+                reader.onerror = () => resolve(weightData); // Continua sem foto se houver erro
               reader.readAsDataURL(photoInput.files[0]);
+              });
+              photoPromises.push(photoPromise);
             } else {
+              // Sem foto, adiciona diretamente
               weights.push(weightData);
             }
           }
+        }
+        
+        // Aguardar todas as fotos serem processadas
+        if (photoPromises.length > 0) {
+          const photosData = await Promise.all(photoPromises);
+          weights.push(...photosData);
         }
         
         if (weights.length === 0) {
@@ -2949,7 +4270,10 @@
         const d = weightDate.value ? new Date(weightDate.value) : new Date();
         const n = notes.value.trim();
 
-        if (isNaN(w)) return;
+        if (isNaN(w) || w <= 0) {
+          alert('Por favor, informe um peso válido.');
+          return;
+        }
         
         participants[idx].weights.push({ 
           value: w, 
@@ -3165,635 +4489,6 @@
       
       alert('Pesos atualizados com sucesso!');
     }
-
-    // ========= FUNCIONALIDADES DE UPLOAD DE FOTO DO USUÁRIO =========
-    
-    // Variável para armazenar foto temporária
-    let tempUserPhoto = null;
-
-    // Função para abrir modal de upload de foto
-    function openUserPhotoModal() {
-      console.log('🔍 === DEBUG OPEN USER PHOTO MODAL ===');
-      
-      // Verificar se modal existe
-      const modal = document.getElementById('userPhotoModal');
-      console.log('🔍 Modal existe?', !!modal);
-      
-      if (!modal) {
-        console.error('❌ Modal userPhotoModal não encontrado');
-        alert('Erro: Modal de upload de foto não encontrado');
-        return;
-      }
-      
-      // Verificar se input existe
-      const input = document.getElementById('userPhotoInput');
-      console.log('🔍 Input existe?', !!input);
-      
-      if (!input) {
-        console.error('❌ Input userPhotoInput não encontrado');
-        alert('Erro: Input de arquivo não encontrado');
-        return;
-      }
-      
-      // Verificar se botão existe
-      const selectBtn = document.querySelector('button[onclick*="userPhotoInput"]');
-      console.log('🔍 Botão selecionar existe?', !!selectBtn);
-      
-      // Carregar foto atual do usuário
-      console.log('🔍 Carregando foto atual...');
-      loadCurrentUserPhoto();
-      
-      // Abrir modal
-      console.log('🔍 Abrindo modal...');
-      open(userPhotoModal);
-      
-      // Verificar se modal abriu
-      setTimeout(() => {
-        const modalAfter = document.getElementById('userPhotoModal');
-        if (modalAfter) {
-          console.log('🔍 Modal após abertura:');
-          console.log('  Classes:', modalAfter.className);
-          console.log('  Hidden?', modalAfter.classList.contains('hidden'));
-          console.log('  Display:', modalAfter.style.display);
-          
-          if (modalAfter.classList.contains('hidden')) {
-            console.log('⚠️ Modal ainda está oculto');
-          } else {
-            console.log('✅ Modal aberto com sucesso');
-          }
-        }
-      }, 100);
-      
-      console.log('✅ openUserPhotoModal executado');
-    }
-
-    // Função para carregar foto atual do usuário
-    function loadCurrentUserPhoto() {
-      let currentUser = getCurrentUser();
-      
-      const preview = document.getElementById('currentUserPhoto');
-      const placeholder = document.getElementById('noPhotoPlaceholder');
-      const removeBtn = document.getElementById('removePhotoBtn');
-      const saveBtn = document.getElementById('savePhotoBtn');
-      
-      if (currentUser && (currentUser.photo || currentUser.img_avatar || currentUser.avatar)) {
-        const photoUrl = currentUser.photo || currentUser.img_avatar || currentUser.avatar;
-        preview.src = photoUrl;
-        preview.style.display = 'block';
-        placeholder.style.display = 'none';
-        removeBtn.style.display = 'inline-block';
-      } else {
-        preview.style.display = 'none';
-        placeholder.style.display = 'flex';
-        removeBtn.style.display = 'none';
-      }
-      
-      // Sempre esconder botão de salvar inicialmente
-      saveBtn.style.display = 'none';
-    }
-
-    // Função para preview da foto selecionada
-    function previewUserPhoto(event) {
-      console.log('🔍 === DEBUG PREVIEW USER PHOTO ===');
-      console.log('🔍 Event:', event);
-      console.log('🔍 Files:', event.target.files);
-      
-      const file = event.target.files[0];
-      console.log('🔍 File:', file);
-      
-      if (file) {
-        console.log('✅ Arquivo selecionado:', file.name);
-        console.log('🔍 Tamanho:', file.size, 'bytes');
-        
-        // Verificar tamanho do arquivo (máximo 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          console.log('❌ Arquivo muito grande');
-          alert('Arquivo muito grande! Tamanho máximo: 5MB');
-          return;
-        }
-        
-        console.log('✅ Tamanho do arquivo OK');
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          console.log('✅ Arquivo lido com sucesso');
-          tempUserPhoto = e.target.result;
-          console.log('✅ tempUserPhoto definido');
-          
-          // Mostrar preview
-          const preview = document.getElementById('currentUserPhoto');
-          const placeholder = document.getElementById('noPhotoPlaceholder');
-          const removeBtn = document.getElementById('removePhotoBtn');
-          const saveBtn = document.getElementById('savePhotoBtn');
-          
-          console.log('🔍 Elementos encontrados:');
-          console.log('  preview:', !!preview);
-          console.log('  placeholder:', !!placeholder);
-          console.log('  removeBtn:', !!removeBtn);
-          console.log('  saveBtn:', !!saveBtn);
-          
-          if (preview) {
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            console.log('✅ Preview atualizado');
-          }
-          
-          if (placeholder) {
-            placeholder.style.display = 'none';
-            console.log('✅ Placeholder escondido');
-          }
-          
-          if (removeBtn) {
-            removeBtn.style.display = 'inline-block';
-            console.log('✅ Botão remover mostrado');
-          }
-          
-          if (saveBtn) {
-            saveBtn.style.display = 'inline-block';
-            console.log('✅ Botão salvar mostrado');
-          }
-          
-          console.log('✅ Preview configurado com sucesso');
-        };
-        
-        reader.onerror = function(e) {
-          console.error('❌ Erro ao ler arquivo:', e);
-          alert('Erro ao ler arquivo');
-        };
-        
-        reader.readAsDataURL(file);
-        console.log('✅ Leitura do arquivo iniciada');
-      } else {
-        console.log('❌ Nenhum arquivo selecionado');
-      }
-    }
-
-    // Função para remover foto
-    function removeUserPhoto() {
-      tempUserPhoto = null;
-      
-      const preview = document.getElementById('currentUserPhoto');
-      const placeholder = document.getElementById('noPhotoPlaceholder');
-      const removeBtn = document.getElementById('removePhotoBtn');
-      const saveBtn = document.getElementById('savePhotoBtn');
-      const input = document.getElementById('userPhotoInput');
-      
-      preview.style.display = 'none';
-      placeholder.style.display = 'flex';
-      removeBtn.style.display = 'none';
-      saveBtn.style.display = 'none';
-      input.value = '';
-    }
-
-    // Função para salvar foto do usuário
-    function saveUserPhoto() {
-      try {
-        console.log('🔍 === DEBUG SAVE USER PHOTO ===');
-        console.log('🔍 tempUserPhoto:', tempUserPhoto);
-        console.log('🔍 tempUserPhoto existe?', !!tempUserPhoto);
-        
-        if (!tempUserPhoto) {
-          console.log('❌ Nenhuma foto selecionada');
-          alert('Nenhuma foto selecionada');
-          return false;
-        }
-        
-        // Obter usuário logado
-        let currentUser = getCurrentUser();
-        console.log('🔍 currentUser:', currentUser);
-        console.log('🔍 currentUser existe?', !!currentUser);
-        
-        if (!currentUser || !currentUser.id) {
-          console.log('❌ Nenhum usuário logado ou ID inválido');
-          alert('Nenhum usuário logado');
-          return false;
-        }
-        
-        console.log('✅ Usuário encontrado:', currentUser.name);
-        console.log('✅ ID do usuário:', currentUser.id);
-        
-        // Atualizar usuário com nova foto
-        currentUser.photo = tempUserPhoto;
-        currentUser.img_avatar = tempUserPhoto;
-        currentUser.avatar = tempUserPhoto;
-        
-        console.log('✅ Foto atualizada no usuário');
-        
-      // Salvar no localStorage (com verificação de quota)
-      try {
-        let users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
-        console.log('🔍 Total de usuários:', users.length);
-        
-        let userIndex = users.findIndex(u => u.id === currentUser.id);
-        console.log('🔍 Índice do usuário:', userIndex);
-        
-        if (userIndex !== -1) {
-          users[userIndex] = currentUser;
-        } else {
-          users.push(currentUser);
-        }
-        
-        // Tentar salvar
-        localStorage.setItem('lb_users_v1', JSON.stringify(users));
-        console.log('✅ Usuário salvo no localStorage');
-        
-      } catch (quotaError) {
-        console.log('⚠️ Quota excedida, limpando dados antigos...');
-        
-        // Limpar dados antigos para liberar espaço
-        clearOldData();
-        
-        // Tentar salvar novamente
-        try {
-          let users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
-          let userIndex = users.findIndex(u => u.id === currentUser.id);
-          
-          if (userIndex !== -1) {
-            users[userIndex] = currentUser;
-          } else {
-            users.push(currentUser);
-          }
-          
-          localStorage.setItem('lb_users_v1', JSON.stringify(users));
-          console.log('✅ Usuário salvo após limpeza');
-          
-        } catch (secondError) {
-          console.error('❌ Ainda não foi possível salvar:', secondError);
-          alert('Erro: Não foi possível salvar a foto. Tente novamente.');
-          return false;
-        }
-      }
-        
-        // Atualizar currentUser
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        console.log('✅ currentUser atualizado');
-        
-        // Atualizar interface
-        updateUserPhotoDisplay();
-        console.log('✅ Interface atualizada');
-        
-        // Sincronizar com Firebase (sem fotos grandes)
-        if (window.saveToCloud) {
-          try {
-            // Salvar dados sem fotos grandes para evitar erro Firebase
-            saveUserDataToFirebase(currentUser);
-            console.log('✅ Sincronização com Firebase iniciada');
-          } catch (firebaseError) {
-            console.error('❌ Erro na sincronização Firebase:', firebaseError);
-          }
-        } else {
-          console.log('⚠️ saveToCloud não disponível');
-        }
-        
-        alert('Foto salva com sucesso!');
-        console.log('✅ Foto salva com sucesso!');
-        
-        // Limpar estado temporário
-        tempUserPhoto = null;
-        let removeBtn = document.getElementById('removePhotoBtn');
-        let saveBtn = document.getElementById('savePhotoBtn');
-        
-        if (removeBtn) removeBtn.style.display = 'none';
-        if (saveBtn) saveBtn.style.display = 'none';
-        
-        // Fechar modal
-        close(userPhotoModal);
-        console.log('✅ Modal fechado');
-        
-        return true;
-        
-      } catch (error) {
-        console.error('❌ ERRO CRÍTICO em saveUserPhoto:', error);
-        console.error('❌ Tipo do erro:', typeof error);
-        console.error('❌ Mensagem do erro:', error.message);
-        console.error('❌ Stack trace:', error.stack);
-        console.error('❌ Erro completo:', error);
-        
-        alert('Erro ao salvar foto: ' + (error.message || 'Erro desconhecido'));
-        return false;
-      }
-    }
-
-    // Função para atualizar exibição da foto
-    function updateUserPhotoDisplay() {
-      try {
-        console.log('🔍 === DEBUG UPDATE USER PHOTO DISPLAY ===');
-        
-        let currentUser = getCurrentUser();
-        console.log('🔍 currentUser:', currentUser);
-        
-        const preview = document.getElementById('currentUserPhoto');
-        const placeholder = document.getElementById('noPhotoPlaceholder');
-        const userAvatarIcon = document.getElementById('userAvatarIcon');
-        
-        console.log('🔍 Elementos encontrados:');
-        console.log('  preview:', !!preview);
-        console.log('  placeholder:', !!placeholder);
-        console.log('  userAvatarIcon:', !!userAvatarIcon);
-      
-      if (currentUser && (currentUser.photo || currentUser.img_avatar || currentUser.avatar)) {
-        const photoUrl = currentUser.photo || currentUser.img_avatar || currentUser.avatar;
-        
-        // Atualizar preview no modal
-        if (preview) {
-          preview.src = photoUrl;
-          preview.style.display = 'block';
-          placeholder.style.display = 'none';
-        }
-        
-        
-        if (userAvatarIcon) {
-          userAvatarIcon.style.display = 'none';
-        }
-      } else {
-        // Sem foto
-        if (preview) {
-          preview.style.display = 'none';
-          placeholder.style.display = 'flex';
-        }
-        
-        
-        if (userAvatarIcon) {
-          userAvatarIcon.style.display = 'block';
-        }
-      }
-      
-      console.log('✅ updateUserPhotoDisplay executado com sucesso');
-      
-      } catch (error) {
-        console.error('❌ ERRO em updateUserPhotoDisplay:', error);
-        console.error('❌ Tipo do erro:', typeof error);
-        console.error('❌ Mensagem do erro:', error.message);
-        console.error('❌ Stack trace:', error.stack);
-      }
-    }
-
-    // Função auxiliar para obter usuário atual
-    function getCurrentUser() {
-      let currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      if (Object.keys(currentUser).length === 0) {
-        let session = JSON.parse(localStorage.getItem('lb_session_v1') || '{}');
-        if (session.userId) {
-          let users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
-          currentUser = users.find(u => u.id === session.userId) || {};
-        }
-      }
-      return currentUser;
-    }
-
-    // Função de teste para debug
-    function testPhotoUpload() {
-      console.log('🧪 === TESTE DE UPLOAD DE FOTO ===');
-      
-      // 1. Verificar funções
-      console.log('1. saveUserPhoto existe?', typeof saveUserPhoto === 'function');
-      console.log('2. getCurrentUser existe?', typeof getCurrentUser === 'function');
-      console.log('3. previewUserPhoto existe?', typeof previewUserPhoto === 'function');
-      
-      // 2. Verificar usuário
-      let user = getCurrentUser();
-      console.log('4. Usuário logado?', !!user);
-      if (user) {
-        console.log('   Nome:', user.name);
-        console.log('   ID:', user.id);
-      }
-      
-      // 3. Verificar elementos
-      console.log('5. Modal existe?', !!document.getElementById('userPhotoModal'));
-      console.log('6. Input existe?', !!document.getElementById('userPhotoInput'));
-      console.log('7. Botão salvar existe?', !!document.getElementById('savePhotoBtn'));
-      
-      // 4. Verificar tempUserPhoto
-      console.log('8. tempUserPhoto:', tempUserPhoto);
-      console.log('9. tempUserPhoto existe?', !!tempUserPhoto);
-      
-      // 5. Testar salvamento se tempUserPhoto existe
-      if (tempUserPhoto) {
-        console.log('10. Testando salvamento...');
-        let result = saveUserPhoto();
-        console.log('11. Resultado do salvamento:', result);
-      } else {
-        console.log('10. Nenhuma foto para testar salvamento');
-      }
-      
-      console.log('🧪 === FIM DO TESTE ===');
-    }
-
-    // Tornar função global para teste
-    window.testPhotoUpload = testPhotoUpload;
-
-    // Função de teste específica para o modal
-    function testPhotoModal() {
-      console.log('🧪 === TESTE MODAL DE FOTO ===');
-      
-      // 1. Verificar elementos
-      console.log('1. Verificando elementos...');
-      const modal = document.getElementById('userPhotoModal');
-      const input = document.getElementById('userPhotoInput');
-      const selectBtn = document.querySelector('button[onclick*="userPhotoInput"]');
-      
-      console.log('  Modal existe?', !!modal);
-      console.log('  Input existe?', !!input);
-      console.log('  Botão selecionar existe?', !!selectBtn);
-      
-      if (modal) {
-        console.log('  Modal classes:', modal.className);
-        console.log('  Modal hidden?', modal.classList.contains('hidden'));
-      }
-      
-      // 2. Verificar funções
-      console.log('2. Verificando funções...');
-      console.log('  openUserPhotoModal existe?', typeof openUserPhotoModal === 'function');
-      console.log('  previewUserPhoto existe?', typeof previewUserPhoto === 'function');
-      console.log('  loadCurrentUserPhoto existe?', typeof loadCurrentUserPhoto === 'function');
-      
-      // 3. Testar abertura
-      console.log('3. Testando abertura...');
-      if (typeof openUserPhotoModal === 'function') {
-        openUserPhotoModal();
-        console.log('  Modal aberto');
-      } else {
-        console.log('  ❌ Função não existe');
-      }
-      
-      // 4. Verificar após abertura
-      setTimeout(() => {
-        console.log('4. Verificando após abertura...');
-        const modalAfter = document.getElementById('userPhotoModal');
-        if (modalAfter) {
-          console.log('  Modal classes:', modalAfter.className);
-          console.log('  Modal hidden?', modalAfter.classList.contains('hidden'));
-          console.log('  Modal display:', modalAfter.style.display);
-          
-          if (modalAfter.classList.contains('hidden')) {
-            console.log('  ❌ Modal ainda oculto');
-          } else {
-            console.log('  ✅ Modal visível');
-          }
-        }
-      }, 500);
-      
-      // 5. Testar input
-      setTimeout(() => {
-        console.log('5. Testando input...');
-        const inputAfter = document.getElementById('userPhotoInput');
-        if (inputAfter) {
-          console.log('  Input encontrado');
-          console.log('  Input type:', inputAfter.type);
-          console.log('  Input accept:', inputAfter.accept);
-          console.log('  Input style:', inputAfter.style.display);
-          
-          // Testar clique no input
-          try {
-            inputAfter.click();
-            console.log('  ✅ Input clicado com sucesso');
-          } catch (error) {
-            console.log('  ❌ Erro ao clicar no input:', error);
-          }
-        } else {
-          console.log('  ❌ Input não encontrado');
-        }
-      }, 1000);
-      
-      console.log('🧪 === FIM DO TESTE ===');
-    }
-
-    // Tornar função global
-    window.testPhotoModal = testPhotoModal;
-
-    // Função para verificar espaço disponível no localStorage
-    function checkLocalStorageSpace() {
-      try {
-        let totalSize = 0;
-        for (let key in localStorage) {
-          if (localStorage.hasOwnProperty(key)) {
-            totalSize += localStorage[key].length;
-          }
-        }
-        
-        const sizeInMB = (totalSize / (1024 * 1024)).toFixed(2);
-        console.log('📊 Espaço usado no localStorage:', sizeInMB, 'MB');
-        
-        // Tentar adicionar um item pequeno para testar espaço
-        try {
-          localStorage.setItem('test_space', 'test');
-          localStorage.removeItem('test_space');
-          console.log('✅ Espaço disponível no localStorage');
-          return true;
-        } catch (error) {
-          console.log('❌ localStorage cheio:', error.message);
-          return false;
-        }
-        
-      } catch (error) {
-        console.error('❌ Erro ao verificar espaço:', error);
-        return false;
-      }
-    }
-
-    // Função para limpar dados antigos e liberar espaço no localStorage
-    function clearOldData() {
-      console.log('🧹 Limpando dados antigos...');
-      
-      try {
-        // Limpar dados de backup antigos
-        const keysToCheck = Object.keys(localStorage);
-        keysToCheck.forEach(key => {
-          if (key.includes('backup') || key.includes('old') || key.includes('temp')) {
-            localStorage.removeItem(key);
-            console.log('🗑️ Removido:', key);
-          }
-        });
-        
-        // Limpar dados de sessão antigos
-        const sessionKeys = ['lb_session_backup', 'lb_temp_data', 'lb_old_users'];
-        sessionKeys.forEach(key => {
-          if (localStorage.getItem(key)) {
-            localStorage.removeItem(key);
-            console.log('🗑️ Removido:', key);
-          }
-        });
-        
-        // Limpar dados de participantes antigos (manter apenas os últimos 50)
-        const participants = JSON.parse(localStorage.getItem('lb_participants_v1') || '[]');
-        if (participants.length > 50) {
-          const recentParticipants = participants.slice(-50);
-          localStorage.setItem('lb_participants_v1', JSON.stringify(recentParticipants));
-          console.log('🗑️ Participantes reduzidos de', participants.length, 'para', recentParticipants.length);
-        }
-        
-        // Limpar registros de peso antigos (manter apenas os últimos 1000)
-        const weightRecords = JSON.parse(localStorage.getItem('lb_weight_records_v1') || '[]');
-        if (weightRecords.length > 1000) {
-          const recentRecords = weightRecords.slice(-1000);
-          localStorage.setItem('lb_weight_records_v1', JSON.stringify(recentRecords));
-          console.log('🗑️ Registros de peso reduzidos de', weightRecords.length, 'para', recentRecords.length);
-        }
-        
-        // Limpar fotos antigas de usuários (manter apenas dados básicos)
-        const users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
-        const cleanedUsers = users.map(user => {
-          // Manter apenas dados essenciais, remover fotos grandes
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            department: user.department,
-            phone: user.phone,
-            permissions: user.permissions,
-            status: user.status,
-            createdAt: user.createdAt,
-            lastAccess: user.lastAccess,
-            hasPhoto: !!(user.photo || user.img_avatar || user.avatar)
-            // Remover: photo, img_avatar, avatar (fotos grandes)
-          };
-        });
-        
-        localStorage.setItem('lb_users_v1', JSON.stringify(cleanedUsers));
-        console.log('🗑️ Fotos de usuários removidas para liberar espaço');
-        
-        console.log('✅ Limpeza concluída');
-        
-      } catch (error) {
-        console.error('❌ Erro durante limpeza:', error);
-      }
-    }
-
-    // Função para salvar dados do usuário no Firebase (sem fotos grandes)
-    async function saveUserDataToFirebase(userData) {
-      try {
-        if (!window.db) {
-          console.log('⚠️ Firebase não disponível');
-          return;
-        }
-        
-        // Criar cópia do usuário sem fotos grandes
-        const userForFirebase = {
-          id: userData.id,
-          name: userData.name,
-          email: userData.email,
-          role: userData.role,
-          department: userData.department,
-          phone: userData.phone,
-          permissions: userData.permissions,
-          status: userData.status,
-          createdAt: userData.createdAt,
-          lastAccess: userData.lastAccess,
-          // Não incluir fotos grandes para evitar erro Firebase
-          hasPhoto: !!(userData.photo || userData.img_avatar || userData.avatar)
-        };
-        
-        console.log('🔍 Salvando usuário no Firebase:', userForFirebase);
-        
-        // Salvar usuário individualmente
-        await window.db.collection('users').doc(userData.id).set(userForFirebase);
-        console.log('✅ Usuário salvo no Firebase!');
-        
-      } catch (error) {
-        console.error('❌ Erro ao salvar usuário no Firebase:', error);
-      }
-    }
     
     function showParticipantCredentials(id) {
       const p = participants.find(pp => pp.id === id);
@@ -3934,7 +4629,88 @@
       }
     });
 
+    // ========= ChatGPT Integration =========
     
+    // Event listeners para opções do ChatGPT
+    document.querySelectorAll('.chatgpt-option').forEach(option => {
+      option.addEventListener('click', () => {
+        const type = option.dataset.type;
+        handleChatgptOption(type);
+      });
+    });
+    
+    // Event listener para envio de chat personalizado
+    document.getElementById('sendChatgptBtn').addEventListener('click', () => {
+      const input = document.getElementById('chatgptInput');
+      if (input.value.trim()) {
+        handleChatgptCustom(input.value.trim());
+        input.value = '';
+      }
+    });
+    
+    // Event listener para copiar prompt personalizado
+    document.getElementById('copyPromptBtn').addEventListener('click', () => {
+      copyPersonalizedPrompt();
+    });
+    
+    function handleChatgptOption(type) {
+      let prompt = '';
+      const user = getCurrentUser();
+      const userInfo = user ? `${user.name} (${user.department})` : 'Usuário';
+      
+      switch(type) {
+        case 'tips':
+          prompt = `Sou ${userInfo} e estou participando de uma competição de perda de peso. Preciso de dicas de exercícios personalizadas para me ajudar a alcançar meus objetivos. Por favor, me dê sugestões práticas e motivacionais.`;
+          break;
+        case 'nutrition':
+          prompt = `Sou ${userInfo} e estou em uma jornada de perda de peso. Preciso de conselhos nutricionais saudáveis e práticos para me ajudar na competição. Por favor, me oriente sobre alimentação.`;
+          break;
+        case 'motivation':
+          prompt = `Sou ${userInfo} e estou participando de uma competição de perda de peso. Preciso de mensagens motivacionais e inspiradoras para continuar minha jornada. Por favor, me motive!`;
+          break;
+        case 'progress':
+          prompt = `Sou ${userInfo} e estou em uma competição de perda de peso. Preciso de uma análise dos meus resultados e orientações sobre como melhorar meu progresso. Por favor, me ajude a interpretar meus dados.`;
+          break;
+      }
+      
+      if (prompt) {
+        copyToClipboard(prompt);
+        alert('Prompt copiado! Cole no ChatGPT para começar a conversa.');
+      }
+    }
+    
+    function handleChatgptCustom(message) {
+      const user = getCurrentUser();
+      const userInfo = user ? `${user.name} (${user.department})` : 'Usuário';
+      const prompt = `Sou ${userInfo} e estou participando de uma competição de perda de peso. ${message}`;
+      
+      copyToClipboard(prompt);
+      alert('Sua pergunta foi copiada! Cole no ChatGPT para obter uma resposta personalizada.');
+    }
+    
+    function copyPersonalizedPrompt() {
+      const user = getCurrentUser();
+      const userInfo = user ? `${user.name} (${user.department})` : 'Usuário';
+      const prompt = `Olá! Sou ${userInfo} e estou participando de uma competição de perda de peso chamada "Liga da Balança". Estou buscando orientações, dicas e motivação para alcançar meus objetivos de forma saudável e eficaz. Como você pode me ajudar?`;
+      
+      copyToClipboard(prompt);
+      alert('Prompt personalizado copiado! Use no ChatGPT para começar uma conversa personalizada.');
+    }
+    
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        console.log('Texto copiado para a área de transferência');
+      }).catch(err => {
+        console.error('Erro ao copiar texto:', err);
+        // Fallback para navegadores mais antigos
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      });
+    }
 
     // ========= Configuração da Competição =========
     configCompetitionForm.addEventListener('submit', (e) => {
@@ -4121,26 +4897,10 @@
     
     // Event listener para o toggle
     document.addEventListener('DOMContentLoaded', function() {
-      // Garantir que weekNumber não tenha required se a seção estiver escondida
-      const weekNumberField = document.getElementById('weekNumber');
-      const multipleSection = document.getElementById('multipleWeightsSection');
-      if (weekNumberField && multipleSection && multipleSection.classList.contains('hidden')) {
-        weekNumberField.removeAttribute('required');
-      }
-      
       const participantsToggle = document.getElementById('participantsToggle');
       if (participantsToggle) {
         participantsToggle.addEventListener('click', toggleParticipants);
       }
-      
-      // Event listener para input de foto do usuário
-      const photoInput = document.getElementById('userPhotoInput');
-      if (photoInput) {
-        photoInput.addEventListener('change', previewUserPhoto);
-      }
-      
-      // Atualizar exibição inicial da foto do usuário
-      updateUserPhotoDisplay();
     });
 
     // ========= Start =========
@@ -4244,18 +5004,11 @@
       
       // Atualiza botões de login/logout
       const loginBtn = document.getElementById('adminLoginBtn');
-      const manageUsersBtn = document.getElementById('manageUsersBtn');
       
       if (isAdminUser) {
         if (loginBtn) loginBtn.style.display = 'none';
-        
-        // Mostra botão de gerenciar usuários apenas para quem tem permissão
-        if (manageUsersBtn) {
-          manageUsersBtn.style.display = hasPermission('manage_users') ? '' : 'none';
-        }
       } else {
         if (loginBtn) loginBtn.style.display = '';
-        if (manageUsersBtn) manageUsersBtn.style.display = 'none';
       }
       
       // Atualiza botões específicos baseados em permissões
@@ -4270,7 +5023,6 @@
       const addParticipantBtn = document.getElementById('addParticipantBtn');
       const addWeightBtn = document.getElementById('addWeightBtn');
       const configCompetitionBtn = document.getElementById('configCompetitionBtn');
-      const clearDataBtn = document.getElementById('clearAllDataBtn');
       
       if (addParticipantBtn) {
         addParticipantBtn.style.display = hasPermission('add_participant') ? '' : 'none';
@@ -4282,10 +5034,6 @@
       
       if (configCompetitionBtn) {
         configCompetitionBtn.style.display = hasPermission('config_competition') ? '' : 'none';
-      }
-      
-      if (clearDataBtn) {
-        clearDataBtn.style.display = hasPermission('clear_data') ? '' : 'none';
       }
     }
     
@@ -4610,6 +5358,7 @@
         const userRoleElement = document.getElementById('userRole');
         const userDepartmentElement = document.getElementById('userDepartment');
         const userAvatarIcon = document.getElementById('userAvatarIcon');
+        const userAvatarImage = document.getElementById('userAvatarImage');
         
         if (user) {
           // Atualiza nome
@@ -4632,8 +5381,65 @@
             userDepartmentElement.textContent = user.department || 'Não informado';
           }
           
-          // Atualiza avatar usando a nova funcionalidade
-          updateUserPhotoDisplay();
+          // Atualiza avatar usando a mesma lógica dos participantes
+          console.log('🔍 === DEBUG AVATAR ===');
+          console.log('🔍 Usuário encontrado:', user.name);
+          console.log('🔍 Foto do usuário:', user.photo);
+          console.log('🔍 Tipo da foto:', typeof user.photo);
+          console.log('🔍 Foto existe?', !!user.photo);
+          console.log('🔍 Foto não é vazia?', user.photo && user.photo.trim() !== '');
+          
+          // Limpa completamente o container do avatar
+          const avatarContainer = document.querySelector('.user-avatar-small');
+          console.log('🔍 Container encontrado?', !!avatarContainer);
+          
+          if (avatarContainer) {
+            // Remove TODOS os elementos filhos do container
+            avatarContainer.innerHTML = '';
+            console.log('🔍 Container limpo completamente');
+            
+            // Verifica se tem foto usando a mesma lógica dos participantes
+            if (user.photo) {
+              console.log('✅ Usuário TEM foto:', user.photo);
+              console.log('✅ Tamanho da string:', user.photo.length);
+              console.log('✅ String não vazia?', user.photo.trim() !== '');
+              
+              // Cria img com estilo específico para o usuário
+              const avatarImg = document.createElement('img');
+              avatarImg.src = user.photo;
+              avatarImg.alt = user.name;
+              avatarImg.style.width = '100%';
+              avatarImg.style.height = '100%';
+              avatarImg.style.borderRadius = '50%';
+              avatarImg.style.objectFit = 'cover';
+              avatarImg.style.border = 'none'; // Remove borda padrão do .avatar
+              
+              console.log('✅ Imagem criada com src:', avatarImg.src);
+              
+              // Adiciona tratamento de erro
+              avatarImg.onerror = function() {
+                console.log('❌ ERRO ao carregar foto, usando iniciais');
+                console.log('❌ URL que falhou:', user.photo);
+                avatarImg.remove();
+                createInitialsAvatar(user.name, avatarContainer);
+              };
+              
+              // Adiciona tratamento de sucesso
+              avatarImg.onload = function() {
+                console.log('✅ Foto carregada com SUCESSO!');
+                console.log('✅ Imagem anexada ao container');
+              };
+              
+              avatarContainer.appendChild(avatarImg);
+              console.log('✅ Imagem anexada ao container');
+            } else {
+              console.log('❌ Usuário SEM foto, usando iniciais');
+              console.log('❌ Valor da foto:', user.photo);
+              createInitialsAvatar(user.name, avatarContainer);
+            }
+          } else {
+            console.log('❌ Container não encontrado!');
+          }
         }
       } catch (error) {
         console.error('Erro ao atualizar informações do usuário:', error);
@@ -4706,6 +5512,63 @@
       alert('Login de administrador realizado com sucesso!');
     }
     
+    // Função para login admin rápido (sem verificação)
+    function quickAdminLogin() {
+      console.log('🚀 Iniciando login admin rápido...');
+      
+      // Criar usuário admin se não existir
+      let users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+      let adminUser = users.find(u => u.role === 'admin');
+      
+      if (!adminUser) {
+        console.log('📝 Criando usuário admin...');
+        adminUser = {
+          id: 'admin-quick-' + Date.now(),
+          name: 'Administrador',
+          email: 'admin@liga.com',
+          password: 'admin123',
+          role: 'admin',
+          department: 'Administração',
+          phone: '',
+          permissions: ['add_participant', 'edit_participant', 'delete_participant', 'register_weight', 'manage_users', 'config_competition', 'view_stats', 'export_data', 'clear_data'],
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          lastAccess: null
+        };
+        
+        users.push(adminUser);
+        localStorage.setItem('lb_users_v1', JSON.stringify(users));
+        console.log('✅ Usuário admin criado!');
+      }
+      
+      // Fazer login direto
+      const session = {
+        userId: adminUser.id,
+        loginTime: new Date().toISOString()
+      };
+      
+      localStorage.setItem('lb_session_v1', JSON.stringify(session));
+      localStorage.setItem('isAdmin', 'true');
+      localStorage.setItem('adminUser', adminUser.name);
+      localStorage.setItem('adminLoginTime', new Date().toISOString());
+      localStorage.setItem('currentUserId', adminUser.id);
+      
+      console.log('✅ Login admin rápido realizado!');
+      console.log('👤 Usuário:', adminUser.name);
+      console.log('🔑 ID:', adminUser.id);
+      
+      // Atualiza interface
+      updateAdminInterface();
+      updateUserInfo();
+      
+      // Recarrega a página para aplicar todas as mudanças
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    }
+    
+    // Tornar função global
+    window.quickAdminLogin = quickAdminLogin;
     
     // Função de debug para verificar status do admin
     window.debugAdmin = function() {
@@ -4748,85 +5611,6 @@
       console.log('✅ Login admin resetado!');
       location.reload();
     };
-
-    // Função de emergência para restaurar login
-    window.restoreLogin = function() {
-      console.log('🚨 === RESTAURANDO LOGIN DE EMERGÊNCIA ===');
-      
-      try {
-        // 1. Verificar estado atual
-        const session = JSON.parse(localStorage.getItem('lb_session_v1') || '{}');
-        const users = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
-        
-        console.log('🔍 Estado atual:');
-        console.log('  Sessão:', session);
-        console.log('  Usuários:', users.length);
-        console.log('  Usuários disponíveis:', users.map(u => ({ name: u.name, email: u.email, role: u.role })));
-        
-        // 2. Criar usuário admin se não existir
-        let adminUser = users.find(u => u.role === 'admin');
-        
-        if (!adminUser) {
-          console.log('📝 Criando usuário admin de emergência...');
-          adminUser = {
-            id: 'admin-emergency-' + Date.now(),
-            name: 'Administrador',
-            email: 'admin@liga.com',
-            password: 'admin123',
-            role: 'admin',
-            department: 'Administração',
-            phone: '',
-            permissions: ['add_participant', 'edit_participant', 'delete_participant', 'register_weight', 'manage_users', 'config_competition', 'view_stats', 'export_data', 'clear_data'],
-            status: 'active',
-            createdAt: new Date().toISOString(),
-            lastAccess: null
-          };
-          
-          users.push(adminUser);
-          localStorage.setItem('lb_users_v1', JSON.stringify(users));
-          console.log('✅ Usuário admin criado:', adminUser);
-        } else {
-          console.log('✅ Usuário admin encontrado:', adminUser);
-        }
-        
-        // 3. Criar sessão válida
-        const newSession = {
-          userId: adminUser.id,
-          loginTime: new Date().toISOString()
-        };
-        
-        localStorage.setItem('lb_session_v1', JSON.stringify(newSession));
-        localStorage.setItem('isAdmin', 'true');
-        localStorage.setItem('adminUser', adminUser.name);
-        localStorage.setItem('adminLoginTime', new Date().toISOString());
-        localStorage.setItem('currentUserId', adminUser.id);
-        localStorage.setItem('currentUser', JSON.stringify(adminUser));
-        
-        console.log('✅ Sessão restaurada:', newSession);
-        console.log('✅ Login de emergência concluído!');
-        console.log('🔄 Recarregando página...');
-        
-        setTimeout(() => {
-          location.reload();
-        }, 1000);
-        
-        return true;
-        
-      } catch (error) {
-        console.error('❌ Erro ao restaurar login:', error);
-        console.log('🔄 Tentando limpeza completa...');
-        
-        localStorage.clear();
-        console.log('✅ localStorage limpo');
-        console.log('🔄 Recarregando página...');
-        
-        setTimeout(() => {
-          location.reload();
-        }, 1000);
-        
-        return false;
-      }
-    };
     
     // Função para verificar permissões antes de ações administrativas
     function checkAdminPermission(action) {
@@ -4864,7 +5648,6 @@
     document.addEventListener('DOMContentLoaded', function() {
       const adminLoginBtn = document.getElementById('adminLoginBtn');
       const logoutBtn = document.getElementById('logoutBtn');
-      const manageUsersBtn = document.getElementById('manageUsersBtn');
       
       // Configura atualização automática do login
       setupLoginUpdate();
@@ -4889,11 +5672,6 @@
         console.error('Botão logout não encontrado!');
       }
       
-      if (manageUsersBtn) {
-        manageUsersBtn.addEventListener('click', function() {
-          window.open('user-management.html', '_blank');
-        });
-      }
       
       // Atualiza interface na inicialização
       updateAdminInterface();
@@ -5036,19 +5814,35 @@
         console.log('✅ Firebase inicializado com sucesso!');
         firebaseInitialized = true;
         
-        // Torna as funções globais
-        window.saveToCloud = saveToCloud;
-        window.loadFromCloud = loadFromCloud;
+        // Torna o db global imediatamente
         window.db = db;
         
+        // Torna as funções globais (se já existirem)
+        if (typeof saveToCloud === 'function') {
+        window.saveToCloud = saveToCloud;
+        }
+        if (typeof loadFromCloud === 'function') {
+        window.loadFromCloud = loadFromCloud;
+        }
+        
         // Carregar dados da nuvem
+        if (typeof loadFromCloud === 'function') {
         loadFromCloud();
+        }
         
         // Sincronizar a cada mudança
-        window.addEventListener('beforeunload', saveToCloud);
+        window.addEventListener('beforeunload', function() {
+          if (typeof saveToCloud === 'function') {
+            saveToCloud().catch(err => console.error('Erro ao salvar antes de sair:', err));
+          }
+        });
         
     // Sincronizar automaticamente a cada 30 segundos
-    setInterval(saveToCloud, 30000);
+        setInterval(function() {
+          if (typeof saveToCloud === 'function') {
+            saveToCloud().catch(err => console.error('Erro na sincronização automática:', err));
+          }
+        }, 30000);
     
     // Função para testar sincronização
     window.testFirebaseSync = function() {
@@ -5103,7 +5897,9 @@
       // Sincroniza a cada 10 segundos em vez de 30
       setInterval(() => {
         console.log('🔄 Sincronização automática...');
-        saveToCloud();
+        if (typeof saveToCloud === 'function') {
+          saveToCloud().catch(err => console.error('Erro na sincronização automática:', err));
+        }
       }, 10000);
       
       // Sincroniza quando a página ganha foco
@@ -5127,86 +5923,172 @@
     }
 
     // Função para salvar dados na nuvem
-    // Função para limpar dados antes de enviar para Firebase
-    function cleanDataForFirebase(data) {
-      function cleanObject(obj) {
-        if (obj === null || obj === undefined) return null;
-        if (typeof obj !== 'object') return obj;
-        if (Array.isArray(obj)) {
-          return obj.map(item => cleanObject(item)).filter(item => item !== null && item !== undefined);
+    // Torna a função global imediatamente
+    window.saveToCloud = async function saveToCloud() {
+      try {
+        // Verifica se Firebase está disponível
+        if (typeof firebase === 'undefined') {
+          console.log('⚠️ Firebase SDK não carregado');
+          throw new Error('Firebase SDK não está disponível');
         }
         
-        const cleaned = {};
-        for (const [key, value] of Object.entries(obj)) {
-          if (value !== null && value !== undefined) {
-            // Limitar tamanho de strings (especialmente fotos Base64)
-            if (typeof value === 'string' && value.length > 1000000) { // 1MB
-              console.log(`⚠️ String muito grande removida: ${key} (${value.length} chars)`);
-              continue;
-            }
-            cleaned[key] = cleanObject(value);
+        if (!window.db) {
+          console.log('⚠️ Firebase Firestore não inicializado, tentando inicializar...');
+          // Tenta inicializar se não estiver inicializado
+          if (typeof initializeFirebase === 'function') {
+            initializeFirebase();
+            // Aguarda um pouco para o Firebase inicializar
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+          
+          if (!window.db) {
+            throw new Error('Firebase Firestore não está disponível');
           }
         }
-        return cleaned;
-      }
-      
-      return cleanObject(data);
-    }
-
-    async function saveToCloud() {
-      try {
-        if (!window.db) {
-          console.log('⚠️ Firebase não disponível para salvar');
-          return;
+        
+        // Lê dados do localStorage
+        const participantsData = localStorage.getItem('lb_participants_v1');
+        const weightRecordsData = localStorage.getItem('lb_weight_records_v1');
+        const usersData = localStorage.getItem('lb_users_v1');
+        const configData = localStorage.getItem('lb_config_v1');
+        
+        // Parse dos dados
+        let participants = participantsData ? JSON.parse(participantsData) : [];
+        let weightRecords = weightRecordsData ? JSON.parse(weightRecordsData) : [];
+        let users = usersData ? JSON.parse(usersData) : [];
+        const config = configData ? JSON.parse(configData) : {};
+        
+        // Função recursiva para remover todas as propriedades de foto
+        function removePhotosRecursively(obj) {
+          if (obj === null || obj === undefined) return obj;
+          if (Array.isArray(obj)) {
+            return obj.map(item => removePhotosRecursively(item));
+          }
+          if (typeof obj === 'object') {
+            const cleaned = {};
+            for (const key in obj) {
+              // Remove qualquer propriedade relacionada a foto
+              if (key.toLowerCase().includes('photo') || 
+                  key.toLowerCase().includes('avatar') ||
+                  key.toLowerCase().includes('image') ||
+                  (typeof obj[key] === 'string' && obj[key].startsWith('data:image'))) {
+                // Pula propriedades de foto
+                continue;
+              }
+              cleaned[key] = removePhotosRecursively(obj[key]);
+            }
+            return cleaned;
+          }
+          // Se for string base64 de imagem, retorna null
+          if (typeof obj === 'string' && obj.startsWith('data:image')) {
+            return null;
+          }
+          return obj;
         }
         
-        // Obter dados brutos
-        const rawData = {
-          participants: JSON.parse(localStorage.getItem('lb_participants_v1') || '[]'),
-          weightRecords: JSON.parse(localStorage.getItem('lb_weight_records_v1') || '[]'),
-          users: JSON.parse(localStorage.getItem('lb_users_v1') || '[]'),
-          config: JSON.parse(localStorage.getItem('lb_config_v1') || '{}'),
+        // Remove fotos (base64) dos participantes para reduzir tamanho do documento
+        // As fotos permanecem no localStorage, apenas não são sincronizadas no Firestore
+        participants = removePhotosRecursively(participants);
+        weightRecords = removePhotosRecursively(weightRecords);
+        users = removePhotosRecursively(users);
+        
+        const data = {
+          participants: participants,
+          weightRecords: weightRecords,
+          users: users,
+          config: config,
           lastSync: new Date().toISOString()
         };
         
-        console.log('🔍 Dados brutos antes da limpeza:', rawData);
+        // Calcula tamanho aproximado do documento
+        const dataSize = JSON.stringify(data).length;
+        const dataSizeMB = (dataSize / 1024 / 1024).toFixed(2);
+        const dataSizeBytes = dataSize;
+        console.log(`📤 Enviando para Firebase: ${data.participants.length} participantes, ${data.users.length} usuários`);
+        console.log(`📏 Tamanho aproximado do documento: ${dataSizeMB} MB (${dataSizeBytes} bytes)`);
         
-        // Limpar dados para Firebase
-        const cleanedData = cleanDataForFirebase(rawData);
-        
-        console.log('🔍 Dados limpos para Firebase:', cleanedData);
-        
-        // Verificar se há dados válidos
-        if (!cleanedData || Object.keys(cleanedData).length === 0) {
-          console.log('⚠️ Nenhum dado válido para salvar');
-          return;
-        }
-        
-        await window.db.collection('competition').doc('data').set(cleanedData);
-        console.log('✅ Dados salvos na nuvem!');
-      } catch (error) {
-        console.error('❌ Erro ao salvar:', error);
-        console.error('❌ Detalhes do erro:', error.message);
-        
-        // Tentar salvar dados básicos sem arrays complexos
-        try {
-          console.log('🔄 Tentando salvar dados básicos...');
-          const basicData = {
-            lastSync: new Date().toISOString(),
-            participantsCount: JSON.parse(localStorage.getItem('lb_participants_v1') || '[]').length,
-            usersCount: JSON.parse(localStorage.getItem('lb_users_v1') || '[]').length
-          };
+        // Verifica se excede o limite ANTES de tentar salvar
+        if (dataSize > 1048576) { // 1 MB = 1048576 bytes
+          console.error(`❌ ERRO: Documento excede 1 MB (${dataSizeBytes} bytes). Removendo dados antigos...`);
           
-          await window.db.collection('competition').doc('data').set(basicData);
-          console.log('✅ Dados básicos salvos na nuvem!');
-        } catch (basicError) {
-          console.error('❌ Erro ao salvar dados básicos:', basicError);
+          // Tenta remover dados antigos (pesos antigos, por exemplo)
+          if (data.participants && data.participants.length > 0) {
+            console.log('🧹 Tentando reduzir tamanho removendo histórico de pesos antigos...');
+            data.participants = data.participants.map(p => {
+              if (p.weights && p.weights.length > 10) {
+                // Mantém apenas os 10 pesos mais recentes
+                const sortedWeights = [...p.weights].sort((a, b) => 
+                  new Date(b.date || b.timestamp || 0) - new Date(a.date || a.timestamp || 0)
+                );
+                return { ...p, weights: sortedWeights.slice(0, 10) };
+              }
+              return p;
+            });
+            
+            // Recalcula tamanho
+            const newDataSize = JSON.stringify(data).length;
+            const newDataSizeMB = (newDataSize / 1024 / 1024).toFixed(2);
+            console.log(`📏 Novo tamanho após limpeza: ${newDataSizeMB} MB (${newDataSize} bytes)`);
+            
+            if (newDataSize > 1048576) {
+              throw new Error(`Documento ainda excede 1 MB após limpeza (${newDataSize} bytes). Considere remover participantes antigos ou limpar mais dados.`);
+            }
+          } else {
+            throw new Error(`Documento excede 1 MB (${dataSizeBytes} bytes) e não foi possível reduzir o tamanho.`);
+          }
         }
+        
+        if (dataSize > 900000) { // 900 KB - aviso antes de 1 MB
+          console.warn('⚠️ Documento próximo do limite de 1 MB. Considere limpar dados antigos.');
+        }
+        
+        // Salva no Firebase com retry
+        let attempts = 0;
+        const maxAttempts = 3;
+        let lastError = null;
+        
+        while (attempts < maxAttempts) {
+          try {
+            await window.db.collection('competition').doc('data').set(data, { merge: false });
+            console.log('✅ Dados salvos na nuvem com sucesso!');
+            
+            // Verifica se foi salvo corretamente
+            const doc = await window.db.collection('competition').doc('data').get();
+            if (doc.exists) {
+              const savedData = doc.data();
+              console.log(`✅ Verificação: ${savedData.participants?.length || 0} participantes na nuvem`);
+              return true;
+            } else {
+              throw new Error('Documento não foi criado no Firebase');
+            }
+      } catch (error) {
+            attempts++;
+            lastError = error;
+            console.warn(`⚠️ Tentativa ${attempts}/${maxAttempts} falhou:`, error.message);
+            
+            if (attempts < maxAttempts) {
+              // Aguarda antes de tentar novamente (backoff exponencial)
+              await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+            }
+          }
+        }
+        
+        // Se todas as tentativas falharam, lança o erro
+        throw lastError || new Error('Falha ao salvar no Firebase após múltiplas tentativas');
+        
+      } catch (error) {
+        console.error('❌ Erro ao salvar no Firebase:', error);
+        console.error('Detalhes do erro:', {
+          message: error.message,
+          code: error.code,
+          stack: error.stack
+        });
+        throw error; // Re-lança o erro para que o chamador possa tratá-lo
       }
     }
 
-    // Função para carregar dados da nuvem
-    async function loadFromCloud() {
+    // Torna a função global imediatamente
+    window.loadFromCloud = async function loadFromCloud() {
       try {
         if (!window.db) {
           console.log('⚠️ Firebase não disponível para carregar');
@@ -5215,265 +6097,1099 @@
         
         const doc = await window.db.collection('competition').doc('data').get();
         if (doc.exists) {
-          const data = doc.data();
-          localStorage.setItem('lb_participants_v1', JSON.stringify(data.participants || []));
-          localStorage.setItem('lb_weight_records_v1', JSON.stringify(data.weightRecords || []));
-          localStorage.setItem('lb_users_v1', JSON.stringify(data.users || []));
-          localStorage.setItem('lb_config_v1', JSON.stringify(data.config || {}));
-          console.log('✅ Dados carregados da nuvem!');
+          const cloudData = doc.data();
+          
+          // Carrega dados locais ANTES de mesclar
+          const localParticipantsData = localStorage.getItem('lb_participants_v1');
+          const localParticipants = localParticipantsData ? JSON.parse(localParticipantsData) : [];
+          const cloudParticipants = cloudData.participants || [];
+          
+          console.log(`📊 Mesclando dados: ${localParticipants.length} locais, ${cloudParticipants.length} na nuvem`);
+          
+          // ESTRATÉGIA: Preserva TODOS os participantes locais que não estão na nuvem
+          // e mescla os que existem em ambos
+          const mergedMap = new Map();
+          
+          // Primeiro, adiciona todos os participantes locais (prioridade)
+          localParticipants.forEach(localP => {
+            mergedMap.set(localP.id, { ...localP });
+          });
+          
+          // Depois, atualiza com dados da nuvem (mas preserva fotos locais)
+          cloudParticipants.forEach(cloudP => {
+            const existing = mergedMap.get(cloudP.id);
+            if (existing) {
+              // Mescla: mantém foto local, atualiza outros dados da nuvem
+              mergedMap.set(cloudP.id, {
+                ...cloudP,
+                photo: existing.photo || cloudP.photo, // Preserva foto local se existir
+                weights: existing.weights || cloudP.weights // Preserva pesos locais se existirem
+              });
+            } else {
+              // Participante novo na nuvem que não existe localmente
+              mergedMap.set(cloudP.id, cloudP);
+            }
+          });
+          
+          const finalParticipants = Array.from(mergedMap.values());
+          
+          console.log(`✅ Mesclagem concluída: ${finalParticipants.length} participantes (preservados ${localParticipants.length} locais)`);
+          
+          // Verifica se há participantes locais que foram perdidos
+          const lostParticipants = localParticipants.filter(localP => 
+            !cloudParticipants.find(cloudP => cloudP.id === localP.id)
+          );
+          
+          if (lostParticipants.length > 0) {
+            console.warn(`⚠️ ATENÇÃO: ${lostParticipants.length} participantes locais não estão na nuvem:`);
+            lostParticipants.forEach(p => console.warn(`   - ${p.name} (ID: ${p.id})`));
+            console.warn('💡 Esses participantes foram preservados localmente. Considere sincronizar com saveToCloud().');
+          }
+          
+          // Mescla também os pesos com fotos locais
+          const finalWithWeights = finalParticipants.map(participant => {
+            const localParticipant = localParticipants.find(lp => lp.id === participant.id);
+            if (localParticipant && localParticipant.weights) {
+              // Mescla pesos preservando fotos locais
+              const mergedWeights = (participant.weights || []).map(weight => {
+                const localWeight = localParticipant.weights.find(lw => 
+                  lw.date === weight.date && lw.value === weight.value
+                );
+                if (localWeight && localWeight.photo) {
+                  return { ...weight, photo: localWeight.photo };
+                }
+                return weight;
+              });
+              // Se houver pesos locais que não estão na nuvem, adiciona
+              const localOnlyWeights = localParticipant.weights.filter(lw => 
+                !mergedWeights.find(mw => mw.date === lw.date && mw.value === lw.value)
+              );
+              return { ...participant, weights: [...mergedWeights, ...localOnlyWeights] };
+            }
+            return participant;
+          });
+          
+          // Salva dados mesclados
+          localStorage.setItem('lb_participants_v1', JSON.stringify(finalWithWeights));
+          localStorage.setItem('lb_weight_records_v1', JSON.stringify(cloudData.weightRecords || []));
+          localStorage.setItem('lb_users_v1', JSON.stringify(cloudData.users || []));
+          localStorage.setItem('lb_config_v1', JSON.stringify(cloudData.config || {}));
+          console.log('✅ Dados salvos no localStorage (participantes locais preservados)');
+          
+          // Atualiza a variável global participants
+          if (typeof participants !== 'undefined') {
+            participants.length = 0;
+            participants.push(...finalWithWeights);
+            console.log(`✅ Variável global atualizada: ${participants.length} participantes`);
+          }
           
           // Recarregar a interface se já estiver carregada
           if (typeof loadParticipants === 'function') {
             loadParticipants();
-            // loadWeightHistory(); // Função não existe, removido
+          }
+          
+          if (typeof refreshAll === 'function') {
+            refreshAll();
+            console.log('✅ Interface atualizada após carregar do Firebase');
+          } else if (typeof updateCompetitionInfo === 'function') {
             updateCompetitionInfo();
           }
         } else {
-          console.log('ℹ️ Nenhum dado encontrado na nuvem');
+          console.log('ℹ️ Nenhum dado encontrado na nuvem - mantendo dados locais');
         }
       } catch (error) {
         console.error('❌ Erro ao carregar:', error);
+        console.error('💡 Mantendo dados locais devido ao erro');
       }
     }
 
-    // ========= FUNÇÕES DE DIAGNÓSTICO =========
+    // ========= Função para Diagnosticar Estado Atual =========
+    window.diagnosticarEstado = async function() {
+      console.log('🔍 === DIAGNÓSTICO COMPLETO DO ESTADO ===\n');
+      
+      // 1. Verifica localStorage
+      const localData = localStorage.getItem('lb_participants_v1');
+      const localParticipants = localData ? JSON.parse(localData) : [];
+      console.log(`📱 LOCALSTORAGE: ${localParticipants.length} participantes`);
+      localParticipants.forEach((p, i) => {
+        console.log(`   ${i + 1}. ${p.name} (ID: ${p.id})`);
+      });
+      
+      // 2. Verifica Firebase
+      if (!window.db) {
+        console.log('\n❌ Firebase não disponível');
+        return { local: localParticipants, firebase: null };
+      }
+      
+      try {
+        const doc = await window.db.collection('competition').doc('data').get();
+        if (doc.exists) {
+          const firebaseData = doc.data();
+          const firebaseParticipants = firebaseData.participants || [];
+          console.log(`\n🔥 FIREBASE: ${firebaseParticipants.length} participantes`);
+          firebaseParticipants.forEach((p, i) => {
+            console.log(`   ${i + 1}. ${p.name} (ID: ${p.id})`);
+          });
+          
+          // 3. Compara
+          console.log('\n📊 COMPARAÇÃO:');
+          const onlyLocal = localParticipants.filter(localP => 
+            !firebaseParticipants.find(firebaseP => firebaseP.id === localP.id)
+          );
+          const onlyFirebase = firebaseParticipants.filter(firebaseP => 
+            !localParticipants.find(localP => localP.id === firebaseP.id)
+          );
+          const inBoth = localParticipants.filter(localP => 
+            firebaseParticipants.find(firebaseP => firebaseP.id === localP.id)
+          );
+          
+          console.log(`   ✅ Em ambos: ${inBoth.length}`);
+          console.log(`   📱 Apenas local: ${onlyLocal.length}`);
+          console.log(`   🔥 Apenas Firebase: ${onlyFirebase.length}`);
+          
+          if (onlyLocal.length > 0) {
+            console.log('\n   📋 Participantes apenas no localStorage:');
+            onlyLocal.forEach(p => console.log(`      - ${p.name} (ID: ${p.id})`));
+          }
+          
+          if (onlyFirebase.length > 0) {
+            console.log('\n   📋 Participantes apenas no Firebase:');
+            onlyFirebase.forEach(p => console.log(`      - ${p.name} (ID: ${p.id})`));
+          }
+          
+          // 4. Verifica última sincronização
+          if (firebaseData.lastSync) {
+            const lastSync = new Date(firebaseData.lastSync);
+            console.log(`\n🕐 Última sincronização: ${lastSync.toLocaleString('pt-BR')}`);
+          }
+          
+          return {
+            local: localParticipants,
+            firebase: firebaseParticipants,
+            onlyLocal: onlyLocal,
+            onlyFirebase: onlyFirebase,
+            inBoth: inBoth
+          };
+        } else {
+          console.log('\n❌ Nenhum documento encontrado no Firebase');
+          return { local: localParticipants, firebase: [] };
+        }
+      } catch (error) {
+        console.error('\n❌ Erro ao verificar Firebase:', error);
+        return { local: localParticipants, firebase: null, error: error.message };
+      }
+    };
     
-    // Função para verificar status completo do Firebase
-    window.verificarFirebase = async function() {
-      console.log('🔍 === VERIFICANDO FIREBASE ===\n');
+    // ========= Função para Recuperar Participantes Perdidos =========
+    window.recuperarParticipantesPerdidos = async function() {
+      console.log('🔍 === RECUPERANDO PARTICIPANTES PERDIDOS ===\n');
       
-      const resultados = {
-        firebaseCarregado: false,
-        firebaseInicializado: false,
-        firestoreDisponivel: false,
-        conexaoFuncionando: false,
-        dadosSalvos: false,
-        dadosCarregados: false,
-        erro: null
-      };
+      // Primeiro, faz diagnóstico
+      const diagnostic = await diagnosticarEstado();
       
-      // 1. Verificar se Firebase está carregado
-      console.log('1️⃣ Verificando se Firebase está carregado...');
-      if (typeof firebase !== 'undefined') {
-        resultados.firebaseCarregado = true;
-        console.log('  ✅ Firebase está carregado');
-        console.log('  📦 Versão:', firebase.SDK_VERSION || 'N/A');
+      if (!diagnostic.firebase) {
+        console.error('❌ Não foi possível acessar o Firebase');
+        alert('Erro: Firebase não está disponível.');
+        return;
+      }
+      
+      const localParticipants = diagnostic.local || [];
+      const firebaseParticipants = diagnostic.firebase || [];
+      
+      // Encontra participantes que estão no local mas não no Firebase
+      const lostParticipants = localParticipants.filter(localP => 
+        !firebaseParticipants.find(firebaseP => firebaseP.id === localP.id)
+      );
+      
+      // Também verifica se há participantes no Firebase que não estão no local
+      const firebaseOnly = firebaseParticipants.filter(firebaseP => 
+        !localParticipants.find(localP => localP.id === firebaseP.id)
+      );
+      
+      if (lostParticipants.length === 0 && firebaseOnly.length === 0) {
+        console.log('✅ Todos os participantes estão sincronizados!');
+        alert('✅ Todos os participantes estão sincronizados entre localStorage e Firebase.');
+        return;
+      }
+      
+      if (lostParticipants.length > 0) {
+        console.log(`\n⚠️ ${lostParticipants.length} participantes no localStorage que NÃO estão no Firebase:`);
+        lostParticipants.forEach((p, i) => {
+          console.log(`   ${i + 1}. ${p.name} (ID: ${p.id})`);
+        });
+      }
+      
+      if (firebaseOnly.length > 0) {
+        console.log(`\n⚠️ ${firebaseOnly.length} participantes no Firebase que NÃO estão no localStorage:`);
+        firebaseOnly.forEach((p, i) => {
+          console.log(`   ${i + 1}. ${p.name} (ID: ${p.id})`);
+        });
+      }
+      
+      // Pergunta qual ação tomar
+      let action = 'sync';
+      if (lostParticipants.length > 0 && firebaseOnly.length > 0) {
+        action = confirm(
+          `Encontradas diferenças:\n\n` +
+          `- ${lostParticipants.length} participantes apenas no localStorage\n` +
+          `- ${firebaseOnly.length} participantes apenas no Firebase\n\n` +
+          `Clique OK para sincronizar localStorage → Firebase\n` +
+          `(Isso vai adicionar os participantes locais ao Firebase)`
+        ) ? 'sync' : 'cancel';
+      } else if (lostParticipants.length > 0) {
+        action = confirm(
+          `Encontrados ${lostParticipants.length} participantes no localStorage que não estão no Firebase.\n\n` +
+          `Deseja sincronizar agora?\n\n` +
+          `Isso vai adicionar esses participantes ao Firebase.`
+        ) ? 'sync' : 'cancel';
+      } else if (firebaseOnly.length > 0) {
+        action = confirm(
+          `Encontrados ${firebaseOnly.length} participantes no Firebase que não estão no localStorage.\n\n` +
+          `Deseja carregar do Firebase?\n\n` +
+          `Isso vai adicionar esses participantes ao localStorage.`
+        ) ? 'load' : 'cancel';
+      }
+      
+      if (action === 'sync') {
+        console.log('\n🔄 Sincronizando localStorage → Firebase...');
+        await saveToCloud();
+        console.log('✅ Sincronização concluída!');
+        alert(`${lostParticipants.length} participantes foram sincronizados com o Firebase!`);
+      } else if (action === 'load') {
+        console.log('\n🔄 Carregando Firebase → localStorage...');
+        await loadFromCloud();
+        console.log('✅ Carregamento concluído!');
+        alert(`${firebaseOnly.length} participantes foram carregados do Firebase!`);
       } else {
-        console.log('  ❌ Firebase NÃO está carregado');
-        console.log('  💡 Verifique se os scripts do Firebase estão no HTML');
-        return resultados;
+        console.log('❌ Operação cancelada pelo usuário');
+        return;
       }
       
-      // 2. Verificar se Firebase está inicializado
-      console.log('\n2️⃣ Verificando se Firebase está inicializado...');
-      try {
-        if (firebase.apps && firebase.apps.length > 0) {
-          resultados.firebaseInicializado = true;
-          const app = firebase.apps[0];
-          console.log('  ✅ Firebase está inicializado');
-          console.log('  📦 Projeto:', app.options.projectId || 'N/A');
-          console.log('  📦 Auth Domain:', app.options.authDomain || 'N/A');
-        } else {
-          console.log('  ❌ Firebase NÃO está inicializado');
-          console.log('  💡 Execute: initializeFirebase()');
-        }
-      } catch (e) {
-        console.log('  ⚠️ Erro ao verificar inicialização:', e.message);
+      // Recarrega a interface
+      if (typeof refreshAll === 'function') {
+        refreshAll();
       }
       
-      // 3. Verificar se Firestore está disponível
-      console.log('\n3️⃣ Verificando se Firestore está disponível...');
-      if (typeof window.db !== 'undefined' && window.db) {
-        resultados.firestoreDisponivel = true;
-        console.log('  ✅ Firestore está disponível');
-      } else {
-        console.log('  ❌ Firestore NÃO está disponível');
-        console.log('  💡 Verifique se Firebase foi inicializado corretamente');
-      }
+      return { lostParticipants, firebaseOnly };
+    };
+    
+    // ========= Função para Verificar Histórico/Backup =========
+    window.verificarBackups = function() {
+      console.log('🔍 === VERIFICANDO BACKUPS E HISTÓRICO ===\n');
       
-      // 4. Testar conexão com Firestore
-      console.log('\n4️⃣ Testando conexão com Firestore...');
-      if (resultados.firestoreDisponivel) {
+      // Verifica todas as chaves do localStorage relacionadas
+      const allKeys = Object.keys(localStorage);
+      const backupKeys = allKeys.filter(key => 
+        key.includes('participant') || 
+        key.includes('backup') || 
+        key.includes('lb_') ||
+        key.includes('competition')
+      );
+      
+      console.log('📦 Chaves encontradas no localStorage:');
+      backupKeys.forEach(key => {
         try {
-          const testDoc = await window.db.collection('_test').doc('connection').get();
-          resultados.conexaoFuncionando = true;
-          console.log('  ✅ Conexão com Firestore funcionando!');
-        } catch (error) {
-          console.log('  ⚠️ Erro ao testar conexão:', error.message);
-          // Tenta verificar se consegue acessar a coleção competition
+          const data = localStorage.getItem(key);
+          if (data) {
+            const parsed = JSON.parse(data);
+            if (Array.isArray(parsed)) {
+              console.log(`   ${key}: ${parsed.length} itens`);
+              if (parsed.length > 0 && parsed[0].name) {
+                console.log(`      Exemplo: ${parsed[0].name}`);
+              }
+            } else if (typeof parsed === 'object') {
+              const participants = parsed.participants || [];
+              if (participants.length > 0) {
+                console.log(`   ${key}: ${participants.length} participantes`);
+                console.log(`      Exemplo: ${participants[0].name}`);
+              }
+            }
+          }
+        } catch (e) {
+          console.log(`   ${key}: (erro ao ler)`);
+        }
+      });
+      
+      // Verifica se há dados em outras chaves conhecidas
+      const knownKeys = [
+        'lb_participants_v1',
+        'lb_participants_v0',
+        'weightCompetitionParticipants',
+        'participants_backup',
+        'competition_backup'
+      ];
+      
+      console.log('\n🔍 Verificando chaves conhecidas:');
+      knownKeys.forEach(key => {
+        const data = localStorage.getItem(key);
+        if (data) {
           try {
-            const doc = await window.db.collection('competition').doc('data').get();
-            resultados.conexaoFuncionando = true;
-            console.log('  ✅ Conexão funcionando (teste alternativo)');
-          } catch (e2) {
-            console.log('  ❌ Conexão com Firestore NÃO está funcionando');
-            resultados.erro = e2.message;
+            const parsed = JSON.parse(data);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              console.log(`   ✅ ${key}: ${parsed.length} participantes`);
+              parsed.forEach((p, i) => {
+                if (p.name) console.log(`      ${i + 1}. ${p.name}`);
+              });
+            } else if (parsed.participants && Array.isArray(parsed.participants)) {
+              console.log(`   ✅ ${key}: ${parsed.participants.length} participantes`);
+              parsed.participants.forEach((p, i) => {
+                if (p.name) console.log(`      ${i + 1}. ${p.name}`);
+              });
+            }
+          } catch (e) {
+            // Ignora erros
           }
         }
-      }
+      });
       
-      // 5. Verificar se há dados salvos
-      console.log('\n5️⃣ Verificando dados salvos no Firebase...');
-      if (resultados.conexaoFuncionando) {
-        try {
-          const doc = await window.db.collection('competition').doc('data').get();
-          if (doc.exists) {
-            resultados.dadosSalvos = true;
-            const data = doc.data();
-            console.log('  ✅ Dados encontrados no Firebase!');
-            console.log('  📊 Participantes:', data.participants ? data.participants.length : 0);
-            console.log('  📊 Usuários:', data.users ? data.users.length : 0);
-            console.log('  📅 Última sincronização:', data.lastSync ? new Date(data.lastSync).toLocaleString('pt-BR') : 'N/A');
-          } else {
-            console.log('  ⚠️ Nenhum dado encontrado no Firebase');
-            console.log('  💡 Execute: saveToCloud() para salvar dados');
-          }
-          } catch (error) {
-          console.log('  ❌ Erro ao verificar dados:', error.message);
-        }
-      }
+      return backupKeys;
+    };
+    
+    // ========= Função para Criar Backup Manual =========
+    window.criarBackupManual = function() {
+      console.log('💾 === CRIANDO BACKUP MANUAL ===\n');
       
-      // 6. Resumo
-      console.log('\n📋 === RESUMO DO FIREBASE ===');
-      console.log(`Firebase carregado: ${resultados.firebaseCarregado ? '✅' : '❌'}`);
-      console.log(`Firebase inicializado: ${resultados.firebaseInicializado ? '✅' : '❌'}`);
-      console.log(`Firestore disponível: ${resultados.firestoreDisponivel ? '✅' : '❌'}`);
-      console.log(`Conexão funcionando: ${resultados.conexaoFuncionando ? '✅' : '❌'}`);
-      console.log(`Dados salvos: ${resultados.dadosSalvos ? '✅' : '⚠️'}`);
-      
-      if (resultados.firebaseCarregado && resultados.firebaseInicializado && resultados.conexaoFuncionando) {
-        console.log('\n✅ Firebase está FUNCIONANDO corretamente!');
-      } else {
-        console.log('\n❌ Firebase NÃO está funcionando completamente');
-        console.log('💡 Verifique os erros acima e corrija');
-      }
-      
-      return resultados;
-    }
-
-    // Função para verificar status do GitHub
-    window.verificarGitHub = async function() {
-      console.log('🔍 === VERIFICANDO GITHUB ===\n');
-      
-      const resultados = {
-        repositorioConfigurado: false,
-        urlRepositorio: null,
-        githubPagesAtivo: false,
-        urlProducao: null
+      const data = {
+        participants: JSON.parse(localStorage.getItem('lb_participants_v1') || '[]'),
+        users: JSON.parse(localStorage.getItem('lb_users_v1') || '[]'),
+        weightRecords: JSON.parse(localStorage.getItem('lb_weight_records_v1') || '[]'),
+        config: JSON.parse(localStorage.getItem('lb_config_v1') || '{}'),
+        timestamp: new Date().toISOString(),
+        version: '1.0'
       };
       
-      // 1. Verificar package.json
-      console.log('1️⃣ Verificando configuração do repositório...');
-      try {
-        const response = await fetch('package.json');
-        if (response.ok) {
-          const packageJson = await response.json();
-          if (packageJson.repository && packageJson.repository.url) {
-            resultados.repositorioConfigurado = true;
-            resultados.urlRepositorio = packageJson.repository.url;
-            console.log('  ✅ Repositório configurado');
-            console.log('  📦 URL:', resultados.urlRepositorio);
-            
-            // Extrair URL do GitHub Pages
-            const match = resultados.urlRepositorio.match(/github\.com\/([^\/]+)\/([^\/\.]+)/);
-            if (match) {
-              const [, usuario, repo] = match;
-              resultados.urlProducao = `https://${usuario}.github.io/${repo}/`;
-              console.log('  🌐 URL GitHub Pages esperada:', resultados.urlProducao);
+      // Salva no localStorage com timestamp
+      const backupKey = `backup_${Date.now()}`;
+      localStorage.setItem(backupKey, JSON.stringify(data));
+      
+      // Também salva como backup principal
+      localStorage.setItem('backup_principal', JSON.stringify(data));
+      
+      // Cria download do arquivo
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_liga_balanca_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      console.log(`✅ Backup criado: ${backupKey}`);
+      console.log(`✅ Arquivo baixado: ${a.download}`);
+      console.log(`📊 ${data.participants.length} participantes no backup`);
+      
+      alert(`Backup criado com sucesso!\n\n${data.participants.length} participantes salvos.\n\nArquivo baixado automaticamente.`);
+      
+      return data;
+    };
+    
+    // ========= Função para Restaurar de Backup (localStorage) =========
+    window.restaurarDeBackup = function(backupKey = 'backup_principal') {
+      console.log(`🔄 === RESTAURANDO DE BACKUP: ${backupKey} ===\n`);
+      
+      const backupData = localStorage.getItem(backupKey);
+      if (!backupData) {
+        console.error(`❌ Backup não encontrado: ${backupKey}`);
+        console.log('\n💡 Backups disponíveis no localStorage:');
+        const allKeys = Object.keys(localStorage);
+        const backupKeys = allKeys.filter(key => key.includes('backup'));
+        if (backupKeys.length > 0) {
+          backupKeys.forEach(key => console.log(`   - ${key}`));
+        } else {
+          console.log('   Nenhum backup encontrado');
         }
-      } else {
-            console.log('  ⚠️ Repositório não configurado no package.json');
+        alert(`Backup "${backupKey}" não encontrado!\n\nVerifique o console para ver backups disponíveis.`);
+        return false;
+      }
+      
+      try {
+        const data = JSON.parse(backupData);
+        
+        if (data.participants && Array.isArray(data.participants)) {
+          console.log(`📊 Restaurando ${data.participants.length} participantes...`);
+          
+          const confirmRestore = confirm(
+            `Encontrado backup com ${data.participants.length} participantes.\n\n` +
+            `Deseja restaurar este backup?\n\n` +
+            `ATENÇÃO: Isso vai substituir os dados atuais!`
+          );
+          
+          if (confirmRestore) {
+            localStorage.setItem('lb_participants_v1', JSON.stringify(data.participants));
+            if (data.users) localStorage.setItem('lb_users_v1', JSON.stringify(data.users));
+            if (data.weightRecords) localStorage.setItem('lb_weight_records_v1', JSON.stringify(data.weightRecords));
+            if (data.config) localStorage.setItem('lb_config_v1', JSON.stringify(data.config));
+            
+            console.log('✅ Backup restaurado no localStorage!');
+            
+            // Atualiza variável global
+            if (typeof participants !== 'undefined') {
+              participants.length = 0;
+              participants.push(...data.participants);
+              console.log(`✅ Variável global atualizada: ${participants.length} participantes`);
+            }
+            
+            // Recarrega interface
+            if (typeof refreshAll === 'function') {
+              refreshAll();
+              console.log('✅ Interface atualizada');
+            }
+            
+            // Sincroniza com Firebase
+            if (typeof saveToCloud === 'function') {
+              saveToCloud().then(() => {
+                console.log('✅ Dados sincronizados com Firebase');
+                alert(`Backup restaurado com sucesso!\n\n${data.participants.length} participantes restaurados e sincronizados.`);
+              }).catch(err => {
+                console.error('❌ Erro ao sincronizar:', err);
+                alert(`Backup restaurado localmente, mas houve erro ao sincronizar com Firebase.\n\nVerifique o console.`);
+              });
+            } else {
+              alert(`Backup restaurado com sucesso!\n\n${data.participants.length} participantes restaurados.`);
+            }
+            
+            return true;
+          } else {
+            console.log('❌ Restauração cancelada pelo usuário');
+            return false;
           }
         } else {
-          console.log('  ⚠️ Não foi possível ler package.json');
+          console.error('❌ Formato de backup inválido');
+          console.error('Estrutura esperada: { participants: [...], users: [...], ... }');
+          alert('Formato de backup inválido!\n\nVerifique o console para mais detalhes.');
+          return false;
         }
       } catch (error) {
-        console.log('  ⚠️ Erro ao verificar package.json:', error.message);
+        console.error('❌ Erro ao restaurar backup:', error);
+        alert('Erro ao restaurar backup: ' + error.message);
+        return false;
       }
-      
-      // 2. Verificar se está rodando em produção (GitHub Pages)
-      console.log('\n2️⃣ Verificando se está em produção...');
-      const hostname = window.location.hostname;
-      if (hostname.includes('github.io') || hostname.includes('github.com')) {
-        resultados.githubPagesAtivo = true;
-        console.log('  ✅ Site está rodando no GitHub Pages!');
-        console.log('  🌐 URL atual:', window.location.href);
-      } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        console.log('  ℹ️ Site está rodando localmente');
-        console.log('  💡 Para verificar GitHub Pages, acesse:', resultados.urlProducao || 'URL do repositório');
-        } else {
-        console.log('  ℹ️ Site está rodando em:', hostname);
-      }
-      
-      // 3. Verificar se há arquivo .git
-      console.log('\n3️⃣ Verificando se há repositório Git local...');
+    };
+    
+    // ========= Função para Restaurar de Arquivo JSON =========
+    window.restaurarDeArquivo = function(fileInput) {
+      return new Promise((resolve, reject) => {
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+          reject(new Error('Nenhum arquivo selecionado'));
+          return;
+        }
+        
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          try {
+            const data = JSON.parse(e.target.result);
+            console.log('📄 Arquivo carregado:', file.name);
+            console.log('📊 Dados encontrados:', {
+              participants: data.participants?.length || 0,
+              users: data.users?.length || 0,
+              weightRecords: data.weightRecords?.length || 0
+            });
+            
+            if (!data.participants || !Array.isArray(data.participants)) {
+              throw new Error('Formato inválido: campo "participants" não encontrado ou não é um array');
+            }
+            
+            const confirmRestore = confirm(
+              `Arquivo: ${file.name}\n\n` +
+              `Encontrados:\n` +
+              `- ${data.participants.length} participantes\n` +
+              `- ${data.users?.length || 0} usuários\n` +
+              `- ${data.weightRecords?.length || 0} registros de peso\n\n` +
+              `Deseja restaurar este backup?\n\n` +
+              `ATENÇÃO: Isso vai substituir os dados atuais!`
+            );
+            
+            if (confirmRestore) {
+              localStorage.setItem('lb_participants_v1', JSON.stringify(data.participants));
+              if (data.users) localStorage.setItem('lb_users_v1', JSON.stringify(data.users));
+              if (data.weightRecords) localStorage.setItem('lb_weight_records_v1', JSON.stringify(data.weightRecords));
+              if (data.config) localStorage.setItem('lb_config_v1', JSON.stringify(data.config));
+              
+              console.log('✅ Backup restaurado do arquivo!');
+              
+              // Atualiza variável global
+              if (typeof participants !== 'undefined') {
+                participants.length = 0;
+                participants.push(...data.participants);
+              }
+              
+              // Recarrega interface
+              if (typeof refreshAll === 'function') {
+                refreshAll();
+              }
+              
+              // Sincroniza com Firebase
+              if (typeof saveToCloud === 'function') {
+                saveToCloud().then(() => {
+                  console.log('✅ Dados sincronizados com Firebase');
+                  alert(`Backup restaurado com sucesso!\n\n${data.participants.length} participantes restaurados e sincronizados.`);
+                  resolve(data);
+                }).catch(err => {
+                  console.error('❌ Erro ao sincronizar:', err);
+                  alert(`Backup restaurado localmente, mas houve erro ao sincronizar.\n\nVerifique o console.`);
+                  resolve(data);
+                });
+              } else {
+                alert(`Backup restaurado com sucesso!\n\n${data.participants.length} participantes restaurados.`);
+                resolve(data);
+              }
+            } else {
+              console.log('❌ Restauração cancelada pelo usuário');
+              reject(new Error('Restauração cancelada pelo usuário'));
+            }
+          } catch (error) {
+            console.error('❌ Erro ao processar arquivo:', error);
+            alert('Erro ao processar arquivo: ' + error.message);
+            reject(error);
+          }
+        };
+        
+        reader.onerror = function() {
+          reject(new Error('Erro ao ler arquivo'));
+        };
+        
+        reader.readAsText(file);
+      });
+    };
+    
+    // ========= Função para Limpar e Recriar Documento no Firebase (sem fotos) =========
+    window.limparERecriarFirebase = async function() {
       try {
-        // Não podemos verificar diretamente, mas podemos informar
-        console.log('  💡 Para verificar Git local, execute no terminal:');
-        console.log('     git status');
-        console.log('     git remote -v');
+        console.log('🧹 Limpando e recriando documento no Firebase (removendo fotos)...');
+        
+        if (!window.db) {
+          console.error('❌ Firebase não disponível');
+          alert('Firebase não está disponível. Verifique a conexão.');
+          return;
+        }
+        
+        // Deleta o documento atual
+        await window.db.collection('competition').doc('data').delete();
+        console.log('✅ Documento antigo deletado');
+        
+        // Salva novamente sem fotos
+        await saveToCloud();
+        console.log('✅ Novo documento criado sem fotos');
+        alert('Documento do Firebase foi limpo e recriado sem fotos. As fotos permanecem no localStorage.');
       } catch (error) {
-        console.log('  ⚠️ Não foi possível verificar Git local');
+        console.error('❌ Erro ao limpar e recriar:', error);
+        alert('Erro ao limpar documento: ' + error.message);
+      }
+    };
+    
+    // ========= Função para Verificar Onde as Imagens Estão Salvas =========
+    window.verificarImagens = async function() {
+      console.log('🔍 === VERIFICAÇÃO DE IMAGENS ===\n');
+      
+      // 1. Verifica localStorage
+      console.log('📱 1. VERIFICANDO LOCALSTORAGE:');
+      const localParticipants = JSON.parse(localStorage.getItem('lb_participants_v1') || '[]');
+      const localUsers = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+      
+      const participantsWithPhotos = localParticipants.filter(p => p.photo && p.photo.trim() !== '');
+      const usersWithPhotos = localUsers.filter(u => u.photo && u.photo.trim() !== '');
+      
+      console.log(`   ✅ ${localParticipants.length} participantes no localStorage`);
+      console.log(`   📸 ${participantsWithPhotos.length} participantes COM foto no localStorage`);
+      console.log(`   ✅ ${localUsers.length} usuários no localStorage`);
+      console.log(`   📸 ${usersWithPhotos.length} usuários COM foto no localStorage`);
+      
+      // Mostra detalhes das fotos
+      if (participantsWithPhotos.length > 0) {
+        console.log('\n   📋 Participantes com foto:');
+        participantsWithPhotos.forEach(p => {
+          const photoSize = (p.photo.length / 1024).toFixed(2);
+          console.log(`      - ${p.name}: ${photoSize} KB (${p.photo.substring(0, 30)}...)`);
+        });
+      }
+      
+      // 2. Verifica Firebase
+      console.log('\n🔥 2. VERIFICANDO FIREBASE:');
+      if (!window.db) {
+        console.log('   ❌ Firebase não está disponível');
+        return;
+      }
+      
+      try {
+        const doc = await window.db.collection('competition').doc('data').get();
+        if (doc.exists) {
+          const firebaseData = doc.data();
+          const firebaseParticipants = firebaseData.participants || [];
+          const firebaseUsers = firebaseData.users || [];
+          
+          const firebaseParticipantsWithPhotos = firebaseParticipants.filter(p => p.photo && p.photo.trim() !== '');
+          const firebaseUsersWithPhotos = firebaseUsers.filter(u => u.photo && u.photo.trim() !== '');
+          
+          console.log(`   ✅ ${firebaseParticipants.length} participantes no Firebase`);
+          console.log(`   📸 ${firebaseParticipantsWithPhotos.length} participantes COM foto no Firebase`);
+          console.log(`   ✅ ${firebaseUsers.length} usuários no Firebase`);
+          console.log(`   📸 ${firebaseUsersWithPhotos.length} usuários COM foto no Firebase`);
+          
+          // Calcula tamanho do documento
+          const docSize = JSON.stringify(firebaseData).length;
+          const docSizeMB = (docSize / 1024 / 1024).toFixed(2);
+          console.log(`   📏 Tamanho do documento: ${docSizeMB} MB (${docSize} bytes)`);
+          
+          if (firebaseParticipantsWithPhotos.length > 0 || firebaseUsersWithPhotos.length > 0) {
+            console.log('\n   ⚠️ ATENÇÃO: Fotos encontradas no Firebase!');
+            console.log('   ⚠️ Isso pode causar erro de tamanho. Execute limparERecriarFirebase() para remover.');
+          } else {
+            console.log('\n   ✅ Nenhuma foto no Firebase (correto - fotos devem estar apenas no localStorage)');
+          }
+        } else {
+          console.log('   ℹ️ Nenhum documento encontrado no Firebase');
+        }
+      } catch (error) {
+        console.error('   ❌ Erro ao verificar Firebase:', error);
+      }
+      
+      // 3. Verifica interface
+      console.log('\n🖼️ 3. VERIFICANDO INTERFACE:');
+      const avatarElements = document.querySelectorAll('.avatar, .avatar-preview, .user-avatar-small img');
+      console.log(`   ✅ ${avatarElements.length} elementos de avatar encontrados na página`);
+      
+      if (avatarElements.length > 0) {
+        avatarElements.forEach((img, idx) => {
+          if (img.src && img.src.startsWith('data:image')) {
+            console.log(`   📸 Avatar ${idx + 1}: Foto base64 (${(img.src.length / 1024).toFixed(2)} KB)`);
+          } else if (img.src) {
+            console.log(`   🔗 Avatar ${idx + 1}: URL externa (${img.src.substring(0, 50)}...)`);
+          } else {
+            console.log(`   ❌ Avatar ${idx + 1}: Sem src`);
+          }
+        });
       }
       
       // 4. Resumo
-      console.log('\n📋 === RESUMO DO GITHUB ===');
-      console.log(`Repositório configurado: ${resultados.repositorioConfigurado ? '✅' : '⚠️'}`);
-      if (resultados.urlRepositorio) {
-        console.log(`URL do repositório: ${resultados.urlRepositorio}`);
-      }
-      console.log(`GitHub Pages ativo: ${resultados.githubPagesAtivo ? '✅' : '⚠️'}`);
-      if (resultados.urlProducao) {
-        console.log(`URL de produção esperada: ${resultados.urlProducao}`);
-      }
-      
-      console.log('\n💡 Para verificar manualmente:');
-      console.log('  1. Acesse: https://github.com/seu-usuario/liga-da-balanca');
-      console.log('  2. Vá em Settings → Pages');
-      console.log('  3. Verifique se GitHub Pages está ativado');
-      console.log('  4. Verifique a URL de produção');
-      
-      return resultados;
-    }
-
-    // Função para verificar ambos (Firebase + GitHub)
-    window.verificarSistemaCompleto = async function() {
-      console.log('🔍 === VERIFICAÇÃO COMPLETA DO SISTEMA ===\n');
-      
-      console.log('📦 Verificando Firebase...\n');
-      const firebaseStatus = await verificarFirebase();
-      
-      console.log('\n\n📦 Verificando GitHub...\n');
-      const githubStatus = await verificarGitHub();
-      
-      console.log('\n\n📋 === RESUMO GERAL ===');
-      console.log('\n🔥 FIREBASE:');
-      console.log(`  Carregado: ${firebaseStatus.firebaseCarregado ? '✅' : '❌'}`);
-      console.log(`  Inicializado: ${firebaseStatus.firebaseInicializado ? '✅' : '❌'}`);
-      console.log(`  Conexão: ${firebaseStatus.conexaoFuncionando ? '✅' : '❌'}`);
-      console.log(`  Dados salvos: ${firebaseStatus.dadosSalvos ? '✅' : '⚠️'}`);
-      
-      console.log('\n🐙 GITHUB:');
-      console.log(`  Repositório: ${githubStatus.repositorioConfigurado ? '✅' : '⚠️'}`);
-      console.log(`  GitHub Pages: ${githubStatus.githubPagesAtivo ? '✅' : '⚠️'}`);
-      
-      const tudoOk = firebaseStatus.conexaoFuncionando && githubStatus.repositorioConfigurado;
-      
-      if (tudoOk) {
-        console.log('\n✅ Sistema está FUNCIONANDO corretamente!');
-      } else {
-        console.log('\n⚠️ Alguns componentes precisam de atenção');
-        console.log('💡 Revise os detalhes acima');
-      }
+      console.log('\n📊 RESUMO:');
+      console.log(`   ✅ Fotos no localStorage: ${participantsWithPhotos.length + usersWithPhotos.length}`);
+      console.log(`   ✅ Fotos na interface: ${avatarElements.length}`);
+      console.log('\n💡 NOTA: As fotos devem estar APENAS no localStorage, NÃO no Firebase.');
+      console.log('💡 Isso evita o erro de tamanho do documento (limite de 1 MB).');
       
       return {
-        firebase: firebaseStatus,
-        github: githubStatus,
-        tudoOk: tudoOk
+        localStorage: {
+          participants: participantsWithPhotos.length,
+          users: usersWithPhotos.length,
+          total: participantsWithPhotos.length + usersWithPhotos.length
+        },
+        firebase: {
+          participants: firebaseParticipantsWithPhotos?.length || 0,
+          users: firebaseUsersWithPhotos?.length || 0,
+          total: (firebaseParticipantsWithPhotos?.length || 0) + (firebaseUsersWithPhotos?.length || 0)
+        },
+        interface: {
+          avatars: avatarElements.length
+        }
       };
-    }
+    };
+
+    // ========= Função para Verificar Participantes no Firebase =========
+    window.verificarParticipantesFirebase = async function() {
+      console.log('🔍 === VERIFICAÇÃO DE PARTICIPANTES NO FIREBASE ===\n');
+      
+      // Verifica se Firebase está disponível
+      if (!window.db) {
+        console.error('❌ Firebase não está disponível');
+        console.log('💡 Verifique se o Firebase foi inicializado corretamente.');
+        return null;
+      }
+      
+      try {
+        // Busca o documento no Firebase
+        const doc = await window.db.collection('competition').doc('data').get();
+        
+        if (!doc.exists) {
+          console.log('ℹ️ Nenhum documento encontrado no Firebase');
+          console.log('💡 O documento "competition/data" não existe ainda.');
+          return {
+            exists: false,
+            participants: 0,
+            users: 0,
+            weightRecords: 0
+          };
+        }
+        
+        const data = doc.data();
+        const participants = data.participants || [];
+        const users = data.users || [];
+        const weightRecords = data.weightRecords || [];
+        const config = data.config || {};
+        
+        // Estatísticas detalhadas
+        console.log('📊 ESTATÍSTICAS DO FIREBASE:\n');
+        console.log(`   👥 Participantes: ${participants.length}`);
+        console.log(`   👤 Usuários: ${users.length}`);
+        console.log(`   ⚖️ Registros de Peso: ${weightRecords.length}`);
+        console.log(`   ⚙️ Configuração: ${Object.keys(config).length > 0 ? 'Sim' : 'Não'}`);
+        
+        // Detalhes dos participantes
+        if (participants.length > 0) {
+          console.log('\n📋 LISTA DE PARTICIPANTES:');
+          participants.forEach((p, index) => {
+            const weightsCount = p.weights ? p.weights.length : 0;
+            const hasPhoto = p.photo ? '📸' : '❌';
+            console.log(`   ${index + 1}. ${p.name || 'Sem nome'} - ${p.department || 'Sem departamento'} - ${weightsCount} pesagens ${hasPhoto}`);
+          });
+          
+          // Estatísticas adicionais
+          const withPhotos = participants.filter(p => p.photo && p.photo.trim() !== '').length;
+          const withWeights = participants.filter(p => p.weights && p.weights.length > 0).length;
+          const withTarget = participants.filter(p => p.targetWeight).length;
+          
+          console.log('\n📈 ESTATÍSTICAS ADICIONAIS:');
+          console.log(`   📸 Com foto: ${withPhotos} (${((withPhotos / participants.length) * 100).toFixed(1)}%)`);
+          console.log(`   ⚖️ Com pesagens: ${withWeights} (${((withWeights / participants.length) * 100).toFixed(1)}%)`);
+          console.log(`   🎯 Com meta de peso: ${withTarget} (${((withTarget / participants.length) * 100).toFixed(1)}%)`);
+        }
+        
+        // Tamanho do documento
+        const docSize = JSON.stringify(data).length;
+        const docSizeMB = (docSize / 1024 / 1024).toFixed(2);
+        const docSizeKB = (docSize / 1024).toFixed(2);
+        
+        console.log('\n📏 TAMANHO DO DOCUMENTO:');
+        console.log(`   ${docSizeKB} KB (${docSizeMB} MB)`);
+        console.log(`   ${docSize} bytes`);
+        
+        if (docSize > 1048576) {
+          console.log('   ⚠️ ATENÇÃO: Documento excede 1 MB! Pode causar erros.');
+        } else if (docSize > 900000) {
+          console.log('   ⚠️ AVISO: Documento próximo do limite de 1 MB.');
+        } else {
+          console.log('   ✅ Tamanho dentro do limite (1 MB).');
+        }
+        
+        // Última sincronização
+        if (data.lastSync) {
+          const lastSyncDate = new Date(data.lastSync);
+          const now = new Date();
+          const diffMinutes = Math.floor((now - lastSyncDate) / 1000 / 60);
+          console.log('\n🕐 ÚLTIMA SINCRONIZAÇÃO:');
+          console.log(`   ${lastSyncDate.toLocaleString('pt-BR')}`);
+          console.log(`   ${diffMinutes} minutos atrás`);
+        }
+        
+        // Comparação com localStorage
+        console.log('\n🔄 COMPARAÇÃO COM LOCALSTORAGE:');
+        const localParticipants = JSON.parse(localStorage.getItem('lb_participants_v1') || '[]');
+        const localUsers = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+        
+        console.log(`   LocalStorage: ${localParticipants.length} participantes, ${localUsers.length} usuários`);
+        console.log(`   Firebase: ${participants.length} participantes, ${users.length} usuários`);
+        
+        if (localParticipants.length !== participants.length) {
+          console.log('   ⚠️ Diferença detectada! Os dados podem estar desincronizados.');
+        } else {
+          console.log('   ✅ Números coincidem!');
+        }
+        
+        return {
+          exists: true,
+          participants: participants.length,
+          users: users.length,
+          weightRecords: weightRecords.length,
+          documentSize: docSize,
+          documentSizeMB: parseFloat(docSizeMB),
+          lastSync: data.lastSync,
+          details: {
+            withPhotos: participants.filter(p => p.photo && p.photo.trim() !== '').length,
+            withWeights: participants.filter(p => p.weights && p.weights.length > 0).length,
+            withTarget: participants.filter(p => p.targetWeight).length
+          }
+        };
+        
+      } catch (error) {
+        console.error('❌ Erro ao verificar Firebase:', error);
+        console.error('Detalhes:', error.message);
+        return null;
+      }
+    };
+
+    // ========= Função de Verificação de Dados Carregados (Corrigida) =========
+    window.verificarDadosCarregadosCorrigido = function() {
+      console.log('=== VERIFICANDO DADOS CARREGADOS (CORRIGIDO) ===');
+      
+      // Verificar se a variável participants existe
+      if (typeof participants !== 'undefined') {
+        console.log('✅ Variável participants existe');
+        console.log('Tamanho:', participants.length);
+      } else {
+        console.log('❌ Variável participants não existe');
+        return false;
+      }
+      
+      // Verificar localStorage
+      console.log('=== VERIFICANDO LOCALSTORAGE ===');
+      const lsKey = 'lb_participants_v1';
+      const rawData = localStorage.getItem(lsKey);
+      console.log('Dados brutos no localStorage:', rawData ? 'Existem' : 'Não existem');
+      
+      if (rawData) {
+        try {
+          const parsedData = JSON.parse(rawData);
+          console.log('Dados parseados:', parsedData);
+          console.log('Quantidade no localStorage:', parsedData.length);
+        } catch (error) {
+          console.log('❌ Erro ao fazer parse dos dados:', error);
+        }
+      }
+      
+      // Verificar se participants está vazio
+      if (participants.length === 0) {
+        console.log('❌ Variável participants ainda está vazia');
+        console.log('=== TENTANDO CORRIGIR ===');
+        
+        // Tentar recarregar os dados
+        if (rawData) {
+          try {
+            const parsedData = JSON.parse(rawData);
+            participants.length = 0;
+            participants.push(...parsedData);
+            console.log('✅ Dados recarregados na variável participants');
+            console.log('Novo tamanho:', participants.length);
+            
+            // Atualizar interface
+            if (typeof renderParticipantsCards === 'function') {
+              renderParticipantsCards();
+              console.log('✅ Interface atualizada');
+            }
+            
+            // Atualizar contadores
+            if (typeof updateHeaderCounters === 'function') {
+              updateHeaderCounters();
+              console.log('✅ Contadores atualizados');
+            }
+            
+          } catch (error) {
+            console.log('❌ Erro ao recarregar dados:', error);
+          }
+        } else {
+          console.log('❌ Não há dados no localStorage para recarregar');
+          console.log('=== CRIANDO DADOS DE EXEMPLO ===');
+          
+          // Criar dados de exemplo se não existirem
+          const exemploParticipantes = [
+            {
+              id: 'exemplo1',
+              name: 'João Silva',
+              initialWeight: 80,
+              targetWeight: 70,
+              department: 'TI',
+              profile: 'user',
+              password: '123456',
+              weights: []
+            },
+            {
+              id: 'exemplo2', 
+              name: 'Maria Santos',
+              initialWeight: 65,
+              targetWeight: 60,
+              department: 'RH',
+              profile: 'user',
+              password: '123456',
+              weights: []
+            }
+          ];
+          
+          // Salvar no localStorage
+          localStorage.setItem('lb_participants_v1', JSON.stringify(exemploParticipantes));
+          console.log('✅ Dados de exemplo criados');
+          
+          // Carregar na variável
+          participants.length = 0;
+          participants.push(...exemploParticipantes);
+          console.log('✅ Dados de exemplo carregados');
+          
+          // Atualizar interface
+          if (typeof renderParticipantsCards === 'function') {
+            renderParticipantsCards();
+            console.log('✅ Interface atualizada com dados de exemplo');
+          }
+        }
+      } else {
+        console.log('✅ Variável participants tem dados:', participants.length);
+      }
+      
+      console.log('=== VERIFICACAO CONCLUIDA ===');
+      return participants.length > 0;
+    };
+
+    // ========= Função para Forçar Recarregamento =========
+    window.forcarRecarregamentoDados = function() {
+      console.log('=== FORCANDO RECARREGAMENTO DE DADOS ===');
+      
+      // Limpar cache
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          names.forEach(function(name) {
+            caches.delete(name);
+          });
+        });
+      }
+      
+      // Recarregar dados do localStorage
+      const lsKey = 'lb_participants_v1';
+      const rawData = localStorage.getItem(lsKey);
+      
+      if (rawData) {
+        try {
+          const parsedData = JSON.parse(rawData);
+          
+          // Limpar e recarregar participants
+          participants.length = 0;
+          participants.push(...parsedData);
+          
+          console.log('✅ Dados recarregados:', participants.length);
+          
+          // Atualizar todas as interfaces
+          if (typeof renderParticipantsCards === 'function') renderParticipantsCards();
+          if (typeof renderParticipantsList === 'function') renderParticipantsList();
+          if (typeof renderParticipantsGrid === 'function') renderParticipantsGrid();
+          if (typeof updateHeaderCounters === 'function') updateHeaderCounters();
+          if (typeof renderLeaderboard === 'function') renderLeaderboard();
+          
+          console.log('✅ Todas as interfaces atualizadas');
+          
+        } catch (error) {
+          console.log('❌ Erro ao recarregar:', error);
+        }
+      } else {
+        console.log('❌ Nenhum dado encontrado no localStorage');
+      }
+    };
+    
+    // ========= FUNÇÕES DE RESPONSIVIDADE =========
+    
+    // Função para detectar e ajustar responsividade
+    window.ajustarResponsividade = function() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      
+      console.log(`📱 Tela: ${width}x${height}`);
+      
+      // Detectar tipo de dispositivo
+      let deviceType = 'desktop';
+      if (width <= 480) {
+        deviceType = 'mobile-small';
+      } else if (width <= 768) {
+        deviceType = 'mobile';
+      } else if (width <= 1024) {
+        deviceType = 'tablet';
+      }
+      
+      console.log(`📱 Dispositivo: ${deviceType}`);
+      
+      // Ajustar layout baseado no dispositivo
+      const container = document.querySelector('.container');
+      if (container) {
+        container.classList.remove('mobile-small', 'mobile', 'tablet', 'desktop');
+        container.classList.add(deviceType);
+      }
+      
+      // Ajustar grid de participantes baseado no tamanho da tela
+      const participantsCards = document.querySelector('.participants-cards');
+      if (participantsCards) {
+        if (width <= 480) {
+          participantsCards.style.gridTemplateColumns = '1fr';
+        } else if (width <= 768) {
+          participantsCards.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        } else if (width <= 1024) {
+          participantsCards.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        } else {
+          participantsCards.style.gridTemplateColumns = 'repeat(auto-fit, minmax(280px, 1fr))';
+        }
+      }
+      
+      // Ajustar botões de controle
+      const controlButtons = document.querySelector('.control-buttons');
+      if (controlButtons) {
+        if (width <= 480) {
+          controlButtons.style.gridTemplateColumns = '1fr';
+        } else if (width <= 768) {
+          controlButtons.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        } else {
+          controlButtons.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        }
+      }
+      
+      // Ajustar stats grid
+      const statsGrid = document.querySelector('.stats-grid');
+      if (statsGrid) {
+        if (width <= 480) {
+          statsGrid.style.gridTemplateColumns = '1fr';
+        } else if (width <= 768) {
+          statsGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        } else {
+          statsGrid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        }
+      }
+      
+      console.log('✅ Responsividade ajustada para:', deviceType);
+    };
+
+    // Função para inicializar responsividade
+    window.inicializarResponsividade = function() {
+      // Ajustar na inicialização
+      ajustarResponsividade();
+      
+      // Ajustar no redimensionamento da janela
+      window.addEventListener('resize', function() {
+        clearTimeout(window.resizeTimeout);
+        window.resizeTimeout = setTimeout(ajustarResponsividade, 250);
+      });
+      
+      // Ajustar na mudança de orientação
+      window.addEventListener('orientationchange', function() {
+        setTimeout(ajustarResponsividade, 500);
+      });
+      
+      console.log('✅ Sistema de responsividade inicializado');
+    };
+
+    // Função para testar responsividade
+    window.testarResponsividade = function() {
+      console.log('=== TESTANDO RESPONSIVIDADE ===');
+      
+      const widths = [320, 480, 768, 1024, 1200];
+      widths.forEach(width => {
+        console.log(`📱 Testando largura: ${width}px`);
+        // Simular redimensionamento
+        Object.defineProperty(window, 'innerWidth', {
+          writable: true,
+          configurable: true,
+          value: width,
+        });
+        ajustarResponsividade();
+      });
+      
+      // Restaurar largura original
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: window.screen.width,
+      });
+      
+      console.log('✅ Teste de responsividade concluído');
+    };
+
+    // ========= INICIALIZAÇÃO AUTOMÁTICA =========
+    
+    // Inicializar responsividade quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        inicializarResponsividade();
+        console.log('🚀 Sistema responsivo ativado!');
+      }, 1000);
+    });
+
+    // Comandos disponíveis no console:
+    console.log('📱 Comandos de responsividade disponíveis:');
+    console.log('- ajustarResponsividade() - Ajusta layout atual');
+    console.log('- inicializarResponsividade() - Inicializa sistema');
+    console.log('- testarResponsividade() - Testa diferentes tamanhos');
   </script>
 </body>
 </html>
-
-
