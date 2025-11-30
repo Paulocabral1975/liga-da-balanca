@@ -2373,10 +2373,25 @@
     
     function redirectToLogin() {
       alert('Sessão expirada ou inválida. Redirecionando para o login...');
-      const currentPath = window.location.pathname;
-      const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-      const loginPath = basePath ? `${basePath}/login.html` : './login.html';
-      window.location.href = loginPath;
+      
+      // Detecta se está no GitHub Pages ou local
+      const isGitHubPages = window.location.hostname.includes('github.io');
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      
+      let loginUrl;
+      if (isGitHubPages) {
+        const pathParts = window.location.pathname.split('/');
+        const repoName = pathParts[1] || 'liga-da-balanca';
+        loginUrl = `/${repoName}/login.html`;
+      } else if (isLocal) {
+        loginUrl = './login.html';
+      } else {
+        const currentPath = window.location.pathname;
+        const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+        loginUrl = basePath ? `${basePath}/login.html` : './login.html';
+      }
+      
+      window.location.href = loginUrl;
     }
     
     function clearSession() {
@@ -5078,22 +5093,31 @@
       // Limpa a sessão
       clearSession();
       
-      // Redireciona para login - usa caminho relativo que funciona em qualquer ambiente
+      // Redireciona para login - usa caminho baseado na origem atual
       console.log('Redirecionando para login.html');
-      const currentPath = window.location.pathname;
-      const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-      const loginPath = basePath ? `${basePath}/login.html` : './login.html';
       
-      // Tenta caminho relativo primeiro, depois absoluto
-      window.location.href = loginPath;
+      // Detecta se está no GitHub Pages ou local
+      const isGitHubPages = window.location.hostname.includes('github.io');
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       
-      // Fallback se o caminho relativo não funcionar
-      setTimeout(() => {
-        if (window.location.pathname === currentPath) {
-          // Se não redirecionou, tenta caminho absoluto
-          window.location.href = window.location.origin + (basePath || '') + '/login.html';
-        }
-      }, 100);
+      let loginUrl;
+      if (isGitHubPages) {
+        // GitHub Pages: usa caminho absoluto baseado no repositório
+        const pathParts = window.location.pathname.split('/');
+        const repoName = pathParts[1] || 'liga-da-balanca';
+        loginUrl = `/${repoName}/login.html`;
+      } else if (isLocal) {
+        // Local: usa caminho relativo
+        loginUrl = './login.html';
+      } else {
+        // Outros ambientes: tenta caminho relativo primeiro
+        const currentPath = window.location.pathname;
+        const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+        loginUrl = basePath ? `${basePath}/login.html` : './login.html';
+      }
+      
+      console.log('URL de login:', loginUrl);
+      window.location.href = loginUrl;
     }
     
     // Função global para testar logout
