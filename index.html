@@ -2373,7 +2373,10 @@
     
     function redirectToLogin() {
       alert('Sessão expirada ou inválida. Redirecionando para o login...');
-      window.location.href = 'login.html';
+      const currentPath = window.location.pathname;
+      const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+      const loginPath = basePath ? `${basePath}/login.html` : './login.html';
+      window.location.href = loginPath;
     }
     
     function clearSession() {
@@ -5075,9 +5078,22 @@
       // Limpa a sessão
       clearSession();
       
-      // Redireciona diretamente para login
+      // Redireciona para login - usa caminho relativo que funciona em qualquer ambiente
       console.log('Redirecionando para login.html');
-      window.location.href = 'login.html';
+      const currentPath = window.location.pathname;
+      const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+      const loginPath = basePath ? `${basePath}/login.html` : './login.html';
+      
+      // Tenta caminho relativo primeiro, depois absoluto
+      window.location.href = loginPath;
+      
+      // Fallback se o caminho relativo não funcionar
+      setTimeout(() => {
+        if (window.location.pathname === currentPath) {
+          // Se não redirecionou, tenta caminho absoluto
+          window.location.href = window.location.origin + (basePath || '') + '/login.html';
+        }
+      }, 100);
     }
     
     // Função global para testar logout
