@@ -1653,18 +1653,43 @@
       .lb-weights-row .lb-weight-2, 
       .lb-weights-row .lb-weight-3 {
         display: block !important;
-        flex: 1;
-        min-width: 0;
-        margin: 0;
+        flex: 1 !important;
+        min-width: 0 !important;
+        margin: 0 !important;
         visibility: visible !important;
         opacity: 1 !important;
+        position: relative !important;
       }
       
-      /* Garantir que o valor da pesagem 2 seja visível */
+      /* Garantir que o valor da pesagem 2 seja visível - FORÇA MÁXIMA */
+      .lb-weights-row .lb-weight-2 {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: relative !important;
+        width: auto !important;
+        height: auto !important;
+        min-width: 60px !important;
+      }
+      
       .lb-weights-row .lb-weight-2 .lb-weight-value {
         display: block !important;
         visibility: visible !important;
         opacity: 1 !important;
+        color: #e5e7eb !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        line-height: 1.4 !important;
+        text-align: center !important;
+      }
+      
+      /* Força exibição mesmo se o valor for 0 ou null */
+      .lb-weights-row .lb-weight-2[data-has-weight2="true"] .lb-weight-value {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        color: #10b981 !important;
+        font-weight: 800 !important;
       }
       
       /* Destaque visual para debug - remover depois */
@@ -2871,7 +2896,9 @@
     };
     
     // Função de diagnóstico específica para mobile
-    window.diagnosticarMobile = function(participantName = 'claudia') {
+    // Disponibiliza imediatamente no escopo global
+    (function() {
+      window.diagnosticarMobile = function(participantName = 'claudia') {
       console.log('📱 === DIAGNÓSTICO MOBILE ===\n');
       
       const p = participants.find(p => p.name && p.name.toLowerCase().includes(participantName.toLowerCase()));
@@ -2941,7 +2968,11 @@
       }
       
       console.log('\n💡 DICA: Para ativar o console Eruda, adicione ?debug=true na URL');
-    };
+      };
+      
+      // Torna disponível imediatamente
+      console.log('✅ Função diagnosticarMobile disponível! Use: diagnosticarMobile("claudia")');
+    })();
     
     function totalWeightLost() {
       return participants.reduce((acc,p)=>{
@@ -3681,14 +3712,14 @@
             ${perc.toFixed(1)}%
           </div>
           <!-- Linha de pesagens para mobile -->
-          <div class="lb-weights-row">
+          <div class="lb-weights-row" data-participant-id="${p.id}">
             <div class="lb-weight-1">
               <div class="lb-weight-label">P1</div>
               <div class="lb-weight-value">${weight1Display} kg</div>
             </div>
-            <div class="lb-weight-2" data-has-weight2="${hasWeight2}" data-participant-id="${p.id}" data-weight-value="${weight2Display}">
+            <div class="lb-weight-2" data-has-weight2="${hasWeight2}" data-participant-id="${p.id}" data-weight-value="${weight2Display}" data-weight-numeric="${threeWeights.weight2 || ''}">
               <div class="lb-weight-label">P2</div>
-              <div class="lb-weight-value">${weight2Display} kg</div>
+              <div class="lb-weight-value" data-weight2-value="${weight2Display}">${weight2Display} kg</div>
             </div>
             <div class="lb-weight-3">
               <div class="lb-weight-label">P3</div>
