@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Liga da Balança</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #111827;
+            --muted: #9ca3af;
+            --text: #e5e7eb;
+            --primary: #2563eb;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --info: #0891b2;
+            --border: #1f2937;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
+            min-height: 100vh;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Animações de fundo */
+        .bg-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .bg-circle:nth-child(1) {
+            width: 200px;
+            height: 200px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .bg-circle:nth-child(2) {
+            width: 150px;
+            height: 150px;
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+        
+        .bg-circle:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .login-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 50px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+            animation: slideIn 0.8s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .login-header .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .login-header .logo i {
+            font-size: 36px;
+            color: #1f2937;
+        }
+        
+        .login-header h1 {
+            color: white;
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .login-header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            color: white;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .form-group i {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 18px;
+        }
+        
+        .form-group input:focus + i {
+            color: #fbbf24;
+        }
+        
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #1f2937;
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(251, 191, 36, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            margin-top: 15px;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .error-message {
+            background: rgba(220, 38, 38, 0.2);
+            border: 1px solid #dc2626;
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .success-message {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #16a34a;
+            color: #86efac;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+        }
+        
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .forgot-password {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .forgot-password a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+        
+        .forgot-password a:hover {
+            color: #fbbf24;
+        }
+        
+        .user-info {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .user-info h3 {
+            color: #fbbf24;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .user-info p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .demo-credentials {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid #3b82f6;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .demo-credentials h4 {
+            color: #93c5fd;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .demo-credentials .credential {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        @media (max-width: 768px) {
+            .login-container {
+                margin: 20px;
+                padding: 30px;
+            }
+            
+            .login-header h1 {
+                font-size: 28px;
+            }
+            
+            .login-header .logo {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .login-header .logo i {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation">
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+    </div>
+    
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">
+                <i class="fas fa-weight"></i>
+            </div>
+            <h1>Liga da Balança</h1>
+            <p>Sistema de Competição de Perda de Peso</p>
+        </div>
+        
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email ou Nome de Usuário</label>
+                <input type="text" id="email" name="email" placeholder="Digite seu email ou nome de usuário" required>
+                <i class="fas fa-user"></i>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" name="password" placeholder="Digite sua senha" required>
+                <i class="fas fa-lock"></i>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i>
+                Entrar no Sistema
+            </button>
+        </form>
+        
+        <div class="forgot-password">
+            <a href="#" onclick="showForgotPassword()">Esqueceu sua senha?</a>
+            <br>
+            <a href="#" onclick="resetUsers()" style="color: #fbbf24; font-size: 12px;">Resetar Usuários Padrão</a>
+        </div>
+        
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner"></i>
+            <p>Verificando credenciais...</p>
+        </div>
+        
+        <div class="user-info">
+            <h3><i class="fas fa-info-circle"></i> Informações do Sistema</h3>
+            <p>Faça login com suas credenciais para acessar o sistema de competição de perda de peso.</p>
+            <p>Se você é um administrador, use suas credenciais administrativas.</p>
+            
+            <div class="demo-credentials">
+                <h4><i class="fas fa-key"></i> Credenciais de Demonstração</h4>
+                <div class="credential">
+                    <span>Administrador:</span>
+                    <span>admin / liga2024</span>
+                </div>
+                <div class="credential">
+                    <span>Moderador:</span>
+                    <span>moderador / mod123</span>
+                </div>
+                <div class="credential">
+                    <span>Usuário:</span>
+                    <span>usuario / user123</span>
+                </div>
+                <div class="credential">
+                    <span>Email Admin:</span>
+                    <span>admin@ligadabalanca.com</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========= CONFIGURAÇÕES =========
+        const USERS_KEY = 'lb_users_v1';
+        const SESSION_KEY = 'lb_session_v1';
+        
+        // ========= ELEMENTOS DO DOM =========
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const loading = document.getElementById('loading');
+        
+        // ========= INICIALIZAÇÃO =========
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verifica se já está logado
+            checkExistingSession();
+            
+            // Configura event listeners
+            setupEventListeners();
+            
+            // Inicializa usuários padrão se necessário
+            initializeDefaultUsers();
+        });
+        
+        // ========= FUNÇÕES DE SESSÃO =========
+        function checkExistingSession() {
+            try {
+                const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+                const now = new Date();
+                
+                if (session.userId && session.loginTime) {
+                    const loginDate = new Date(session.loginTime);
+                    const hoursDiff = (now - loginDate) / (1000 * 60 * 60);
+                    
+                    // Sessão válida por 8 horas
+                    if (hoursDiff < 8) {
+                        redirectToSystem();
+                        return;
+                    } else {
+                        // Sessão expirada
+                        clearSession();
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao verificar sessão:', error);
+                clearSession();
+            }
+        }
+        
+        function createSession(userId, userRole) {
+            const session = {
+                userId: userId,
+                userRole: userRole,
+                loginTime: new Date().toISOString(),
+                lastActivity: new Date().toISOString()
+            };
+            
+            localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        }
+        
+        function clearSession() {
+            localStorage.removeItem(SESSION_KEY);
+            localStorage.removeItem('isAdmin');
+            localStorage.removeItem('adminUser');
+            localStorage.removeItem('adminLoginTime');
+            localStorage.removeItem('currentUserId');
+        }
+        
+        function redirectToSystem() {
+            showMessage('Redirecionando para o sistema...', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+        }
+        
+        // ========= FUNÇÕES DE INTERFACE =========
+        function showMessage(message, type = 'error') {
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            if (type === 'error') {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+            } else {
+                successMessage.textContent = message;
+                successMessage.style.display = 'block';
+            }
+            
+            // Auto-hide após 5 segundos
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
+            }, 5000);
+        }
+        
+        function showLoading(show = true) {
+            loading.style.display = show ? 'block' : 'none';
+        }
+        
+        function clearMessages() {
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+        }
+        
+        // ========= FUNÇÕES DE AUTENTICAÇÃO =========
+        function authenticateUser(email, password) {
+            try {
+                console.log('=== DEBUG AUTENTICAÇÃO ===');
+                console.log('Email/Usuário digitado:', email);
+                console.log('Senha digitada:', password);
+                
+                // Força a criação de usuários se não existirem
+                let users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                console.log('Usuários encontrados no localStorage:', users.length);
+                
+                if (users.length === 0) {
+                    console.log('Nenhum usuário encontrado, criando usuários padrão...');
+                    const success = createDefaultUsers();
+                    if (success) {
+                        users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                        console.log('Usuários criados, total:', users.length);
+                    } else {
+                        console.error('Falha ao criar usuários padrão');
+                        return { success: false, message: 'Erro ao inicializar sistema. Recarregue a página.' };
+                    }
+                }
+                
+                console.log('Lista de usuários:', users);
+                
+                // Busca o usuário por email, nome ou login (sem domínio)
+                const user = users.find(u => {
+                    const emailLower = email.toLowerCase();
+                    const userEmailLower = u.email.toLowerCase();
+                    const userNameLower = u.name.toLowerCase();
+                    
+                    // Busca por email completo
+                    if (userEmailLower === emailLower) return true;
+                    
+                    // Busca por nome
+                    if (userNameLower === emailLower) return true;
+                    
+                    // Busca por login (email sem domínio)
+                    const emailWithoutDomain = userEmailLower.split('@')[0];
+                    if (emailWithoutDomain === emailLower) return true;
+                    
+                    return false;
+                });
+                
+                console.log('Usuário encontrado:', user);
+                
+                if (!user) {
+                    console.log('Usuário não encontrado na busca');
+                    console.log('Tentando com:', email.toLowerCase());
+                    console.log('Usuários disponíveis:', users.map(u => ({ 
+                    name: u.name, 
+                    email: u.email, 
+                    role: u.role,
+                    login: u.email.split('@')[0]
+                })));
+                console.log('Tentando buscar por:', email.toLowerCase());
+                    return { success: false, message: 'Usuário não encontrado. Verifique as credenciais.' };
+                }
+                
+                if (user.password !== password) {
+                    console.log('Senha incorreta');
+                    return { success: false, message: 'Senha incorreta.' };
+                }
+                
+                if (user.status !== 'active') {
+                    console.log('Usuário inativo');
+                    return { success: false, message: 'Usuário inativo. Entre em contato com o administrador.' };
+                }
+                
+                console.log('Autenticação bem-sucedida!');
+                return { success: true, user: user };
+                
+            } catch (error) {
+                console.error('Erro na autenticação:', error);
+                return { success: false, message: 'Erro interno. Tente novamente.' };
+            }
+        }
+        
+        function createDefaultUsers() {
+            try {
+                const defaultUsers = [
+                    {
+                        id: generateId(),
+                        name: 'admin',
+                        email: 'admin@ligadabalanca.com',
+                        role: 'admin',
+                        password: 'liga2024',
+                        department: 'Administração',
+                        phone: '',
+                        permissions: ['add_participant', 'edit_participant', 'delete_participant', 'manage_users', 'config_competition', 'view_stats', 'export_data', 'clear_data'],
+                        status: 'active',
+                        createdAt: new Date().toISOString(),
+                        lastAccess: null
+                    },
+                    {
+                        id: generateId(),
+                        name: 'Administrador',
+                        email: 'admin@ligadabalanca.com',
+                        role: 'admin',
+                        password: 'liga2024',
+                        department: 'Administração',
+                        phone: '',
+                        permissions: ['add_participant', 'edit_participant', 'delete_participant', 'manage_users', 'config_competition', 'view_stats', 'export_data', 'clear_data'],
+                        status: 'active',
+                        createdAt: new Date().toISOString(),
+                        lastAccess: null
+                    },
+                    {
+                        id: generateId(),
+                        name: 'moderador',
+                        email: 'moderador@ligadabalanca.com',
+                        role: 'moderator',
+                        password: 'mod123',
+                        department: 'Recursos Humanos',
+                        phone: '(11) 99999-9999',
+                        permissions: ['add_participant', 'edit_participant', 'view_stats', 'export_data'],
+                        status: 'active',
+                        createdAt: new Date().toISOString(),
+                        lastAccess: null
+                    },
+                    {
+                        id: generateId(),
+                        name: 'usuario',
+                        email: 'usuario@ligadabalanca.com',
+                        role: 'user',
+                        password: 'user123',
+                        department: 'Vendas',
+                        phone: '(11) 88888-8888',
+                        permissions: ['view_stats'],
+                        status: 'active',
+                        createdAt: new Date().toISOString(),
+                        lastAccess: null
+                    }
+                ];
+                
+                localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
+                console.log('Usuários padrão salvos:', defaultUsers);
+                
+                // Verifica se foi salvo corretamente
+                const saved = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                console.log('Usuários salvos verificados:', saved.length);
+                
+                return true;
+            } catch (error) {
+                console.error('Erro ao criar usuários padrão:', error);
+                return false;
+            }
+        }
+        
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+        
+        // ========= EVENT LISTENERS =========
+        function setupEventListeners() {
+            loginForm.addEventListener('submit', handleLogin);
+            
+            // Limpa mensagens quando o usuário digita
+            document.getElementById('email').addEventListener('input', clearMessages);
+            document.getElementById('password').addEventListener('input', clearMessages);
+        }
+        
+        function getProfileDisplayName(role) {
+            const profiles = {
+                'admin': 'Administrador',
+                'moderator': 'Moderador',
+                'user': 'Usuário'
+            };
+            return profiles[role] || role;
+        }
+        
+        function handleLogin(e) {
+            e.preventDefault();
+            clearMessages();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                showMessage('Por favor, preencha todos os campos.', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            // Simula delay de autenticação
+            setTimeout(() => {
+                const result = authenticateUser(email, password);
+                showLoading(false);
+                
+                if (result.success) {
+                    // Atualiza último acesso
+                    updateLastAccess(result.user.id);
+                    
+                    // Cria sessão
+                    createSession(result.user.id, result.user.role);
+                    
+                    // Configura dados de administrador se necessário
+                    if (result.user.role === 'admin') {
+                        localStorage.setItem('isAdmin', 'true');
+                        localStorage.setItem('adminUser', result.user.name);
+                        localStorage.setItem('adminLoginTime', new Date().toISOString());
+                        localStorage.setItem('currentUserId', result.user.id);
+                    }
+                    
+                    showMessage(`Bem-vindo, ${result.user.name}! (${getProfileDisplayName(result.user.role)})`, 'success');
+                    redirectToSystem();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            }, 1500);
+        }
+        
+        function updateLastAccess(userId) {
+            try {
+                const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                const userIndex = users.findIndex(u => u.id === userId);
+                
+                if (userIndex !== -1) {
+                    users[userIndex].lastAccess = new Date().toISOString();
+                    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar último acesso:', error);
+            }
+        }
+        
+        function showForgotPassword() {
+            alert('Funcionalidade de recuperação de senha será implementada em breve.\n\nEntre em contato com o administrador do sistema.');
+        }
+        
+        function initializeDefaultUsers() {
+            try {
+                const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                console.log('Usuários encontrados no localStorage:', users.length);
+                
+                if (users.length === 0) {
+                    console.log('Inicializando usuários padrão...');
+                    const success = createDefaultUsers();
+                    if (success) {
+                        console.log('Usuários padrão criados com sucesso!');
+                        // Verifica novamente após criar
+                        const newUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                        console.log('Usuários após criação:', newUsers.length);
+                    } else {
+                        console.error('Falha ao criar usuários padrão');
+                    }
+                } else {
+                    console.log('Usuários já existem:', users.length);
+                    console.log('Lista de usuários:', users);
+                }
+            } catch (error) {
+                console.error('Erro ao inicializar usuários:', error);
+                createDefaultUsers();
+            }
+        }
+        
+        function resetUsers() {
+            if (confirm('Tem certeza que deseja resetar os usuários padrão? Isso irá limpar todos os usuários existentes.')) {
+                // Remove usuários existentes
+                localStorage.removeItem(USERS_KEY);
+                
+                // Cria usuários padrão
+                createDefaultUsers();
+                
+                showMessage('Usuários padrão resetados com sucesso!', 'success');
+            }
+        }
+        
+        // ========= FUNÇÕES GLOBAIS =========
+        window.logout = function() {
+            clearSession();
+            window.location.href = 'login.html';
+        };
+        
+        window.isLoggedIn = function() {
+            try {
+                const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+                const now = new Date();
+                
+                if (session.userId && session.loginTime) {
+                    const loginDate = new Date(session.loginTime);
+                    const hoursDiff = (now - loginDate) / (1000 * 60 * 60);
+                    return hoursDiff < 8;
+                }
+                return false;
+            } catch (error) {
+                return false;
+            }
+        };
+        
+        window.getCurrentUser = function() {
+            try {
+                const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+                if (!session.userId) return null;
+                
+                const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                return users.find(u => u.id === session.userId);
+            } catch (error) {
+                return null;
+            }
+        };
+        
+        // ========= FUNÇÕES DE DIAGNÓSTICO =========
+        window.mostrarCredenciais = function() {
+            const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+            console.log('=== CREDENCIAIS DISPONÍVEIS ===');
+            if (users.length === 0) {
+                console.log('❌ Nenhum usuário encontrado!');
+                console.log('💡 Execute: criarUsuariosPadrao()');
+                return;
+            }
+            users.forEach(u => {
+                console.log(`\n👤 ${u.name} (${u.role})`);
+                console.log(`   Email: ${u.email}`);
+                console.log(`   Login: ${u.email.split('@')[0]}`);
+                console.log(`   Senha: ${u.password}`);
+                console.log(`   Status: ${u.status}`);
+            });
+            return users;
+        };
+        
+        window.criarUsuariosPadrao = function() {
+            console.log('🔄 Criando usuários padrão...');
+            const success = createDefaultUsers();
+            if (success) {
+                console.log('✅ Usuários criados com sucesso!');
+                mostrarCredenciais();
+            } else {
+                console.error('❌ Erro ao criar usuários');
+            }
+            return success;
+        };
+        
+        window.testarLogin = function(email, senha) {
+            console.log('🧪 Testando login...');
+            console.log('Email/Usuário:', email);
+            console.log('Senha:', senha);
+            const result = authenticateUser(email, senha);
+            if (result.success) {
+                console.log('✅ Login bem-sucedido!');
+                console.log('Usuário:', result.user);
+            } else {
+                console.error('❌ Login falhou:', result.message);
+            }
+            return result;
+        };
+        
+        window.limparTudo = function() {
+            if (confirm('Tem certeza que deseja limpar TODOS os dados? Isso irá remover usuários e sessões.')) {
+                localStorage.removeItem(USERS_KEY);
+                localStorage.removeItem(SESSION_KEY);
+                localStorage.removeItem('isAdmin');
+                localStorage.removeItem('adminUser');
+                localStorage.removeItem('adminLoginTime');
+                localStorage.removeItem('currentUserId');
+                console.log('✅ Dados limpos!');
+                console.log('💡 Recarregue a página e execute: criarUsuariosPadrao()');
+                location.reload();
+            }
+        };
+        
+        // Garantir que usuários sejam criados ao carregar
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                if (users.length === 0) {
+                    console.log('⚠️ Nenhum usuário encontrado. Criando usuários padrão...');
+                    createDefaultUsers();
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
