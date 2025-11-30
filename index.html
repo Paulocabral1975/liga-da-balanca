@@ -1920,7 +1920,7 @@
         <div id="multipleWeightsSection" class="hidden">
           <div class="form-group">
             <label for="weekNumber">Semana da Competição</label>
-            <select id="weekNumber" name="weekNumber" required>
+            <select id="weekNumber" name="weekNumber">
               <option value="">Selecione a semana</option>
               <option value="1">Semana 1</option>
               <option value="2">Semana 2</option>
@@ -2441,6 +2441,10 @@
 
         console.log(`✅ ${data.length} participantes carregados`);
         
+        // Conta quantos têm foto
+        const withPhotos = data.filter(p => p.photo && p.photo.trim() !== '').length;
+        console.log(`📸 ${withPhotos} participantes têm foto no localStorage`);
+        
         // Migração: adiciona perfil e senha padrão para participantes existentes
         return data.map(p => {
           const updatedParticipant = {
@@ -2621,14 +2625,37 @@
 
     // Função para obter as 3 últimas pesagens separadamente
     function getLastThreeWeights(p) {
-      if (!p.weights?.length) return { 
-        weight1: null, weight2: null, weight3: null,
-        date1: null, date2: null, date3: null,
-        pct1: null, pct2: null, pct3: null,
-        photo1: null, photo2: null, photo3: null
-      };
+      if (!p.weights || !Array.isArray(p.weights) || p.weights.length === 0) {
+        return { 
+          weight1: null, weight2: null, weight3: null,
+          date1: null, date2: null, date3: null,
+          pct1: null, pct2: null, pct3: null,
+          photo1: null, photo2: null, photo3: null
+        };
+      }
       
-      const sortedWeights = [...p.weights].sort((a, b) => new Date(b.date) - new Date(a.date));
+      // Filtra e valida pesagens (remove entradas inválidas)
+      const validWeights = p.weights.filter(w => {
+        return w && 
+               (w.value !== null && w.value !== undefined && !isNaN(w.value)) &&
+               (w.date || w.timestamp);
+      });
+      
+      if (validWeights.length === 0) {
+        return { 
+          weight1: null, weight2: null, weight3: null,
+          date1: null, date2: null, date3: null,
+          pct1: null, pct2: null, pct3: null,
+          photo1: null, photo2: null, photo3: null
+        };
+      }
+      
+      // Ordena por data (mais recente primeiro) - melhor tratamento de datas
+      const sortedWeights = [...validWeights].sort((a, b) => {
+        const dateA = a.date ? new Date(a.date) : (a.timestamp ? new Date(a.timestamp) : new Date(0));
+        const dateB = b.date ? new Date(b.date) : (b.timestamp ? new Date(b.timestamp) : new Date(0));
+        return dateB - dateA; // Mais recente primeiro
+      });
       
       // Pesagem 01 é a mais recente (peso inicial para cálculo)
       const weight1 = sortedWeights[0]?.value || null;
@@ -2638,14 +2665,14 @@
       // Calcula percentuais considerando Pesagem 01 como base (100%)
       let pct1 = null, pct2 = null, pct3 = null;
       
-      if (weight1) {
+      if (weight1 && !isNaN(weight1) && weight1 > 0) {
         pct1 = 0; // Pesagem 01 é a referência (0% de perda)
         
-        if (weight2) {
+        if (weight2 && !isNaN(weight2) && weight2 > 0) {
           pct2 = ((weight1 - weight2) / weight1) * 100;
         }
         
-        if (weight3) {
+        if (weight3 && !isNaN(weight3) && weight3 > 0) {
           pct3 = ((weight1 - weight3) / weight1) * 100;
         }
       }
@@ -2654,9 +2681,9 @@
         weight1: weight1,
         weight2: weight2,
         weight3: weight3,
-        date1: sortedWeights[0]?.date || null,
-        date2: sortedWeights[1]?.date || null,
-        date3: sortedWeights[2]?.date || null,
+        date1: sortedWeights[0]?.date || sortedWeights[0]?.timestamp || null,
+        date2: sortedWeights[1]?.date || sortedWeights[1]?.timestamp || null,
+        date3: sortedWeights[2]?.date || sortedWeights[2]?.timestamp || null,
         pct1: pct1,
         pct2: pct2,
         pct3: pct3,
@@ -2665,6 +2692,51 @@
         photo3: sortedWeights[2]?.photo || null
       };
     }
+    
+    // Função de diagnóstico para verificar pesagens
+    window.diagnosticarPesagens = function(participantName = null) {
+      console.log('🔍 === DIAGNÓSTICO DE PESAGENS ===\n');
+      
+      const participantsToCheck = participantName 
+        ? participants.filter(p => p.name.toLowerCase().includes(participantName.toLowerCase()))
+        : participants;
+      
+      if (participantsToCheck.length === 0) {
+        console.log('❌ Nenhum participante encontrado');
+        return;
+      }
+      
+      participantsToCheck.forEach(p => {
+        console.log(`\n👤 ${p.name} (ID: ${p.id}):`);
+        console.log(`   Total de pesagens: ${p.weights?.length || 0}`);
+        
+        if (p.weights && p.weights.length > 0) {
+          console.log('   📋 Pesagens brutas:');
+          p.weights.forEach((w, i) => {
+            console.log(`      ${i + 1}. Valor: ${w.value} kg, Data: ${w.date || w.timestamp || 'sem data'}`);
+          });
+          
+          const threeWeights = getLastThreeWeights(p);
+          console.log('   📊 Resultado getLastThreeWeights:');
+          console.log(`      Pesagem 1: ${threeWeights.weight1 || 'null'} kg (${threeWeights.date1 || 'sem data'})`);
+          console.log(`      Pesagem 2: ${threeWeights.weight2 || 'null'} kg (${threeWeights.date2 || 'sem data'})`);
+          console.log(`      Pesagem 3: ${threeWeights.weight3 || 'null'} kg (${threeWeights.date3 || 'sem data'})`);
+          
+          if (p.weights.length >= 2 && !threeWeights.weight2) {
+            console.warn('   ⚠️ PROBLEMA: Tem 2+ pesagens mas weight2 é null!');
+            console.warn('   ⚠️ Verificando ordenação...');
+            const sorted = [...p.weights].sort((a, b) => {
+              const dateA = a.date ? new Date(a.date) : (a.timestamp ? new Date(a.timestamp) : new Date(0));
+              const dateB = b.date ? new Date(b.date) : (b.timestamp ? new Date(b.timestamp) : new Date(0));
+              return dateB - dateA;
+            });
+            console.warn('   Ordenação:', sorted.map(w => ({ value: w.value, date: w.date || w.timestamp })));
+          }
+        } else {
+          console.log('   ❌ Nenhuma pesagem encontrada');
+        }
+      });
+    };
     function totalWeightLost() {
       return participants.reduce((acc,p)=>{
         const cw = currentWeight(p); if (!cw) return acc;
@@ -2883,10 +2955,14 @@
       const checkbox = document.getElementById('multipleWeights');
       const singleSection = document.getElementById('singleWeightSection');
       const multipleSection = document.getElementById('multipleWeightsSection');
+      const weekNumberSelect = document.getElementById('weekNumber');
       
       if (checkbox.checked) {
         singleSection.classList.add('hidden');
         multipleSection.classList.remove('hidden');
+        
+        // Adicionar required quando visível
+        weekNumberSelect.setAttribute('required', 'required');
         
         // Preenche datas automaticamente (3 dias consecutivos)
         const today = new Date();
@@ -2904,11 +2980,14 @@
         
         // Define semana atual automaticamente
         const currentWeek = getCompetitionWeek();
-        document.getElementById('weekNumber').value = currentWeek;
+        weekNumberSelect.value = currentWeek;
         
       } else {
         singleSection.classList.remove('hidden');
         multipleSection.classList.add('hidden');
+        
+        // Remover required quando oculto
+        weekNumberSelect.removeAttribute('required');
       }
     }
 
@@ -2970,6 +3049,9 @@
       document.getElementById('multipleWeights').checked = false;
       document.getElementById('singleWeightSection').classList.remove('hidden');
       document.getElementById('multipleWeightsSection').classList.add('hidden');
+      
+      // Remover required do weekNumber quando modal é aberto
+      document.getElementById('weekNumber').removeAttribute('required');
       
       // Limpar todos os campos
       weightForm.reset();
@@ -3360,7 +3442,7 @@
           </div>
           <div class="lb-weight-2">
             <div class="lb-weight-label">Pesagem 2</div>
-            <div class="lb-weight-value">${threeWeights.weight2?.toFixed(1) ?? '-'} kg</div>
+            <div class="lb-weight-value">${(threeWeights.weight2 !== null && threeWeights.weight2 !== undefined) ? threeWeights.weight2.toFixed(1) : '-'} kg</div>
           </div>
           <div class="lb-weight-3">
             <div class="lb-weight-label">Pesagem 3</div>
@@ -3377,7 +3459,7 @@
             </div>
             <div class="lb-weight-2">
               <div class="lb-weight-label">P2</div>
-              <div class="lb-weight-value">${threeWeights.weight2?.toFixed(1) ?? '-'} kg</div>
+              <div class="lb-weight-value">${(threeWeights.weight2 !== null && threeWeights.weight2 !== undefined) ? threeWeights.weight2.toFixed(1) : '-'} kg</div>
             </div>
             <div class="lb-weight-3">
               <div class="lb-weight-label">P3</div>
@@ -3438,8 +3520,8 @@
             </div>
             <div class="weight-item">
               <div class="weight-label">Pesagem 02</div>
-              <div class="weight-value">${threeWeights.weight2?.toFixed(1) ?? '-'} kg</div>
-              <div class="weight-percentage" style="color: ${threeWeights.pct2 >= 0 ? '#16a34a' : '#dc2626'};">${threeWeights.pct2 !== null ? threeWeights.pct2.toFixed(1) + '%' : '-'}</div>
+              <div class="weight-value">${(threeWeights.weight2 !== null && threeWeights.weight2 !== undefined) ? threeWeights.weight2.toFixed(1) : '-'} kg</div>
+              <div class="weight-percentage" style="color: ${threeWeights.pct2 !== null && threeWeights.pct2 >= 0 ? '#16a34a' : '#dc2626'};">${threeWeights.pct2 !== null ? threeWeights.pct2.toFixed(1) + '%' : '-'}</div>
               <div class="weight-date">${formatDate(threeWeights.date2)}</div>
               ${threeWeights.photo2 ? `<div class="weight-photo"><img src="${threeWeights.photo2}" alt="Foto da pesagem 2" style="max-width: 60px; max-height: 60px; border-radius: 4px; margin-top: 4px;"></div>` : ''}
             </div>
@@ -3545,9 +3627,10 @@
             </div>
             <div class="weight-item">
               <div class="weight-label">Pesagem 02</div>
-              <div class="weight-value">${threeWeights.weight2?.toFixed(1) ?? '-'} kg</div>
-              <div class="weight-percentage" style="color: ${threeWeights.pct2 >= 0 ? '#16a34a' : '#dc2626'};">${threeWeights.pct2 !== null ? threeWeights.pct2.toFixed(1) + '%' : '-'}</div>
+              <div class="weight-value">${(threeWeights.weight2 !== null && threeWeights.weight2 !== undefined) ? threeWeights.weight2.toFixed(1) : '-'} kg</div>
+              <div class="weight-percentage" style="color: ${threeWeights.pct2 !== null && threeWeights.pct2 >= 0 ? '#16a34a' : '#dc2626'};">${threeWeights.pct2 !== null ? threeWeights.pct2.toFixed(1) + '%' : '-'}</div>
               <div class="weight-date">${formatDate(threeWeights.date2)}</div>
+              ${threeWeights.photo2 ? `<div class="weight-photo"><img src="${threeWeights.photo2}" alt="Foto da pesagem 2" style="max-width: 60px; max-height: 60px; border-radius: 4px; margin-top: 4px;"></div>` : ''}
             </div>
             <div class="weight-item">
               <div class="weight-label">Pesagem 03</div>
@@ -3635,10 +3718,27 @@
     }
 
     function renderParticipants() {
+      // Garante que a variável global está sincronizada com localStorage
+      if (typeof participants !== 'undefined') {
+        const saved = loadParticipants();
+        if (saved.length !== participants.length) {
+          console.log('🔄 Sincronizando variável global com localStorage...');
+          participants.length = 0;
+          participants.push(...saved);
+        }
+      }
+      
       // Renderiza todas as visualizações
       renderParticipantsCards();
       renderParticipantsList();
       renderParticipantsGrid();
+      
+      // Garante que o container está visível se houver participantes
+      const container = document.getElementById('participantsContainer');
+      if (container && participants.length > 0) {
+        container.classList.remove('hidden');
+        container.style.display = '';
+      }
     }
 
     function updateHeaderCounters() {
@@ -3711,9 +3811,49 @@
         console.log('Salvando no localStorage...'); // Debug
         saveParticipants();
         
+        // Verifica se salvou corretamente
+        const savedData = localStorage.getItem('lb_participants_v1');
+        const savedParticipants = savedData ? JSON.parse(savedData) : [];
+        console.log(`✅ ${savedParticipants.length} participantes salvos no localStorage`);
+        
+        // Verifica se o novo participante está na lista
+        const newParticipantFound = savedParticipants.find(p => p.id === participantId);
+        if (!newParticipantFound) {
+          console.error('❌ ERRO: Novo participante não foi encontrado após salvar!');
+          console.error('Participante criado:', np);
+          console.error('Lista salva:', savedParticipants);
+          alert('Erro: Participante não foi salvo corretamente. Verifique o console.');
+          return;
+        }
+        
+        console.log('✅ Novo participante confirmado no localStorage:', newParticipantFound.name);
+        
         // Sincroniza imediatamente com Firebase
         console.log('Sincronizando com Firebase...'); // Debug
-        saveToCloud();
+        try {
+          await saveToCloud();
+          console.log('✅ Sincronização com Firebase concluída');
+          
+          // Verifica se foi salvo no Firebase
+          if (window.db) {
+            const doc = await window.db.collection('competition').doc('data').get();
+            if (doc.exists) {
+              const firebaseData = doc.data();
+              const firebaseParticipants = firebaseData.participants || [];
+              const foundInFirebase = firebaseParticipants.find(p => p.id === participantId);
+              if (foundInFirebase) {
+                console.log('✅ Participante confirmado no Firebase');
+              } else {
+                console.warn('⚠️ Participante não encontrado no Firebase após sincronização');
+              }
+            }
+          }
+        } catch (firebaseError) {
+          console.error('❌ Erro ao sincronizar com Firebase:', firebaseError);
+          console.error('Detalhes do erro:', firebaseError.message);
+          // Continua mesmo se o Firebase falhar - os dados estão no localStorage
+          alert('Participante salvo localmente, mas houve um problema ao sincronizar com a nuvem. Tente novamente mais tarde.');
+        }
         
         // Limpa o formulário
         console.log('Limpando formulário...'); // Debug
@@ -3727,12 +3867,52 @@
         console.log('Fechando modal...'); // Debug
         close(participantModal);
         
+        // Força atualização da variável global ANTES de renderizar
+        console.log('Atualizando variável global...'); // Debug
+        if (typeof participants !== 'undefined') {
+          // Recarrega do localStorage para garantir sincronização
+          const reloaded = loadParticipants();
+          participants.length = 0;
+          participants.push(...reloaded);
+          console.log(`✅ Variável global atualizada: ${participants.length} participantes`);
+          
+          // Verifica se o novo participante está na variável
+          const foundInVariable = participants.find(p => p.id === participantId);
+          if (!foundInVariable) {
+            console.error('❌ ERRO: Participante não encontrado na variável global após recarregar!');
+            console.error('Forçando adição manual...');
+            participants.push(np);
+            saveParticipants(); // Salva novamente
+          }
+        }
+        
         // Atualiza a interface
         console.log('Atualizando interface...'); // Debug
         refreshAll();
         
+        // Força renderização novamente após um pequeno delay
+        setTimeout(() => {
+          console.log('Forçando renderização final...');
+          if (typeof renderParticipants === 'function') {
+            renderParticipants();
+          }
+          if (typeof updateHeaderCounters === 'function') {
+            updateHeaderCounters();
+          }
+          
+          // Verifica se o participante aparece na tela
+          const participantCards = document.querySelectorAll('.participant-card, .participant-row');
+          console.log(`✅ ${participantCards.length} participantes renderizados na tela`);
+          
+          if (participantCards.length !== participants.length) {
+            console.warn(`⚠️ Diferença: ${participants.length} na variável, ${participantCards.length} na tela`);
+            console.warn('Forçando re-renderização completa...');
+            refreshAll();
+          }
+        }, 500);
+        
         console.log('Participante adicionado com sucesso!'); // Debug
-        alert('Participante adicionado com sucesso!');
+        alert(`Participante "${name}" adicionado com sucesso!\n\nTotal: ${participants.length} participantes`);
         
       } catch (error) {
         console.error('Erro detalhado ao adicionar participante:', error);
@@ -3759,18 +3939,29 @@
       });
     }
 
-    weightForm.addEventListener('submit', (e) => {
+    weightForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const id = weightParticipant.value;
       const isMultiple = document.getElementById('multipleWeights').checked;
       
       const idx = participants.findIndex(p => p.id === id);
-      if (idx === -1) return;
+      if (idx === -1) {
+        alert('Participante não encontrado!');
+        return;
+      }
       
       if (isMultiple) {
-        // Registrar múltiplas pesagens
+        // Validar semana quando múltiplas pesagens estão ativas
         const weekNumber = document.getElementById('weekNumber').value;
+        if (!weekNumber) {
+          alert('Por favor, selecione a semana da competição.');
+          document.getElementById('weekNumber').focus();
+          return;
+        }
+        
+        // Registrar múltiplas pesagens
         const weights = [];
+        const photoPromises = [];
         
         // Processar cada pesagem
         for (let i = 1; i <= 3; i++) {
@@ -3788,32 +3979,29 @@
               entry: i
             };
             
-            // Processar foto se existir
+            // Processar foto se existir (usando Promise)
             if (photoInput.files && photoInput.files[0]) {
+              const photoPromise = new Promise((resolve) => {
               const reader = new FileReader();
               reader.onload = function(e) {
                 weightData.photo = e.target.result;
-                weights.push(weightData);
-                
-                // Se for a última pesagem, salvar tudo
-                if (i === 3) {
-                  if (weights.length === 0) {
-                    alert('Por favor, preencha pelo menos uma pesagem válida.');
-                    return;
-                  }
-                  
-                  participants[idx].weights.push(...weights);
-                  saveParticipants();
-                  saveToCloud();
-                  close(weightModal);
-                  refreshAll();
-                }
-              };
+                  resolve(weightData);
+                };
+                reader.onerror = () => resolve(weightData); // Continua sem foto se houver erro
               reader.readAsDataURL(photoInput.files[0]);
+              });
+              photoPromises.push(photoPromise);
             } else {
+              // Sem foto, adiciona diretamente
               weights.push(weightData);
             }
           }
+        }
+        
+        // Aguardar todas as fotos serem processadas
+        if (photoPromises.length > 0) {
+          const photosData = await Promise.all(photoPromises);
+          weights.push(...photosData);
         }
         
         if (weights.length === 0) {
@@ -3832,7 +4020,10 @@
         const d = weightDate.value ? new Date(weightDate.value) : new Date();
         const n = notes.value.trim();
 
-        if (isNaN(w)) return;
+        if (isNaN(w) || w <= 0) {
+          alert('Por favor, informe um peso válido.');
+          return;
+        }
         
         participants[idx].weights.push({ 
           value: w, 
@@ -5373,19 +5564,35 @@
         console.log('✅ Firebase inicializado com sucesso!');
         firebaseInitialized = true;
         
-        // Torna as funções globais
-        window.saveToCloud = saveToCloud;
-        window.loadFromCloud = loadFromCloud;
+        // Torna o db global imediatamente
         window.db = db;
         
+        // Torna as funções globais (se já existirem)
+        if (typeof saveToCloud === 'function') {
+        window.saveToCloud = saveToCloud;
+        }
+        if (typeof loadFromCloud === 'function') {
+        window.loadFromCloud = loadFromCloud;
+        }
+        
         // Carregar dados da nuvem
+        if (typeof loadFromCloud === 'function') {
         loadFromCloud();
+        }
         
         // Sincronizar a cada mudança
-        window.addEventListener('beforeunload', saveToCloud);
+        window.addEventListener('beforeunload', function() {
+          if (typeof saveToCloud === 'function') {
+            saveToCloud().catch(err => console.error('Erro ao salvar antes de sair:', err));
+          }
+        });
         
     // Sincronizar automaticamente a cada 30 segundos
-    setInterval(saveToCloud, 30000);
+        setInterval(function() {
+          if (typeof saveToCloud === 'function') {
+            saveToCloud().catch(err => console.error('Erro na sincronização automática:', err));
+          }
+        }, 30000);
     
     // Função para testar sincronização
     window.testFirebaseSync = function() {
@@ -5440,7 +5647,9 @@
       // Sincroniza a cada 10 segundos em vez de 30
       setInterval(() => {
         console.log('🔄 Sincronização automática...');
-        saveToCloud();
+        if (typeof saveToCloud === 'function') {
+          saveToCloud().catch(err => console.error('Erro na sincronização automática:', err));
+        }
       }, 10000);
       
       // Sincroniza quando a página ganha foco
@@ -5464,30 +5673,172 @@
     }
 
     // Função para salvar dados na nuvem
-    async function saveToCloud() {
+    // Torna a função global imediatamente
+    window.saveToCloud = async function saveToCloud() {
       try {
-        if (!window.db) {
-          console.log('⚠️ Firebase não disponível para salvar');
-          return;
+        // Verifica se Firebase está disponível
+        if (typeof firebase === 'undefined') {
+          console.log('⚠️ Firebase SDK não carregado');
+          throw new Error('Firebase SDK não está disponível');
         }
         
+        if (!window.db) {
+          console.log('⚠️ Firebase Firestore não inicializado, tentando inicializar...');
+          // Tenta inicializar se não estiver inicializado
+          if (typeof initializeFirebase === 'function') {
+            initializeFirebase();
+            // Aguarda um pouco para o Firebase inicializar
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+          
+          if (!window.db) {
+            throw new Error('Firebase Firestore não está disponível');
+          }
+        }
+        
+        // Lê dados do localStorage
+        const participantsData = localStorage.getItem('lb_participants_v1');
+        const weightRecordsData = localStorage.getItem('lb_weight_records_v1');
+        const usersData = localStorage.getItem('lb_users_v1');
+        const configData = localStorage.getItem('lb_config_v1');
+        
+        // Parse dos dados
+        let participants = participantsData ? JSON.parse(participantsData) : [];
+        let weightRecords = weightRecordsData ? JSON.parse(weightRecordsData) : [];
+        let users = usersData ? JSON.parse(usersData) : [];
+        const config = configData ? JSON.parse(configData) : {};
+        
+        // Função recursiva para remover todas as propriedades de foto
+        function removePhotosRecursively(obj) {
+          if (obj === null || obj === undefined) return obj;
+          if (Array.isArray(obj)) {
+            return obj.map(item => removePhotosRecursively(item));
+          }
+          if (typeof obj === 'object') {
+            const cleaned = {};
+            for (const key in obj) {
+              // Remove qualquer propriedade relacionada a foto
+              if (key.toLowerCase().includes('photo') || 
+                  key.toLowerCase().includes('avatar') ||
+                  key.toLowerCase().includes('image') ||
+                  (typeof obj[key] === 'string' && obj[key].startsWith('data:image'))) {
+                // Pula propriedades de foto
+                continue;
+              }
+              cleaned[key] = removePhotosRecursively(obj[key]);
+            }
+            return cleaned;
+          }
+          // Se for string base64 de imagem, retorna null
+          if (typeof obj === 'string' && obj.startsWith('data:image')) {
+            return null;
+          }
+          return obj;
+        }
+        
+        // Remove fotos (base64) dos participantes para reduzir tamanho do documento
+        // As fotos permanecem no localStorage, apenas não são sincronizadas no Firestore
+        participants = removePhotosRecursively(participants);
+        weightRecords = removePhotosRecursively(weightRecords);
+        users = removePhotosRecursively(users);
+        
         const data = {
-          participants: JSON.parse(localStorage.getItem('lb_participants_v1') || '[]'),
-          weightRecords: JSON.parse(localStorage.getItem('lb_weight_records_v1') || '[]'),
-          users: JSON.parse(localStorage.getItem('lb_users_v1') || '[]'),
-          config: JSON.parse(localStorage.getItem('lb_config_v1') || '{}'),
+          participants: participants,
+          weightRecords: weightRecords,
+          users: users,
+          config: config,
           lastSync: new Date().toISOString()
         };
         
-        await window.db.collection('competition').doc('data').set(data);
-        console.log('✅ Dados salvos na nuvem!');
+        // Calcula tamanho aproximado do documento
+        const dataSize = JSON.stringify(data).length;
+        const dataSizeMB = (dataSize / 1024 / 1024).toFixed(2);
+        const dataSizeBytes = dataSize;
+        console.log(`📤 Enviando para Firebase: ${data.participants.length} participantes, ${data.users.length} usuários`);
+        console.log(`📏 Tamanho aproximado do documento: ${dataSizeMB} MB (${dataSizeBytes} bytes)`);
+        
+        // Verifica se excede o limite ANTES de tentar salvar
+        if (dataSize > 1048576) { // 1 MB = 1048576 bytes
+          console.error(`❌ ERRO: Documento excede 1 MB (${dataSizeBytes} bytes). Removendo dados antigos...`);
+          
+          // Tenta remover dados antigos (pesos antigos, por exemplo)
+          if (data.participants && data.participants.length > 0) {
+            console.log('🧹 Tentando reduzir tamanho removendo histórico de pesos antigos...');
+            data.participants = data.participants.map(p => {
+              if (p.weights && p.weights.length > 10) {
+                // Mantém apenas os 10 pesos mais recentes
+                const sortedWeights = [...p.weights].sort((a, b) => 
+                  new Date(b.date || b.timestamp || 0) - new Date(a.date || a.timestamp || 0)
+                );
+                return { ...p, weights: sortedWeights.slice(0, 10) };
+              }
+              return p;
+            });
+            
+            // Recalcula tamanho
+            const newDataSize = JSON.stringify(data).length;
+            const newDataSizeMB = (newDataSize / 1024 / 1024).toFixed(2);
+            console.log(`📏 Novo tamanho após limpeza: ${newDataSizeMB} MB (${newDataSize} bytes)`);
+            
+            if (newDataSize > 1048576) {
+              throw new Error(`Documento ainda excede 1 MB após limpeza (${newDataSize} bytes). Considere remover participantes antigos ou limpar mais dados.`);
+            }
+          } else {
+            throw new Error(`Documento excede 1 MB (${dataSizeBytes} bytes) e não foi possível reduzir o tamanho.`);
+          }
+        }
+        
+        if (dataSize > 900000) { // 900 KB - aviso antes de 1 MB
+          console.warn('⚠️ Documento próximo do limite de 1 MB. Considere limpar dados antigos.');
+        }
+        
+        // Salva no Firebase com retry
+        let attempts = 0;
+        const maxAttempts = 3;
+        let lastError = null;
+        
+        while (attempts < maxAttempts) {
+          try {
+            await window.db.collection('competition').doc('data').set(data, { merge: false });
+            console.log('✅ Dados salvos na nuvem com sucesso!');
+            
+            // Verifica se foi salvo corretamente
+            const doc = await window.db.collection('competition').doc('data').get();
+            if (doc.exists) {
+              const savedData = doc.data();
+              console.log(`✅ Verificação: ${savedData.participants?.length || 0} participantes na nuvem`);
+              return true;
+            } else {
+              throw new Error('Documento não foi criado no Firebase');
+            }
       } catch (error) {
-        console.error('❌ Erro ao salvar:', error);
+            attempts++;
+            lastError = error;
+            console.warn(`⚠️ Tentativa ${attempts}/${maxAttempts} falhou:`, error.message);
+            
+            if (attempts < maxAttempts) {
+              // Aguarda antes de tentar novamente (backoff exponencial)
+              await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+            }
+          }
+        }
+        
+        // Se todas as tentativas falharam, lança o erro
+        throw lastError || new Error('Falha ao salvar no Firebase após múltiplas tentativas');
+        
+      } catch (error) {
+        console.error('❌ Erro ao salvar no Firebase:', error);
+        console.error('Detalhes do erro:', {
+          message: error.message,
+          code: error.code,
+          stack: error.stack
+        });
+        throw error; // Re-lança o erro para que o chamador possa tratá-lo
       }
     }
 
-    // Função para carregar dados da nuvem
-    async function loadFromCloud() {
+    // Torna a função global imediatamente
+    window.loadFromCloud = async function loadFromCloud() {
       try {
         if (!window.db) {
           console.log('⚠️ Firebase não disponível para carregar');
@@ -5496,26 +5847,816 @@
         
         const doc = await window.db.collection('competition').doc('data').get();
         if (doc.exists) {
-          const data = doc.data();
-          localStorage.setItem('lb_participants_v1', JSON.stringify(data.participants || []));
-          localStorage.setItem('lb_weight_records_v1', JSON.stringify(data.weightRecords || []));
-          localStorage.setItem('lb_users_v1', JSON.stringify(data.users || []));
-          localStorage.setItem('lb_config_v1', JSON.stringify(data.config || {}));
-          console.log('✅ Dados carregados da nuvem!');
+          const cloudData = doc.data();
+          
+          // Carrega dados locais ANTES de mesclar
+          const localParticipantsData = localStorage.getItem('lb_participants_v1');
+          const localParticipants = localParticipantsData ? JSON.parse(localParticipantsData) : [];
+          const cloudParticipants = cloudData.participants || [];
+          
+          console.log(`📊 Mesclando dados: ${localParticipants.length} locais, ${cloudParticipants.length} na nuvem`);
+          
+          // ESTRATÉGIA: Preserva TODOS os participantes locais que não estão na nuvem
+          // e mescla os que existem em ambos
+          const mergedMap = new Map();
+          
+          // Primeiro, adiciona todos os participantes locais (prioridade)
+          localParticipants.forEach(localP => {
+            mergedMap.set(localP.id, { ...localP });
+          });
+          
+          // Depois, atualiza com dados da nuvem (mas preserva fotos locais)
+          cloudParticipants.forEach(cloudP => {
+            const existing = mergedMap.get(cloudP.id);
+            if (existing) {
+              // Mescla: mantém foto local, atualiza outros dados da nuvem
+              mergedMap.set(cloudP.id, {
+                ...cloudP,
+                photo: existing.photo || cloudP.photo, // Preserva foto local se existir
+                weights: existing.weights || cloudP.weights // Preserva pesos locais se existirem
+              });
+            } else {
+              // Participante novo na nuvem que não existe localmente
+              mergedMap.set(cloudP.id, cloudP);
+            }
+          });
+          
+          const finalParticipants = Array.from(mergedMap.values());
+          
+          console.log(`✅ Mesclagem concluída: ${finalParticipants.length} participantes (preservados ${localParticipants.length} locais)`);
+          
+          // Verifica se há participantes locais que foram perdidos
+          const lostParticipants = localParticipants.filter(localP => 
+            !cloudParticipants.find(cloudP => cloudP.id === localP.id)
+          );
+          
+          if (lostParticipants.length > 0) {
+            console.warn(`⚠️ ATENÇÃO: ${lostParticipants.length} participantes locais não estão na nuvem:`);
+            lostParticipants.forEach(p => console.warn(`   - ${p.name} (ID: ${p.id})`));
+            console.warn('💡 Esses participantes foram preservados localmente. Considere sincronizar com saveToCloud().');
+          }
+          
+          // Mescla também os pesos com fotos locais
+          const finalWithWeights = finalParticipants.map(participant => {
+            const localParticipant = localParticipants.find(lp => lp.id === participant.id);
+            if (localParticipant && localParticipant.weights) {
+              // Mescla pesos preservando fotos locais
+              const mergedWeights = (participant.weights || []).map(weight => {
+                const localWeight = localParticipant.weights.find(lw => 
+                  lw.date === weight.date && lw.value === weight.value
+                );
+                if (localWeight && localWeight.photo) {
+                  return { ...weight, photo: localWeight.photo };
+                }
+                return weight;
+              });
+              // Se houver pesos locais que não estão na nuvem, adiciona
+              const localOnlyWeights = localParticipant.weights.filter(lw => 
+                !mergedWeights.find(mw => mw.date === lw.date && mw.value === lw.value)
+              );
+              return { ...participant, weights: [...mergedWeights, ...localOnlyWeights] };
+            }
+            return participant;
+          });
+          
+          // Salva dados mesclados
+          localStorage.setItem('lb_participants_v1', JSON.stringify(finalWithWeights));
+          localStorage.setItem('lb_weight_records_v1', JSON.stringify(cloudData.weightRecords || []));
+          localStorage.setItem('lb_users_v1', JSON.stringify(cloudData.users || []));
+          localStorage.setItem('lb_config_v1', JSON.stringify(cloudData.config || {}));
+          console.log('✅ Dados salvos no localStorage (participantes locais preservados)');
+          
+          // Atualiza a variável global participants
+          if (typeof participants !== 'undefined') {
+            participants.length = 0;
+            participants.push(...finalWithWeights);
+            console.log(`✅ Variável global atualizada: ${participants.length} participantes`);
+          }
           
           // Recarregar a interface se já estiver carregada
           if (typeof loadParticipants === 'function') {
             loadParticipants();
-            // loadWeightHistory(); // Função não existe, removido
+          }
+          
+          if (typeof refreshAll === 'function') {
+            refreshAll();
+            console.log('✅ Interface atualizada após carregar do Firebase');
+          } else if (typeof updateCompetitionInfo === 'function') {
             updateCompetitionInfo();
           }
         } else {
-          console.log('ℹ️ Nenhum dado encontrado na nuvem');
+          console.log('ℹ️ Nenhum dado encontrado na nuvem - mantendo dados locais');
         }
       } catch (error) {
         console.error('❌ Erro ao carregar:', error);
+        console.error('💡 Mantendo dados locais devido ao erro');
       }
     }
+
+    // ========= Função para Diagnosticar Estado Atual =========
+    window.diagnosticarEstado = async function() {
+      console.log('🔍 === DIAGNÓSTICO COMPLETO DO ESTADO ===\n');
+      
+      // 1. Verifica localStorage
+      const localData = localStorage.getItem('lb_participants_v1');
+      const localParticipants = localData ? JSON.parse(localData) : [];
+      console.log(`📱 LOCALSTORAGE: ${localParticipants.length} participantes`);
+      localParticipants.forEach((p, i) => {
+        console.log(`   ${i + 1}. ${p.name} (ID: ${p.id})`);
+      });
+      
+      // 2. Verifica Firebase
+      if (!window.db) {
+        console.log('\n❌ Firebase não disponível');
+        return { local: localParticipants, firebase: null };
+      }
+      
+      try {
+        const doc = await window.db.collection('competition').doc('data').get();
+        if (doc.exists) {
+          const firebaseData = doc.data();
+          const firebaseParticipants = firebaseData.participants || [];
+          console.log(`\n🔥 FIREBASE: ${firebaseParticipants.length} participantes`);
+          firebaseParticipants.forEach((p, i) => {
+            console.log(`   ${i + 1}. ${p.name} (ID: ${p.id})`);
+          });
+          
+          // 3. Compara
+          console.log('\n📊 COMPARAÇÃO:');
+          const onlyLocal = localParticipants.filter(localP => 
+            !firebaseParticipants.find(firebaseP => firebaseP.id === localP.id)
+          );
+          const onlyFirebase = firebaseParticipants.filter(firebaseP => 
+            !localParticipants.find(localP => localP.id === firebaseP.id)
+          );
+          const inBoth = localParticipants.filter(localP => 
+            firebaseParticipants.find(firebaseP => firebaseP.id === localP.id)
+          );
+          
+          console.log(`   ✅ Em ambos: ${inBoth.length}`);
+          console.log(`   📱 Apenas local: ${onlyLocal.length}`);
+          console.log(`   🔥 Apenas Firebase: ${onlyFirebase.length}`);
+          
+          if (onlyLocal.length > 0) {
+            console.log('\n   📋 Participantes apenas no localStorage:');
+            onlyLocal.forEach(p => console.log(`      - ${p.name} (ID: ${p.id})`));
+          }
+          
+          if (onlyFirebase.length > 0) {
+            console.log('\n   📋 Participantes apenas no Firebase:');
+            onlyFirebase.forEach(p => console.log(`      - ${p.name} (ID: ${p.id})`));
+          }
+          
+          // 4. Verifica última sincronização
+          if (firebaseData.lastSync) {
+            const lastSync = new Date(firebaseData.lastSync);
+            console.log(`\n🕐 Última sincronização: ${lastSync.toLocaleString('pt-BR')}`);
+          }
+          
+          return {
+            local: localParticipants,
+            firebase: firebaseParticipants,
+            onlyLocal: onlyLocal,
+            onlyFirebase: onlyFirebase,
+            inBoth: inBoth
+          };
+        } else {
+          console.log('\n❌ Nenhum documento encontrado no Firebase');
+          return { local: localParticipants, firebase: [] };
+        }
+      } catch (error) {
+        console.error('\n❌ Erro ao verificar Firebase:', error);
+        return { local: localParticipants, firebase: null, error: error.message };
+      }
+    };
+    
+    // ========= Função para Recuperar Participantes Perdidos =========
+    window.recuperarParticipantesPerdidos = async function() {
+      console.log('🔍 === RECUPERANDO PARTICIPANTES PERDIDOS ===\n');
+      
+      // Primeiro, faz diagnóstico
+      const diagnostic = await diagnosticarEstado();
+      
+      if (!diagnostic.firebase) {
+        console.error('❌ Não foi possível acessar o Firebase');
+        alert('Erro: Firebase não está disponível.');
+        return;
+      }
+      
+      const localParticipants = diagnostic.local || [];
+      const firebaseParticipants = diagnostic.firebase || [];
+      
+      // Encontra participantes que estão no local mas não no Firebase
+      const lostParticipants = localParticipants.filter(localP => 
+        !firebaseParticipants.find(firebaseP => firebaseP.id === localP.id)
+      );
+      
+      // Também verifica se há participantes no Firebase que não estão no local
+      const firebaseOnly = firebaseParticipants.filter(firebaseP => 
+        !localParticipants.find(localP => localP.id === firebaseP.id)
+      );
+      
+      if (lostParticipants.length === 0 && firebaseOnly.length === 0) {
+        console.log('✅ Todos os participantes estão sincronizados!');
+        alert('✅ Todos os participantes estão sincronizados entre localStorage e Firebase.');
+        return;
+      }
+      
+      if (lostParticipants.length > 0) {
+        console.log(`\n⚠️ ${lostParticipants.length} participantes no localStorage que NÃO estão no Firebase:`);
+        lostParticipants.forEach((p, i) => {
+          console.log(`   ${i + 1}. ${p.name} (ID: ${p.id})`);
+        });
+      }
+      
+      if (firebaseOnly.length > 0) {
+        console.log(`\n⚠️ ${firebaseOnly.length} participantes no Firebase que NÃO estão no localStorage:`);
+        firebaseOnly.forEach((p, i) => {
+          console.log(`   ${i + 1}. ${p.name} (ID: ${p.id})`);
+        });
+      }
+      
+      // Pergunta qual ação tomar
+      let action = 'sync';
+      if (lostParticipants.length > 0 && firebaseOnly.length > 0) {
+        action = confirm(
+          `Encontradas diferenças:\n\n` +
+          `- ${lostParticipants.length} participantes apenas no localStorage\n` +
+          `- ${firebaseOnly.length} participantes apenas no Firebase\n\n` +
+          `Clique OK para sincronizar localStorage → Firebase\n` +
+          `(Isso vai adicionar os participantes locais ao Firebase)`
+        ) ? 'sync' : 'cancel';
+      } else if (lostParticipants.length > 0) {
+        action = confirm(
+          `Encontrados ${lostParticipants.length} participantes no localStorage que não estão no Firebase.\n\n` +
+          `Deseja sincronizar agora?\n\n` +
+          `Isso vai adicionar esses participantes ao Firebase.`
+        ) ? 'sync' : 'cancel';
+      } else if (firebaseOnly.length > 0) {
+        action = confirm(
+          `Encontrados ${firebaseOnly.length} participantes no Firebase que não estão no localStorage.\n\n` +
+          `Deseja carregar do Firebase?\n\n` +
+          `Isso vai adicionar esses participantes ao localStorage.`
+        ) ? 'load' : 'cancel';
+      }
+      
+      if (action === 'sync') {
+        console.log('\n🔄 Sincronizando localStorage → Firebase...');
+        await saveToCloud();
+        console.log('✅ Sincronização concluída!');
+        alert(`${lostParticipants.length} participantes foram sincronizados com o Firebase!`);
+      } else if (action === 'load') {
+        console.log('\n🔄 Carregando Firebase → localStorage...');
+        await loadFromCloud();
+        console.log('✅ Carregamento concluído!');
+        alert(`${firebaseOnly.length} participantes foram carregados do Firebase!`);
+      } else {
+        console.log('❌ Operação cancelada pelo usuário');
+        return;
+      }
+      
+      // Recarrega a interface
+      if (typeof refreshAll === 'function') {
+        refreshAll();
+      }
+      
+      return { lostParticipants, firebaseOnly };
+    };
+    
+    // ========= Função para Verificar Histórico/Backup =========
+    window.verificarBackups = function() {
+      console.log('🔍 === VERIFICANDO BACKUPS E HISTÓRICO ===\n');
+      
+      // Verifica todas as chaves do localStorage relacionadas
+      const allKeys = Object.keys(localStorage);
+      const backupKeys = allKeys.filter(key => 
+        key.includes('participant') || 
+        key.includes('backup') || 
+        key.includes('lb_') ||
+        key.includes('competition')
+      );
+      
+      console.log('📦 Chaves encontradas no localStorage:');
+      backupKeys.forEach(key => {
+        try {
+          const data = localStorage.getItem(key);
+          if (data) {
+            const parsed = JSON.parse(data);
+            if (Array.isArray(parsed)) {
+              console.log(`   ${key}: ${parsed.length} itens`);
+              if (parsed.length > 0 && parsed[0].name) {
+                console.log(`      Exemplo: ${parsed[0].name}`);
+              }
+            } else if (typeof parsed === 'object') {
+              const participants = parsed.participants || [];
+              if (participants.length > 0) {
+                console.log(`   ${key}: ${participants.length} participantes`);
+                console.log(`      Exemplo: ${participants[0].name}`);
+              }
+            }
+          }
+        } catch (e) {
+          console.log(`   ${key}: (erro ao ler)`);
+        }
+      });
+      
+      // Verifica se há dados em outras chaves conhecidas
+      const knownKeys = [
+        'lb_participants_v1',
+        'lb_participants_v0',
+        'weightCompetitionParticipants',
+        'participants_backup',
+        'competition_backup'
+      ];
+      
+      console.log('\n🔍 Verificando chaves conhecidas:');
+      knownKeys.forEach(key => {
+        const data = localStorage.getItem(key);
+        if (data) {
+          try {
+            const parsed = JSON.parse(data);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              console.log(`   ✅ ${key}: ${parsed.length} participantes`);
+              parsed.forEach((p, i) => {
+                if (p.name) console.log(`      ${i + 1}. ${p.name}`);
+              });
+            } else if (parsed.participants && Array.isArray(parsed.participants)) {
+              console.log(`   ✅ ${key}: ${parsed.participants.length} participantes`);
+              parsed.participants.forEach((p, i) => {
+                if (p.name) console.log(`      ${i + 1}. ${p.name}`);
+              });
+            }
+          } catch (e) {
+            // Ignora erros
+          }
+        }
+      });
+      
+      return backupKeys;
+    };
+    
+    // ========= Função para Criar Backup Manual =========
+    window.criarBackupManual = function() {
+      console.log('💾 === CRIANDO BACKUP MANUAL ===\n');
+      
+      const data = {
+        participants: JSON.parse(localStorage.getItem('lb_participants_v1') || '[]'),
+        users: JSON.parse(localStorage.getItem('lb_users_v1') || '[]'),
+        weightRecords: JSON.parse(localStorage.getItem('lb_weight_records_v1') || '[]'),
+        config: JSON.parse(localStorage.getItem('lb_config_v1') || '{}'),
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      };
+      
+      // Salva no localStorage com timestamp
+      const backupKey = `backup_${Date.now()}`;
+      localStorage.setItem(backupKey, JSON.stringify(data));
+      
+      // Também salva como backup principal
+      localStorage.setItem('backup_principal', JSON.stringify(data));
+      
+      // Cria download do arquivo
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_liga_balanca_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      console.log(`✅ Backup criado: ${backupKey}`);
+      console.log(`✅ Arquivo baixado: ${a.download}`);
+      console.log(`📊 ${data.participants.length} participantes no backup`);
+      
+      alert(`Backup criado com sucesso!\n\n${data.participants.length} participantes salvos.\n\nArquivo baixado automaticamente.`);
+      
+      return data;
+    };
+    
+    // ========= Função para Restaurar de Backup (localStorage) =========
+    window.restaurarDeBackup = function(backupKey = 'backup_principal') {
+      console.log(`🔄 === RESTAURANDO DE BACKUP: ${backupKey} ===\n`);
+      
+      const backupData = localStorage.getItem(backupKey);
+      if (!backupData) {
+        console.error(`❌ Backup não encontrado: ${backupKey}`);
+        console.log('\n💡 Backups disponíveis no localStorage:');
+        const allKeys = Object.keys(localStorage);
+        const backupKeys = allKeys.filter(key => key.includes('backup'));
+        if (backupKeys.length > 0) {
+          backupKeys.forEach(key => console.log(`   - ${key}`));
+        } else {
+          console.log('   Nenhum backup encontrado');
+        }
+        alert(`Backup "${backupKey}" não encontrado!\n\nVerifique o console para ver backups disponíveis.`);
+        return false;
+      }
+      
+      try {
+        const data = JSON.parse(backupData);
+        
+        if (data.participants && Array.isArray(data.participants)) {
+          console.log(`📊 Restaurando ${data.participants.length} participantes...`);
+          
+          const confirmRestore = confirm(
+            `Encontrado backup com ${data.participants.length} participantes.\n\n` +
+            `Deseja restaurar este backup?\n\n` +
+            `ATENÇÃO: Isso vai substituir os dados atuais!`
+          );
+          
+          if (confirmRestore) {
+            localStorage.setItem('lb_participants_v1', JSON.stringify(data.participants));
+            if (data.users) localStorage.setItem('lb_users_v1', JSON.stringify(data.users));
+            if (data.weightRecords) localStorage.setItem('lb_weight_records_v1', JSON.stringify(data.weightRecords));
+            if (data.config) localStorage.setItem('lb_config_v1', JSON.stringify(data.config));
+            
+            console.log('✅ Backup restaurado no localStorage!');
+            
+            // Atualiza variável global
+            if (typeof participants !== 'undefined') {
+              participants.length = 0;
+              participants.push(...data.participants);
+              console.log(`✅ Variável global atualizada: ${participants.length} participantes`);
+            }
+            
+            // Recarrega interface
+            if (typeof refreshAll === 'function') {
+              refreshAll();
+              console.log('✅ Interface atualizada');
+            }
+            
+            // Sincroniza com Firebase
+            if (typeof saveToCloud === 'function') {
+              saveToCloud().then(() => {
+                console.log('✅ Dados sincronizados com Firebase');
+                alert(`Backup restaurado com sucesso!\n\n${data.participants.length} participantes restaurados e sincronizados.`);
+              }).catch(err => {
+                console.error('❌ Erro ao sincronizar:', err);
+                alert(`Backup restaurado localmente, mas houve erro ao sincronizar com Firebase.\n\nVerifique o console.`);
+              });
+            } else {
+              alert(`Backup restaurado com sucesso!\n\n${data.participants.length} participantes restaurados.`);
+            }
+            
+            return true;
+          } else {
+            console.log('❌ Restauração cancelada pelo usuário');
+            return false;
+          }
+        } else {
+          console.error('❌ Formato de backup inválido');
+          console.error('Estrutura esperada: { participants: [...], users: [...], ... }');
+          alert('Formato de backup inválido!\n\nVerifique o console para mais detalhes.');
+          return false;
+        }
+      } catch (error) {
+        console.error('❌ Erro ao restaurar backup:', error);
+        alert('Erro ao restaurar backup: ' + error.message);
+        return false;
+      }
+    };
+    
+    // ========= Função para Restaurar de Arquivo JSON =========
+    window.restaurarDeArquivo = function(fileInput) {
+      return new Promise((resolve, reject) => {
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+          reject(new Error('Nenhum arquivo selecionado'));
+          return;
+        }
+        
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          try {
+            const data = JSON.parse(e.target.result);
+            console.log('📄 Arquivo carregado:', file.name);
+            console.log('📊 Dados encontrados:', {
+              participants: data.participants?.length || 0,
+              users: data.users?.length || 0,
+              weightRecords: data.weightRecords?.length || 0
+            });
+            
+            if (!data.participants || !Array.isArray(data.participants)) {
+              throw new Error('Formato inválido: campo "participants" não encontrado ou não é um array');
+            }
+            
+            const confirmRestore = confirm(
+              `Arquivo: ${file.name}\n\n` +
+              `Encontrados:\n` +
+              `- ${data.participants.length} participantes\n` +
+              `- ${data.users?.length || 0} usuários\n` +
+              `- ${data.weightRecords?.length || 0} registros de peso\n\n` +
+              `Deseja restaurar este backup?\n\n` +
+              `ATENÇÃO: Isso vai substituir os dados atuais!`
+            );
+            
+            if (confirmRestore) {
+              localStorage.setItem('lb_participants_v1', JSON.stringify(data.participants));
+              if (data.users) localStorage.setItem('lb_users_v1', JSON.stringify(data.users));
+              if (data.weightRecords) localStorage.setItem('lb_weight_records_v1', JSON.stringify(data.weightRecords));
+              if (data.config) localStorage.setItem('lb_config_v1', JSON.stringify(data.config));
+              
+              console.log('✅ Backup restaurado do arquivo!');
+              
+              // Atualiza variável global
+              if (typeof participants !== 'undefined') {
+                participants.length = 0;
+                participants.push(...data.participants);
+              }
+              
+              // Recarrega interface
+              if (typeof refreshAll === 'function') {
+                refreshAll();
+              }
+              
+              // Sincroniza com Firebase
+              if (typeof saveToCloud === 'function') {
+                saveToCloud().then(() => {
+                  console.log('✅ Dados sincronizados com Firebase');
+                  alert(`Backup restaurado com sucesso!\n\n${data.participants.length} participantes restaurados e sincronizados.`);
+                  resolve(data);
+                }).catch(err => {
+                  console.error('❌ Erro ao sincronizar:', err);
+                  alert(`Backup restaurado localmente, mas houve erro ao sincronizar.\n\nVerifique o console.`);
+                  resolve(data);
+                });
+              } else {
+                alert(`Backup restaurado com sucesso!\n\n${data.participants.length} participantes restaurados.`);
+                resolve(data);
+              }
+            } else {
+              console.log('❌ Restauração cancelada pelo usuário');
+              reject(new Error('Restauração cancelada pelo usuário'));
+            }
+          } catch (error) {
+            console.error('❌ Erro ao processar arquivo:', error);
+            alert('Erro ao processar arquivo: ' + error.message);
+            reject(error);
+          }
+        };
+        
+        reader.onerror = function() {
+          reject(new Error('Erro ao ler arquivo'));
+        };
+        
+        reader.readAsText(file);
+      });
+    };
+    
+    // ========= Função para Limpar e Recriar Documento no Firebase (sem fotos) =========
+    window.limparERecriarFirebase = async function() {
+      try {
+        console.log('🧹 Limpando e recriando documento no Firebase (removendo fotos)...');
+        
+        if (!window.db) {
+          console.error('❌ Firebase não disponível');
+          alert('Firebase não está disponível. Verifique a conexão.');
+          return;
+        }
+        
+        // Deleta o documento atual
+        await window.db.collection('competition').doc('data').delete();
+        console.log('✅ Documento antigo deletado');
+        
+        // Salva novamente sem fotos
+        await saveToCloud();
+        console.log('✅ Novo documento criado sem fotos');
+        alert('Documento do Firebase foi limpo e recriado sem fotos. As fotos permanecem no localStorage.');
+      } catch (error) {
+        console.error('❌ Erro ao limpar e recriar:', error);
+        alert('Erro ao limpar documento: ' + error.message);
+      }
+    };
+    
+    // ========= Função para Verificar Onde as Imagens Estão Salvas =========
+    window.verificarImagens = async function() {
+      console.log('🔍 === VERIFICAÇÃO DE IMAGENS ===\n');
+      
+      // 1. Verifica localStorage
+      console.log('📱 1. VERIFICANDO LOCALSTORAGE:');
+      const localParticipants = JSON.parse(localStorage.getItem('lb_participants_v1') || '[]');
+      const localUsers = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+      
+      const participantsWithPhotos = localParticipants.filter(p => p.photo && p.photo.trim() !== '');
+      const usersWithPhotos = localUsers.filter(u => u.photo && u.photo.trim() !== '');
+      
+      console.log(`   ✅ ${localParticipants.length} participantes no localStorage`);
+      console.log(`   📸 ${participantsWithPhotos.length} participantes COM foto no localStorage`);
+      console.log(`   ✅ ${localUsers.length} usuários no localStorage`);
+      console.log(`   📸 ${usersWithPhotos.length} usuários COM foto no localStorage`);
+      
+      // Mostra detalhes das fotos
+      if (participantsWithPhotos.length > 0) {
+        console.log('\n   📋 Participantes com foto:');
+        participantsWithPhotos.forEach(p => {
+          const photoSize = (p.photo.length / 1024).toFixed(2);
+          console.log(`      - ${p.name}: ${photoSize} KB (${p.photo.substring(0, 30)}...)`);
+        });
+      }
+      
+      // 2. Verifica Firebase
+      console.log('\n🔥 2. VERIFICANDO FIREBASE:');
+      if (!window.db) {
+        console.log('   ❌ Firebase não está disponível');
+        return;
+      }
+      
+      try {
+        const doc = await window.db.collection('competition').doc('data').get();
+        if (doc.exists) {
+          const firebaseData = doc.data();
+          const firebaseParticipants = firebaseData.participants || [];
+          const firebaseUsers = firebaseData.users || [];
+          
+          const firebaseParticipantsWithPhotos = firebaseParticipants.filter(p => p.photo && p.photo.trim() !== '');
+          const firebaseUsersWithPhotos = firebaseUsers.filter(u => u.photo && u.photo.trim() !== '');
+          
+          console.log(`   ✅ ${firebaseParticipants.length} participantes no Firebase`);
+          console.log(`   📸 ${firebaseParticipantsWithPhotos.length} participantes COM foto no Firebase`);
+          console.log(`   ✅ ${firebaseUsers.length} usuários no Firebase`);
+          console.log(`   📸 ${firebaseUsersWithPhotos.length} usuários COM foto no Firebase`);
+          
+          // Calcula tamanho do documento
+          const docSize = JSON.stringify(firebaseData).length;
+          const docSizeMB = (docSize / 1024 / 1024).toFixed(2);
+          console.log(`   📏 Tamanho do documento: ${docSizeMB} MB (${docSize} bytes)`);
+          
+          if (firebaseParticipantsWithPhotos.length > 0 || firebaseUsersWithPhotos.length > 0) {
+            console.log('\n   ⚠️ ATENÇÃO: Fotos encontradas no Firebase!');
+            console.log('   ⚠️ Isso pode causar erro de tamanho. Execute limparERecriarFirebase() para remover.');
+          } else {
+            console.log('\n   ✅ Nenhuma foto no Firebase (correto - fotos devem estar apenas no localStorage)');
+          }
+        } else {
+          console.log('   ℹ️ Nenhum documento encontrado no Firebase');
+        }
+      } catch (error) {
+        console.error('   ❌ Erro ao verificar Firebase:', error);
+      }
+      
+      // 3. Verifica interface
+      console.log('\n🖼️ 3. VERIFICANDO INTERFACE:');
+      const avatarElements = document.querySelectorAll('.avatar, .avatar-preview, .user-avatar-small img');
+      console.log(`   ✅ ${avatarElements.length} elementos de avatar encontrados na página`);
+      
+      if (avatarElements.length > 0) {
+        avatarElements.forEach((img, idx) => {
+          if (img.src && img.src.startsWith('data:image')) {
+            console.log(`   📸 Avatar ${idx + 1}: Foto base64 (${(img.src.length / 1024).toFixed(2)} KB)`);
+          } else if (img.src) {
+            console.log(`   🔗 Avatar ${idx + 1}: URL externa (${img.src.substring(0, 50)}...)`);
+          } else {
+            console.log(`   ❌ Avatar ${idx + 1}: Sem src`);
+          }
+        });
+      }
+      
+      // 4. Resumo
+      console.log('\n📊 RESUMO:');
+      console.log(`   ✅ Fotos no localStorage: ${participantsWithPhotos.length + usersWithPhotos.length}`);
+      console.log(`   ✅ Fotos na interface: ${avatarElements.length}`);
+      console.log('\n💡 NOTA: As fotos devem estar APENAS no localStorage, NÃO no Firebase.');
+      console.log('💡 Isso evita o erro de tamanho do documento (limite de 1 MB).');
+      
+      return {
+        localStorage: {
+          participants: participantsWithPhotos.length,
+          users: usersWithPhotos.length,
+          total: participantsWithPhotos.length + usersWithPhotos.length
+        },
+        firebase: {
+          participants: firebaseParticipantsWithPhotos?.length || 0,
+          users: firebaseUsersWithPhotos?.length || 0,
+          total: (firebaseParticipantsWithPhotos?.length || 0) + (firebaseUsersWithPhotos?.length || 0)
+        },
+        interface: {
+          avatars: avatarElements.length
+        }
+      };
+    };
+
+    // ========= Função para Verificar Participantes no Firebase =========
+    window.verificarParticipantesFirebase = async function() {
+      console.log('🔍 === VERIFICAÇÃO DE PARTICIPANTES NO FIREBASE ===\n');
+      
+      // Verifica se Firebase está disponível
+      if (!window.db) {
+        console.error('❌ Firebase não está disponível');
+        console.log('💡 Verifique se o Firebase foi inicializado corretamente.');
+        return null;
+      }
+      
+      try {
+        // Busca o documento no Firebase
+        const doc = await window.db.collection('competition').doc('data').get();
+        
+        if (!doc.exists) {
+          console.log('ℹ️ Nenhum documento encontrado no Firebase');
+          console.log('💡 O documento "competition/data" não existe ainda.');
+          return {
+            exists: false,
+            participants: 0,
+            users: 0,
+            weightRecords: 0
+          };
+        }
+        
+        const data = doc.data();
+        const participants = data.participants || [];
+        const users = data.users || [];
+        const weightRecords = data.weightRecords || [];
+        const config = data.config || {};
+        
+        // Estatísticas detalhadas
+        console.log('📊 ESTATÍSTICAS DO FIREBASE:\n');
+        console.log(`   👥 Participantes: ${participants.length}`);
+        console.log(`   👤 Usuários: ${users.length}`);
+        console.log(`   ⚖️ Registros de Peso: ${weightRecords.length}`);
+        console.log(`   ⚙️ Configuração: ${Object.keys(config).length > 0 ? 'Sim' : 'Não'}`);
+        
+        // Detalhes dos participantes
+        if (participants.length > 0) {
+          console.log('\n📋 LISTA DE PARTICIPANTES:');
+          participants.forEach((p, index) => {
+            const weightsCount = p.weights ? p.weights.length : 0;
+            const hasPhoto = p.photo ? '📸' : '❌';
+            console.log(`   ${index + 1}. ${p.name || 'Sem nome'} - ${p.department || 'Sem departamento'} - ${weightsCount} pesagens ${hasPhoto}`);
+          });
+          
+          // Estatísticas adicionais
+          const withPhotos = participants.filter(p => p.photo && p.photo.trim() !== '').length;
+          const withWeights = participants.filter(p => p.weights && p.weights.length > 0).length;
+          const withTarget = participants.filter(p => p.targetWeight).length;
+          
+          console.log('\n📈 ESTATÍSTICAS ADICIONAIS:');
+          console.log(`   📸 Com foto: ${withPhotos} (${((withPhotos / participants.length) * 100).toFixed(1)}%)`);
+          console.log(`   ⚖️ Com pesagens: ${withWeights} (${((withWeights / participants.length) * 100).toFixed(1)}%)`);
+          console.log(`   🎯 Com meta de peso: ${withTarget} (${((withTarget / participants.length) * 100).toFixed(1)}%)`);
+        }
+        
+        // Tamanho do documento
+        const docSize = JSON.stringify(data).length;
+        const docSizeMB = (docSize / 1024 / 1024).toFixed(2);
+        const docSizeKB = (docSize / 1024).toFixed(2);
+        
+        console.log('\n📏 TAMANHO DO DOCUMENTO:');
+        console.log(`   ${docSizeKB} KB (${docSizeMB} MB)`);
+        console.log(`   ${docSize} bytes`);
+        
+        if (docSize > 1048576) {
+          console.log('   ⚠️ ATENÇÃO: Documento excede 1 MB! Pode causar erros.');
+        } else if (docSize > 900000) {
+          console.log('   ⚠️ AVISO: Documento próximo do limite de 1 MB.');
+        } else {
+          console.log('   ✅ Tamanho dentro do limite (1 MB).');
+        }
+        
+        // Última sincronização
+        if (data.lastSync) {
+          const lastSyncDate = new Date(data.lastSync);
+          const now = new Date();
+          const diffMinutes = Math.floor((now - lastSyncDate) / 1000 / 60);
+          console.log('\n🕐 ÚLTIMA SINCRONIZAÇÃO:');
+          console.log(`   ${lastSyncDate.toLocaleString('pt-BR')}`);
+          console.log(`   ${diffMinutes} minutos atrás`);
+        }
+        
+        // Comparação com localStorage
+        console.log('\n🔄 COMPARAÇÃO COM LOCALSTORAGE:');
+        const localParticipants = JSON.parse(localStorage.getItem('lb_participants_v1') || '[]');
+        const localUsers = JSON.parse(localStorage.getItem('lb_users_v1') || '[]');
+        
+        console.log(`   LocalStorage: ${localParticipants.length} participantes, ${localUsers.length} usuários`);
+        console.log(`   Firebase: ${participants.length} participantes, ${users.length} usuários`);
+        
+        if (localParticipants.length !== participants.length) {
+          console.log('   ⚠️ Diferença detectada! Os dados podem estar desincronizados.');
+        } else {
+          console.log('   ✅ Números coincidem!');
+        }
+        
+        return {
+          exists: true,
+          participants: participants.length,
+          users: users.length,
+          weightRecords: weightRecords.length,
+          documentSize: docSize,
+          documentSizeMB: parseFloat(docSizeMB),
+          lastSync: data.lastSync,
+          details: {
+            withPhotos: participants.filter(p => p.photo && p.photo.trim() !== '').length,
+            withWeights: participants.filter(p => p.weights && p.weights.length > 0).length,
+            withTarget: participants.filter(p => p.targetWeight).length
+          }
+        };
+        
+      } catch (error) {
+        console.error('❌ Erro ao verificar Firebase:', error);
+        console.error('Detalhes:', error.message);
+        return null;
+      }
+    };
 
     // ========= Função de Verificação de Dados Carregados (Corrigida) =========
     window.verificarDadosCarregadosCorrigido = function() {
