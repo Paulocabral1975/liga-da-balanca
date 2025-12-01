@@ -9,6 +9,8 @@
     <!-- Firebase SDKs - CDN Oficial v8.10.1 (Última Versão Estável) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- Firebase Storage (para salvar fotos de avatar/pesagens na nuvem) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     
     <!-- Eruda - Console de Desenvolvimento para Mobile (Inspeção sem computador) -->
     <script>
@@ -3240,6 +3242,28 @@
         img.src = dataURL;
       });
     }
+
+    // Upload de foto de participante para Firebase Storage
+    async function uploadParticipantPhoto(file, participantId) {
+      if (!file || !participantId) {
+        throw new Error('Arquivo ou ID do participante inválidos para upload');
+      }
+      if (!window.storage) {
+        throw new Error('Firebase Storage não inicializado');
+      }
+
+      console.log('📤 Enviando foto para Firebase Storage...');
+      const ext = (file.name && file.name.split('.').pop()) || 'jpg';
+      const safeExt = (ext || 'jpg').toLowerCase();
+      const path = `avatars/${participantId}.${safeExt}`;
+
+      const storageRef = window.storage.ref().child(path);
+      const snapshot = await storageRef.put(file);
+      const downloadURL = await snapshot.ref.getDownloadURL();
+      console.log('✅ Foto enviada para Storage. URL:', downloadURL);
+      return downloadURL;
+    }
+
     function bindImagePreview(inputEl, imgEl) {
       inputEl.addEventListener('change', async () => {
         const file = inputEl.files?.[0];
@@ -4214,13 +4238,24 @@
           return;
         }
 
+        // Criação do participante (ID já gerado para poder usar no caminho da foto)
+        console.log('Criando novo participante...'); // Debug
+        const participantId = uid();
+
         // Processamento da foto (opcional)
-        let photoDataUrl = null;
+        let photoUrl = null;
         try {
           const file = participantPhotoInput?.files?.[0];
           if (file) {
-            console.log('Processando foto...'); // Debug
-            photoDataUrl = await fileToDataURL(file);
+            console.log('Processando foto do participante...'); // Debug
+            if (window.storage) {
+              // Upload para Firebase Storage e uso da URL pública
+              photoUrl = await uploadParticipantPhoto(file, participantId);
+            } else {
+              // Fallback: mantém comportamento antigo em base64/localStorage
+              const dataUrl = await fileToDataURL(file);
+              photoUrl = dataUrl;
+            }
             console.log('Foto processada com sucesso'); // Debug
           }
         } catch (photoError) {
@@ -4228,9 +4263,6 @@
           // Continua sem foto se houver erro
         }
 
-        // Criação do participante
-        console.log('Criando novo participante...'); // Debug
-        const participantId = uid();
         const np = {
           id: participantId,
           name, 
@@ -4239,7 +4271,7 @@
           department: dep || 'Não informado',
           profile: profile,
           password: password,
-          photo: photoDataUrl,
+          photo: photoUrl,
           weights: [{ value: iw, date: new Date().toISOString(), notes: 'Peso inicial' }]
         };
         
@@ -4765,7 +4797,17 @@
 
       const file = editParticipantPhotoInput?.files?.[0];
       if (file) {
-        participants[idx].photo = await fileToDataURL(file);
+        try {
+          if (window.storage) {
+            // Atualiza foto no Firebase Storage
+            participants[idx].photo = await uploadParticipantPhoto(file, id);
+          } else {
+            // Fallback para base64/localStorage
+            participants[idx].photo = await fileToDataURL(file);
+          }
+        } catch (photoError) {
+          console.error('Erro ao atualizar foto do participante:', photoError);
+        }
       } else if (editParticipantPhotoPreview?.dataset.remove === '1') {
         participants[idx].photo = null;
       }
@@ -6018,7 +6060,8 @@
         apiKey: "AIzaSyDB2BasIl64ILDd3m7b5TSgn8h5MrVVGKk",
         authDomain: "liga-da-balanca.firebaseapp.com",
         projectId: "liga-da-balanca",
-        storageBucket: "liga-da-balanca.firebasestorage.app",
+        // IMPORTANTE: o nome do bucket deve usar o domínio .appspot.com, não o domínio de download .firebasestorage.app
+        storageBucket: "liga-da-balanca.appspot.com",
         messagingSenderId: "582450272255",
         appId: "1:582450272255:web:5263cd4608a63457b479ca",
         measurementId: "G-XHQ2ZGX3LV"
@@ -6028,12 +6071,14 @@
         // Inicializar Firebase (versão 8.x)
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const storage = firebase.storage();
         
         console.log('✅ Firebase inicializado com sucesso!');
         firebaseInitialized = true;
         
-        // Torna o db global imediatamente
+        // Torna o db/storage globais imediatamente
         window.db = db;
+        window.storage = storage;
         
         // Torna as funções globais (se já existirem)
         if (typeof saveToCloud === 'function') {
@@ -6176,7 +6221,8 @@
         let users = usersData ? JSON.parse(usersData) : [];
         const config = configData ? JSON.parse(configData) : {};
         
-        // Função recursiva para remover todas as propriedades de foto
+        // Função recursiva para remover apenas imagens base64 grandes
+        // Mantém URLs de fotos (ex: Firebase Storage), que são strings pequenas
         function removePhotosRecursively(obj) {
           if (obj === null || obj === undefined) return obj;
           if (Array.isArray(obj)) {
@@ -6185,15 +6231,12 @@
           if (typeof obj === 'object') {
             const cleaned = {};
             for (const key in obj) {
-              // Remove qualquer propriedade relacionada a foto
-              if (key.toLowerCase().includes('photo') || 
-                  key.toLowerCase().includes('avatar') ||
-                  key.toLowerCase().includes('image') ||
-                  (typeof obj[key] === 'string' && obj[key].startsWith('data:image'))) {
-                // Pula propriedades de foto
+              const value = obj[key];
+              // Remove apenas valores que são imagens em base64 (data:image)
+              if (typeof value === 'string' && value.startsWith('data:image')) {
                 continue;
               }
-              cleaned[key] = removePhotosRecursively(obj[key]);
+              cleaned[key] = removePhotosRecursively(value);
             }
             return cleaned;
           }
@@ -6204,8 +6247,8 @@
           return obj;
         }
         
-        // Remove fotos (base64) dos participantes para reduzir tamanho do documento
-        // As fotos permanecem no localStorage, apenas não são sincronizadas no Firestore
+        // Remove apenas fotos em base64 dos objetos antes de enviar ao Firestore
+        // URLs de fotos (Firebase Storage) continuarão sendo sincronizadas normalmente
         participants = removePhotosRecursively(participants);
         weightRecords = removePhotosRecursively(weightRecords);
         users = removePhotosRecursively(users);
