@@ -1847,6 +1847,7 @@
         <button id="adminLoginBtn" class="btn btn-warning"><i class="fas fa-shield-alt"></i> Login Admin</button>
         <button id="debugBtn" class="btn btn-info" onclick="debugStorage()"><i class="fas fa-bug"></i> Debug</button>
         <button id="mobileDebugBtn" class="btn btn-secondary" onclick="ativarErudaMobile()" title="Ativa console de debug para mobile"><i class="fas fa-mobile-alt"></i> Debug Mobile</button>
+        <button id="refreshFromCloudBtn" class="btn btn-info" title="Carregar dados da nuvem (Firebase)"><i class="fas fa-cloud-download-alt"></i> Atualizar da Nuvem</button>
       </div>
     </div>
                 
@@ -3257,11 +3258,23 @@
       const safeExt = (ext || 'jpg').toLowerCase();
       const path = `avatars/${participantId}.${safeExt}`;
 
-      const storageRef = window.storage.ref().child(path);
-      const snapshot = await storageRef.put(file);
-      const downloadURL = await snapshot.ref.getDownloadURL();
-      console.log('✅ Foto enviada para Storage. URL:', downloadURL);
-      return downloadURL;
+      try {
+        const storageRef = window.storage.ref().child(path);
+        const snapshot = await storageRef.put(file);
+        const downloadURL = await snapshot.ref.getDownloadURL();
+        console.log('✅ Foto enviada para Storage. URL:', downloadURL);
+        return downloadURL;
+      } catch (error) {
+        // Se for erro de CORS, retorna null para usar fallback base64
+        if (error.message && (error.message.includes('CORS') || error.message.includes('ERR_FAILED') || error.code === 'storage/unauthorized')) {
+          console.warn('⚠️ Erro de CORS no Firebase Storage. Usando fallback base64 temporário.');
+          console.warn('💡 Para corrigir: configure CORS no Google Cloud Console para permitir seu domínio.');
+          console.warn('💡 Instruções: https://console.cloud.google.com/storage/browser/liga-da-balanca.appspot.com');
+          return null; // Retorna null para indicar que deve usar base64
+        }
+        // Outros erros são relançados
+        throw error;
+      }
     }
 
     function bindImagePreview(inputEl, imgEl) {
@@ -3287,6 +3300,7 @@
     const viewListBtn = document.getElementById('viewList');
     const viewGridBtn = document.getElementById('viewGrid');
     const viewHistoryBtn = document.getElementById('viewWeightHistory');
+    const refreshFromCloudBtn = document.getElementById('refreshFromCloudBtn');
 
     const participantModal = document.getElementById('participantModal');
     const weightModal = document.getElementById('weightModal');
@@ -3523,6 +3537,24 @@
     viewCardsBtn.addEventListener('click', () => switchView('cards'));
     viewListBtn.addEventListener('click', () => switchView('list'));
     viewGridBtn.addEventListener('click', () => switchView('grid'));
+
+    // Atualizar manualmente a partir da nuvem (Firebase)
+    if (refreshFromCloudBtn) {
+      refreshFromCloudBtn.addEventListener('click', async () => {
+        try {
+          if (typeof loadFromCloud === 'function') {
+            console.log('🔄 Carregando dados da nuvem (botão Atualizar da Nuvem)...');
+            await loadFromCloud();
+            alert('Dados atualizados da nuvem com sucesso!');
+          } else {
+            alert('Função de carregamento da nuvem não está disponível neste momento.');
+          }
+        } catch (err) {
+          console.error('Erro ao atualizar da nuvem:', err);
+          alert('Falha ao carregar dados da nuvem. Veja o console para detalhes.');
+        }
+      });
+    }
 
     // ========= Configuração da Competição =========
     function openConfigModal() {
@@ -4251,6 +4283,12 @@
             if (window.storage) {
               // Upload para Firebase Storage e uso da URL pública
               photoUrl = await uploadParticipantPhoto(file, participantId);
+              // Se retornou null (erro de CORS), usa base64 como fallback
+              if (photoUrl === null) {
+                console.log('⚠️ Usando base64 temporário devido a erro de CORS');
+                photoUrl = await fileToDataURL(file);
+                alert('⚠️ Foto salva temporariamente em base64. Para sincronizar entre dispositivos, configure CORS no Google Cloud Console.\n\nAcesse: https://console.cloud.google.com/storage/browser/liga-da-balanca.appspot.com');
+              }
             } else {
               // Fallback: mantém comportamento antigo em base64/localStorage
               const dataUrl = await fileToDataURL(file);
@@ -4260,7 +4298,16 @@
           }
         } catch (photoError) {
           console.error('Erro ao processar foto:', photoError);
-          // Continua sem foto se houver erro
+          // Tenta usar base64 como último recurso
+          try {
+            const file = participantPhotoInput?.files?.[0];
+            if (file) {
+              photoUrl = await fileToDataURL(file);
+              console.log('✅ Foto salva em base64 como fallback');
+            }
+          } catch (fallbackError) {
+            console.error('Erro no fallback base64:', fallbackError);
+          }
         }
 
         const np = {
@@ -4800,13 +4847,29 @@
         try {
           if (window.storage) {
             // Atualiza foto no Firebase Storage
-            participants[idx].photo = await uploadParticipantPhoto(file, id);
+            let photoUrl = await uploadParticipantPhoto(file, id);
+            // Se retornou null (erro de CORS), usa base64 como fallback
+            if (photoUrl === null) {
+              console.log('⚠️ Usando base64 temporário devido a erro de CORS');
+              photoUrl = await fileToDataURL(file);
+              alert('⚠️ Foto salva temporariamente em base64. Para sincronizar entre dispositivos, configure CORS no Google Cloud Console.\n\nAcesse: https://console.cloud.google.com/storage/browser/liga-da-balanca.appspot.com');
+            }
+            participants[idx].photo = photoUrl;
           } else {
             // Fallback para base64/localStorage
             participants[idx].photo = await fileToDataURL(file);
           }
         } catch (photoError) {
           console.error('Erro ao atualizar foto do participante:', photoError);
+          // Tenta usar base64 como último recurso
+          try {
+            if (file) {
+              participants[idx].photo = await fileToDataURL(file);
+              console.log('✅ Foto salva em base64 como fallback');
+            }
+          } catch (fallbackError) {
+            console.error('Erro no fallback base64:', fallbackError);
+          }
         }
       } else if (editParticipantPhotoPreview?.dataset.remove === '1') {
         participants[idx].photo = null;
@@ -6060,8 +6123,8 @@
         apiKey: "AIzaSyDB2BasIl64ILDd3m7b5TSgn8h5MrVVGKk",
         authDomain: "liga-da-balanca.firebaseapp.com",
         projectId: "liga-da-balanca",
-        // IMPORTANTE: o nome do bucket deve usar o domínio .appspot.com, não o domínio de download .firebasestorage.app
-        storageBucket: "liga-da-balanca.appspot.com",
+        // IMPORTANTE: usar o bucket real que existe no Firebase Storage
+        storageBucket: "liga-da-balanca.firebasestorage.app",
         messagingSenderId: "582450272255",
         appId: "1:582450272255:web:5263cd4608a63457b479ca",
         measurementId: "G-XHQ2ZGX3LV"
