@@ -3269,7 +3269,7 @@
         if (error.message && (error.message.includes('CORS') || error.message.includes('ERR_FAILED') || error.code === 'storage/unauthorized')) {
           console.warn('⚠️ Erro de CORS no Firebase Storage. Usando fallback base64 temporário.');
           console.warn('💡 Para corrigir: configure CORS no Google Cloud Console para permitir seu domínio.');
-          console.warn('💡 Instruções: https://console.cloud.google.com/storage/browser/liga-da-balanca.appspot.com');
+          console.warn('💡 Instruções: https://console.cloud.google.com/storage/browser/liga-da-balanca.firebasestorage.app');
           return null; // Retorna null para indicar que deve usar base64
         }
         // Outros erros são relançados
@@ -4287,7 +4287,7 @@
               if (photoUrl === null) {
                 console.log('⚠️ Usando base64 temporário devido a erro de CORS');
                 photoUrl = await fileToDataURL(file);
-                alert('⚠️ Foto salva temporariamente em base64. Para sincronizar entre dispositivos, configure CORS no Google Cloud Console.\n\nAcesse: https://console.cloud.google.com/storage/browser/liga-da-balanca.appspot.com');
+                alert('⚠️ Foto salva temporariamente em base64. Para sincronizar entre dispositivos, configure CORS no Google Cloud Console.\n\nAcesse: https://console.cloud.google.com/storage/browser/liga-da-balanca.firebasestorage.app');
               }
             } else {
               // Fallback: mantém comportamento antigo em base64/localStorage
